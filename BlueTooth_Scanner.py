@@ -7,13 +7,58 @@ import asyncio
 from bleak import BleakScanner, BleakClient
 
 COMPANIES = {
-    76: "Apple",
+    # Computing
+    0: "<Placeholder> or Ericsson",
+    2: "Intel",
     6: "Microsoft",
+    13: "Texas Instruments",
     15: "Broadcom",
-    224: "Google",
+    48: "STMicroelectronics",
+    57: "Murata",
+    76: "Apple",
+    89: "Nordic Semiconductor",
+    93: "BlackBerry",
     117: "Samsung Electronics",
+    224: "Google",
     301: "Garmin",
+    429: "Qualcomm",
+    480: "Huawei",
+    518: "Xiaomi",
+    637: "OnePlus",
+    741: "Fitbit",
     1027: "Nordic Semiconductor",
+    1177: "Sony",
+    1361: "Meta",
+    2247: "Espressif Systems",
+
+    # Audio
+    158: "Bose",
+    196: "Jabra",
+    205: "Plantronics",
+    215: "GN Netcom",
+    470: "Anker",
+    538: "JBL",
+    559: "Skullcandy",
+    655: "Sennheiser",
+    889: "Shokz",
+
+    # Fitness / Health
+    301: "Garmin",
+    741: "Fitbit",
+    1664: "Peloton",
+    1718: "Whoop",
+
+    # Smart Home / IoT
+    466: "Tuya",
+    647: "Tuya Smart",
+    1037: "Shelly",
+    1190: "Aqara",
+
+    # Development boards
+    89: "Nordic Semiconductor",
+    2247: "Espressif Systems",
+    305: "Dialog Semiconductor",
+    889: "Silicon Labs",
 }
 
 # Scan for Bluetooth emitters
@@ -57,9 +102,8 @@ raise SystemExit
 
 """
 #-----------------------------------------------------------------------------------------------------------
-# If you want a simpler Scanner, this is enough:
+# If you want a simpler Scanner, this script is enough:
 # %> pip install bleak
-"""
 
 import asyncio
 from bleak import BleakScanner, BleakClient
@@ -73,3 +117,4 @@ async def main():
         print(f"Found {d.address=} ; {d.name=}")
 
 asyncio.run(main())
+"""
