@@ -21,7 +21,7 @@ COMPANIES = {
 async def main():
     devices = await BleakScanner.discover(timeout=5.0, return_adv=True)
 
-    print(f"Found {len(devices)} BLE devices\n")
+    print(f"Found {len(devices)} BLE device{"s" if len(devices) > 1 else ""}\n")
 
     for address, (dev, adv) in devices.items():
         print("-" * 60)
