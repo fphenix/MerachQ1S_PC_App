@@ -11,4 +11,4 @@ Dependencies : PySide6, Bleak (& pyftms)
 
 You need to use a BlueTooth Scanner in order to get the ROWER_ADDRESS for your machine and update constants.py accordingly.
 
-
+Use BlueTooth_Scanner.py to get your devide address.
