@@ -55,76 +55,88 @@ class MainWindow(QMainWindow):
             0,
             0,
             1,
-            2,
+            3,
         )
 
         #
         # Widgets
         #
 
-        self.timeWidget = MetricWidget("Temps")
+        self.timeWidget = MetricWidget(
+            "Temps",
+            "h:mm:ss"
+        )
 
         self.distanceWidget = MetricWidget(
             "Distance",
             "m",
         )
 
-        self.spmWidget = MetricWidget(
-            "Cadence",
-            "spm",
-        )
-
-        self.avgSpmWidget = MetricWidget(
-            "Cadence moyenne",
-            "spm",
+        self.speedWidget = MetricWidget(
+            "Vitesse",
+            "m/s  /  avg",
         )
 
         self.strokeWidget = MetricWidget(
             "Coups",
         )
 
-        self.powerWidget = MetricWidget(
-            "Puissance",
-            "W / Wavg",
+        self.distStrokeWidget = MetricWidget(
+            "Dist/Coup",
+            "m/coup",
         )
 
-        self.paceWidget = MetricWidget(
-            "Allure",
-            "/500 m",
+        self.powerWidget = MetricWidget(
+            "Puissance",
+            "W  /  Wavg",
+        )
+
+        self.cadenceWidget = MetricWidget(
+            "Cadence",
+            "spm  /  spm avg",
+        )
+
+        self.splitWidget = MetricWidget(
+            "Split",
+            "min/500m  /  avg",
         )
 
         self.kcalWidget = MetricWidget(
             "Calories",
-            "kcal",
+            "kcal/s  /  kcal",
         )
 
-        widgets = [
+        #
+        # Ligne 1
+        #
 
-            self.timeWidget,
-            self.distanceWidget,
+        grid.addWidget(self.timeWidget,       1, 0)
+        grid.addWidget(self.distanceWidget,   1, 1)
+        grid.addWidget(self.speedWidget,      1, 2)
 
-            self.spmWidget,
-            self.avgSpmWidget,
+        #
+        # Ligne 2
+        #
 
-            self.strokeWidget,
-            self.powerWidget,
+        grid.addWidget(self.strokeWidget,     2, 0)
+        grid.addWidget(self.distStrokeWidget, 2, 1)
+        grid.addWidget(self.powerWidget,      2, 2)
 
-            self.paceWidget,
-            self.kcalWidget,
-        ]
+        #
+        # Ligne 3
+        #
 
-        for i, widget in enumerate(widgets):
-
-            row = (i // 2) + 1
-            col = i % 2
-
-            grid.addWidget(widget, row, col)
+        grid.addWidget(self.cadenceWidget,    3, 0)
+        grid.addWidget(self.splitWidget,      3, 1)
+        grid.addWidget(self.kcalWidget,       3, 2)
 
         #
         # Bouton Reset
         #
 
-        self.resetButton = QPushButton("Nouvelle séance")
+        self.resetButton = QPushButton(
+            "Nouvelle séance"
+        )
 
         self.resetButton.clicked.connect(
             self.state.reset_session
@@ -132,10 +144,10 @@ class MainWindow(QMainWindow):
 
         grid.addWidget(
             self.resetButton,
-            5,
+            4,
             0,
             1,
-            2,
+            3,
         )
 
         #
@@ -149,7 +161,6 @@ class MainWindow(QMainWindow):
         self.refresh()
 
     def refresh(self):
-
         snapshot = self.state.snapshot()
 
         ftms = snapshot.ftms
@@ -172,23 +183,19 @@ class MainWindow(QMainWindow):
         )
 
         #
-        # Distance calculée
+        # Distance
         #
 
         self.distanceWidget.setValue(
-            f"{session.corrected_distance:.0f}"
+            f"{session.distance:.0f}"
         )
 
         #
-        # Cadence
+        # Vitesse
         #
 
-        self.spmWidget.setValue(
-            f"{ftms.stroke_rate:.1f}"
-        )
-
-        self.avgSpmWidget.setValue(
-            f"{ftms.stroke_rate_avg:.1f}"
+        self.speedWidget.setValue(
+            f"{session.speed:.2f} / {session.speed_avg:.2f}"
         )
 
         #
@@ -200,6 +207,14 @@ class MainWindow(QMainWindow):
         )
 
         #
+        # Distance / coup
+        #
+
+        self.distStrokeWidget.setValue(
+            f"{session.distance_per_stroke:.2f}"
+        )
+
+        #
         # Puissance
         #
 
@@ -208,11 +223,19 @@ class MainWindow(QMainWindow):
         )
 
         #
-        # Allure moyenne
+        # Cadence
         #
 
-        self.paceWidget.setValue(
-            format_pace(ftms.split_avg)
+        self.cadenceWidget.setValue(
+            f"{session.cadence:.1f} / {session.cadence_avg:.1f}"
+        )
+
+        #
+        # Split
+        #
+
+        self.splitWidget.setValue(
+            f"{format_pace(session.split)} / {format_pace(session.split_avg)}"
         )
 
         #
@@ -220,5 +243,6 @@ class MainWindow(QMainWindow):
         #
 
         self.kcalWidget.setValue(
-            f"{ftms.kcal:.0f}"
+            f"{session.calories_rate:.3f} / {session.calories:.1f}"
         )
+        

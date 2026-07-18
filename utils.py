@@ -1,13 +1,41 @@
-def format_time(seconds: float) -> str:
-    s=int(seconds)
-    h=s//3600
-    m=(s%3600)//60
-    s=s%60
-    return f"{h:02}:{m:02}:{s:02}"
+def format_pace(seconds: float) -> str:
+    """
+    Convertit un temps en secondes vers le format m:ss.
 
-def format_pace(seconds: float)->str:
-    if seconds<=0:
+    Exemple :
+        118.4 -> 1:58
+        89.9  -> 1:30
+    """
+
+    if seconds <= 0:
         return "--:--"
-    m=int(seconds)//60
-    s=int(seconds)%60
-    return f"{m}:{s:02}"
+
+    total = int(round(seconds))
+
+    minutes = total // 60
+    secondes = total % 60
+
+    return f"{minutes}:{secondes:02}"
+
+# ---------------------------------------------------------------------------------
+
+def format_time(seconds: float) -> str:
+    """
+    Convertit un temps en secondes vers le format h:mm:ss.
+
+    Exemple :
+        118.4 -> 0:01:58
+        89.9  -> 0:01:30
+    """
+    if seconds <= 0:
+        return "--:--:--"
+    
+    total = int(round(seconds))
+
+    hours = total // 3600
+    total -= hours * 3600
+
+    minutes = total // 60
+    secondes = total % 60
+
+    return f"{hours}:{minutes:02}:{secondes:02}"

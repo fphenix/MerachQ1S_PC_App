@@ -67,5 +67,6 @@ class MetricWidget(QFrame):
         layout.addStretch()
         layout.addWidget(self.unit)
 
+
     def setValue(self, value):
         self.value.setText(str(value))
