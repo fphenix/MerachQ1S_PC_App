@@ -238,10 +238,14 @@ class RowState:
             if stroke_event:
 
                 #
-                # mémorise chaque nouveau coup
+                # Répartition des coups dans le temps.
+                #
+                # Si plusieurs coups sont reçus dans un même paquet BLE,
+                # on suppose qu'ils sont répartis uniformément entre
+                # l'échantillon précédent et l'échantillon courant.
                 #
 
-                for i in range(delta_strokes):
+                if delta_strokes == 1:
 
                     self.session.stroke_times.append(
                         self.ftms.elapsed_time
@@ -249,13 +253,36 @@ class RowState:
 
                     self.session.stroke_numbers.append(
                         self.ftms.stroke_count
+                    )
+
+                else:
+
+                    step = delta_elapsed / delta_strokes
+
+                    first_time = (
+                        self.ftms.elapsed_time
+                        - delta_elapsed
+                        + step
+                    )
+
+                    first_stroke = (
+                        self.ftms.stroke_count
                         - delta_strokes
-                        + i
                         + 1
                     )
 
+                    for i in range(delta_strokes):
+
+                        self.session.stroke_times.append(
+                            first_time + i * step
+                        )
+
+                        self.session.stroke_numbers.append(
+                            first_stroke + i
+                        )
+
                 #
-                # cadence sur les derniers coups
+                # Cadence calculée sur les derniers coups
                 #
 
                 if len(self.session.stroke_times) >= 2:
@@ -273,9 +300,7 @@ class RowState:
                     if dt > 0 and dn > 0:
 
                         self.session.cadence = (
-                            60.0
-                            * dn
-                            / dt
+                            60.0 * dn / dt
                         )
 
                 self.session.last_elapsed = (
@@ -341,6 +366,7 @@ class RowState:
                     distance_per_stroke=self.session.distance_per_stroke,
 
                     calories=self.session.calories,
+                    work_j=self.session.work_j,
 
                     #
                     # FTMS bruts

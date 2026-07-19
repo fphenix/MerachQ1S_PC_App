@@ -33,6 +33,7 @@ class LogRecord:
     distance_per_stroke: float
 
     calories: float
+    work_j: float
 
     #
     # Données FTMS brutes
@@ -77,6 +78,7 @@ class LogRecord:
             "Distance_Per_Stroke",
 
             "Calories",
+            "Work_J",
 
             "FTMS_Distance",
             "FTMS_SPM",
@@ -118,6 +120,7 @@ class LogRecord:
             self.distance_per_stroke,
 
             self.calories,
+            self.work_j,
 
             self.ftms_distance,
             self.ftms_spm,

@@ -66,9 +66,35 @@ class CsvLogger:
         # Entête
         #
 
-        self.writer.writerow(LogRecord(0,0,0,0,0,0,0,0,0,False,
-                                       0,0,0,0,0,0,0,0,0,
-                                       0,0,0,0,0).csv_header())
+        self.writer.writerow(
+            LogRecord(
+                packet=0,
+                pc_time=0,
+                delta_pc=0,
+                elapsed=0,
+                delta_elapsed=0,
+                power=0,
+                power_avg=0,
+                stroke_count=0,
+                delta_strokes=0,
+                stroke_event=False,
+                speed=0,
+                speed_avg=0,
+                distance=0,
+                cadence=0,
+                cadence_avg=0,
+                split=0,
+                split_avg=0,
+                distance_per_stroke=0,
+                calories=0,
+                work_j=0,
+                ftms_distance=0,
+                ftms_spm=0,
+                ftms_spm_avg=0,
+                ftms_split_avg=0,
+                ftms_energy=0,
+            ).csv_header()
+        )
 
         self.flush()
 
