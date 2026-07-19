@@ -10,12 +10,18 @@ Dependencies : PySide6, Bleak (& pyftms)
 * pip install pyftms==0.4.15
 
 You need to use a BlueTooth Scanner in order to get the ROWER_ADDRESS for your machine and update constants.py accordingly.
-
-Use BlueTooth_Scanner.py to get your devide address.
+=> Use BlueTooth_Scanner.py to get your devide address.
 
 ---
 
+Note: The motivation for this project is poor metrics on the rower's LCD screen and the desire to use a PC "App" rather than a smartphone one.
+It beacame obvious, for instance, that the Distance displayed on the screen simply is "5 * number_of_strokes" and the Calories in kcal roughly is "0.1428 ** number_of_strokes". Therefore the displayed values are pretty much useless. It is not known if the Power figures transmitted via BlueTooth can be trused or how they are calculated/measured, but - with the time and stroke count - that's the only mertics that we have available. All other figures will derive from these 3 in the PC "App".
+
+---
+
+========================
 !!! IMPORTANT NOTE !!!:
+========================
 
 I had to modify the on_notify() method in the DataUpdater class of the PyFTMS 0.4.15 lib like this:
 (file is C:\Users\<????>\AppData\Local\Programs\Python\Python313\Lib\site-packages\pyftms\client\backends\update.py)
