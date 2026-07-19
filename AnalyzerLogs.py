@@ -27,6 +27,13 @@ df = pd.read_csv(
     skiprows=2      # titre + ligne vide
 )
 
+#
+# S'il n'y a pas de donnée, Bye Bye!
+#
+
+if df.empty:
+    print("CSV file is empty! (no data)")
+    raise SystemExit
 
 #
 # Résumé
