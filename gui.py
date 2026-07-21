@@ -139,7 +139,7 @@ class MainWindow(QMainWindow):
         )
 
         self.resetButton.clicked.connect(
-            self.state.reset_session
+            self.new_session
         )
 
         grid.addWidget(
@@ -157,6 +157,20 @@ class MainWindow(QMainWindow):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.refresh)
         self.timer.start(GUI_REFRESH_MS)
+
+        self.refresh()
+
+    def new_session(self):
+        logger = self.state.logger
+
+        if logger is not None:
+            logger.flush()
+            logger.close()
+            logger.open()
+
+            self.state.set_logger(logger)
+
+        self.state.reset_session()
 
         self.refresh()
 

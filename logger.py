@@ -22,6 +22,8 @@ class CsvLogger:
         self.last_pc_time = None
 
     def open(self):
+        self.packet = 0
+        self.last_pc_time = None
 
         Path("logs").mkdir(exist_ok=True)
 
