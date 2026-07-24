@@ -180,6 +180,11 @@ class FtmsClient:
         if event.event_id != "update":
             return
 
+        # Echo les clés de données FTMS transmises par le BT du Rameur
+        #for k, v in event.event_data.items():
+        #    print(f"{k:25} {v}")
+        #print("-" * 40)
+
         self.state.update_ftms(
             event.event_data
         )

@@ -42,8 +42,17 @@ class LogRecord:
     ftms_distance: float
     ftms_spm: float
     ftms_spm_avg: float
+
+    ftms_split_inst: float
     ftms_split_avg: float
+
     ftms_energy: float
+    ftms_energy_hour: float
+    ftms_energy_minute: float
+
+    ftms_resistance: int
+    ftms_training_status: int
+    ftms_heart_rate: int
 
     def csv_header(self):
 
@@ -81,10 +90,22 @@ class LogRecord:
             "Work_J",
 
             "FTMS_Distance",
+
             "FTMS_SPM",
             "FTMS_SPM_Avg",
+
+            "FTMS_Split_Instant",
             "FTMS_Split_Avg",
+
             "FTMS_Energy",
+            "FTMS_Energy_Per_Hour",
+            "FTMS_Energy_Per_Minute",
+
+            "FTMS_Resistance",
+
+            "FTMS_Training_Status",
+
+            "FTMS_Heart_Rate",
         ]
 
     def csv_row(self):
@@ -123,9 +144,20 @@ class LogRecord:
             self.work_j,
 
             self.ftms_distance,
+
             self.ftms_spm,
             self.ftms_spm_avg,
-            self.ftms_split_avg,
-            self.ftms_energy,
 
+            self.ftms_split_inst,
+            self.ftms_split_avg,
+
+            self.ftms_energy,
+            self.ftms_energy_hour,
+            self.ftms_energy_minute,
+
+            self.ftms_resistance,
+
+            self.ftms_training_status,
+
+            self.ftms_heart_rate,
         ]

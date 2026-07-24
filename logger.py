@@ -58,8 +58,9 @@ class CsvLogger:
 
         self.writer.writerow([
             "MerachQ1S PC Logger",
-            "Version 2.0",
+            "Version 2.1",
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "DragFactor=2.8",
         ])
 
         self.writer.writerow([])
@@ -90,11 +91,22 @@ class CsvLogger:
                 distance_per_stroke=0,
                 calories=0,
                 work_j=0,
+
                 ftms_distance=0,
                 ftms_spm=0,
                 ftms_spm_avg=0,
+
+                ftms_split_inst=0,
                 ftms_split_avg=0,
+
                 ftms_energy=0,
+                ftms_energy_hour=0,
+                ftms_energy_minute=0,
+
+                ftms_resistance=0,
+                ftms_training_status=0,
+                ftms_heart_rate=0,
+
             ).csv_header()
         )
 

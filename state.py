@@ -25,9 +25,19 @@ class FtmsData:
 
     stroke_count: int = 0
 
+    split_inst: float = 0
     split_avg: float = 0
 
     kcal: float = 0
+
+    energy_hour: float = 0
+    energy_minute: float = 0
+
+    resistance_level: int = 0
+
+    training_status: int = 0
+
+    heart_rate: int = 0
 
 
 @dataclass(slots=True)
@@ -133,13 +143,27 @@ class RowState:
 
             mapping = {
                 "distance_total": "distance",
+
                 "power_instant": "power",
                 "power_average": "power_avg",
+
                 "stroke_rate_instant": "stroke_rate",
                 "stroke_rate_average": "stroke_rate_avg",
+
                 "stroke_count": "stroke_count",
+
+                "split_time_instant": "split_inst",
                 "split_time_average": "split_avg",
+
                 "energy_total": "kcal",
+                "energy_per_hour": "energy_hour",
+                "energy_per_minute": "energy_minute",
+
+                "resistance_level": "resistance_level",
+
+                "training_status": "training_status",
+
+                "heart_rate": "heart_rate",
             }
 
             for k, a in mapping.items():
@@ -378,9 +402,18 @@ class RowState:
 
                     ftms_spm_avg=self.ftms.stroke_rate_avg,
 
+                    ftms_split_inst=self.ftms.split_inst,
                     ftms_split_avg=self.ftms.split_avg,
 
                     ftms_energy=self.ftms.kcal,
+                    ftms_energy_hour=self.ftms.energy_hour,
+                    ftms_energy_minute=self.ftms.energy_minute,
+
+                    ftms_resistance=self.ftms.resistance_level,
+
+                    ftms_training_status=self.ftms.training_status,
+
+                    ftms_heart_rate=self.ftms.heart_rate,
 
                 )
 
