@@ -1,5 +1,6 @@
 from pathlib import Path
 from datetime import datetime
+from constants import DRAG_FACTOR
 import csv
 import os
 import time
@@ -60,7 +61,7 @@ class CsvLogger:
             "MerachQ1S PC Logger",
             "Version 2.1",
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "DragFactor=2.8",
+            f"DragFactor={DRAG_FACTOR}",
         ])
 
         self.writer.writerow([])
