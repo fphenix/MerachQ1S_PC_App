@@ -7,7 +7,7 @@ from logger import CsvLogger
 from logrecord import LogRecord
 import time
 
-from constants import DRAG_FACTOR, CALORIE_OFFSET, CADENCE_WINDOW
+from constants import DRAG_FACTOR, CALORIE_OFFSET, CADENCE_WINDOW, CADENCE_SMOOTHING
 
 @dataclass(slots=True)
 class FtmsData:
@@ -54,7 +54,9 @@ class SessionData:
 
     # cadence
     cadence: float = 0.0
+    cadence_raw: float = 0.0
     cadence_avg: float = 0.0
+    cadence_history: deque = None
 
     # split
     split: float = 0.0
@@ -92,6 +94,8 @@ class RowState:
         self.session.stroke_times = deque(maxlen=CADENCE_WINDOW)
         self.session.stroke_numbers = deque(maxlen=CADENCE_WINDOW)
 
+        self.session.cadence_history = deque(maxlen=CADENCE_SMOOTHING)
+
         self._last_time = None
 
         self.logger = None
@@ -109,7 +113,13 @@ class RowState:
             self.session.stroke_times = deque(maxlen=CADENCE_WINDOW)
             self.session.stroke_numbers = deque(maxlen=CADENCE_WINDOW)
 
+            self.session.cadence_history = deque(maxlen=CADENCE_SMOOTHING)
+
             self._last_time = self.ftms.elapsed_time
+
+
+    def initialize_replay(self, elapsed, delta_elapsed):
+        self._last_time = elapsed - delta_elapsed
 
 
     def set_connection(self, status: str):
@@ -323,9 +333,28 @@ class RowState:
 
                     if dt > 0 and dn > 0:
 
+                        cadence = 60.0 * dn / dt
+
+                        #
+                        # Valeur brute
+                        #
+
+                        self.session.cadence_raw = cadence
+
+                        #
+                        # Valeur lissée
+                        #
+
+                        self.session.cadence_history.append(cadence)
+
                         self.session.cadence = (
-                            60.0 * dn / dt
+                            sum(self.session.cadence_history)
+                            / len(self.session.cadence_history)
                         )
+
+                #
+                # Mémorisation pour le prochain calcul
+                #
 
                 self.session.last_elapsed = (
                     self.ftms.elapsed_time
@@ -381,7 +410,7 @@ class RowState:
 
                     distance=self.session.distance,
 
-                    cadence=self.session.cadence,
+                    cadence=self.session.cadence_raw,
                     cadence_avg=self.session.cadence_avg,
 
                     split=self.session.split,

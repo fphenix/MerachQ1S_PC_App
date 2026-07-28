@@ -46,9 +46,12 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from constants import WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, ROWER_ADDRESS
+from constants import REPLAY_FILE, REPLAY_SPEED, USE_REPLAY
+
 from state import RowState
 from gui import MainWindow
 from ftms import FtmsClient
+from replay import ReplayFTMS
 
 from logger import CsvLogger
 
@@ -73,16 +76,26 @@ def main():
     state.set_logger(logger)
 
     #
-    # Bluetooth FTMS
+    # Source des données (Bluetooth FTMS ou Replay Log)
     #
 
-    ftms = FtmsClient(
-        address=ROWER_ADDRESS,
-        state=state,
-    )
+    if USE_REPLAY:
 
-    ftms.start()
+        source = ReplayFTMS(
+            filename=REPLAY_FILE,
+            state=state,
+            speed=REPLAY_SPEED,
+        )
 
+    else:
+
+        source = FtmsClient(
+            address=ROWER_ADDRESS,
+            state=state,
+        )
+
+    source.start()
+ 
     #
     # Interface graphique
     #
@@ -99,8 +112,9 @@ def main():
 
     try:
         sys.exit(app.exec())
+
     finally:
-        ftms.stop()
+        source.stop()
         logger.close()
 
 

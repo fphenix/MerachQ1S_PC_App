@@ -1,6 +1,6 @@
 from pathlib import Path
 from datetime import datetime
-from constants import DRAG_FACTOR
+from constants import DRAG_FACTOR, USE_REPLAY
 import csv
 import os
 import time
@@ -28,8 +28,9 @@ class CsvLogger:
 
         Path("logs").mkdir(exist_ok=True)
 
+        logname = "replay" if USE_REPLAY else "session"
         filename = datetime.now().strftime(
-            "logs/session_%Y%m%d_%H%M%S.csv"
+            f"logs/{logname}_%Y%m%d_%H%M%S.csv"
         )
 
         self.file = open(
