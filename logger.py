@@ -1,6 +1,6 @@
 from pathlib import Path
 from datetime import datetime
-from constants import DRAG_FACTOR, USE_REPLAY
+from constants import DRAG_FACTOR, USE_REPLAY, REPLAY_FILE
 import csv
 import os
 import time
@@ -29,6 +29,7 @@ class CsvLogger:
         Path("logs").mkdir(exist_ok=True)
 
         logname = "replay" if USE_REPLAY else "session"
+
         filename = datetime.now().strftime(
             f"logs/{logname}_%Y%m%d_%H%M%S.csv"
         )
@@ -58,8 +59,10 @@ class CsvLogger:
         # Titre
         #
 
+        mode = f"Replay {REPLAY_FILE}" if USE_REPLAY else "Logger"
+
         self.writer.writerow([
-            "MerachQ1S PC Logger",
+            f"MerachQ1S PC {mode}",
             "Version 2.1",
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             f"DragFactor={DRAG_FACTOR}",
