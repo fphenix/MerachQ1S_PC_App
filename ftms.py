@@ -18,6 +18,7 @@ from bleak import BleakScanner
 from pyftms.client.machines.rower import Rower
 
 
+# =============================================================================
 class FtmsClient:
     """
     Client Bluetooth FTMS.
@@ -26,6 +27,7 @@ class FtmsClient:
     La GUI ne manipule jamais PyFTMS directement.
     """
 
+    # -------------------------------------------------------------------------
     def __init__(self, address: str, state):
 
         self.address = address
@@ -41,8 +43,8 @@ class FtmsClient:
         #
         self._last_update = time.monotonic()
 
-    # ------------------------------------------------------------------
 
+    # -------------------------------------------------------------------------
     def start(self):
 
         if self._running:
@@ -57,8 +59,8 @@ class FtmsClient:
 
         self._thread.start()
 
-    # ------------------------------------------------------------------
 
+    # -------------------------------------------------------------------------
     def stop(self):
 
         self._running = False
@@ -66,8 +68,8 @@ class FtmsClient:
         if self._thread is not None:
             self._thread.join(timeout=5)
 
-    # ------------------------------------------------------------------
 
+    # -------------------------------------------------------------------------
     def _thread_main(self):
 
         try:
@@ -76,8 +78,8 @@ class FtmsClient:
         except Exception as ex:
             print("FTMS :", ex)
 
-    # ------------------------------------------------------------------
 
+    # -------------------------------------------------------------------------
     async def _run(self):
 
         while self._running:
@@ -147,6 +149,7 @@ class FtmsClient:
 
                     try:
                         await self._rower.disconnect()
+                        
                     except Exception:
                         pass
 
@@ -164,8 +167,8 @@ class FtmsClient:
 
         print("Thread FTMS terminé.")
 
-    # ------------------------------------------------------------------
 
+    # -------------------------------------------------------------------------
     def _on_ftms_event(self, event):
 
         #

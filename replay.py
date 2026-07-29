@@ -8,8 +8,10 @@ Replay un Log pour émuler une Communication Bluetooth FTMS.
 import pandas as pd
 from pathlib import Path
 
+# =============================================================================
 class ReplayFTMS:
 
+    # -------------------------------------------------------------------------
     def __init__(self,
                  filename,
                  state,
@@ -20,6 +22,7 @@ class ReplayFTMS:
         self.speed = speed
 
 
+    # -------------------------------------------------------------------------
     def csv_value(self, row, *columns, default=0):
         for col in columns:
 
@@ -33,6 +36,7 @@ class ReplayFTMS:
         return default
 
 
+    # -------------------------------------------------------------------------
     def start(self):
 
         if not Path(self.filename).exists():
@@ -88,5 +92,6 @@ class ReplayFTMS:
 
             #break
 
+    # -------------------------------------------------------------------------
     def stop(self):
         pass

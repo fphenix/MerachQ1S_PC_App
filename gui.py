@@ -26,8 +26,10 @@ from utils import (
 from widgets import MetricWidget
 
 
+# =============================================================================
 class MainWindow(QMainWindow):
 
+    # -------------------------------------------------------------------------
     def __init__(self, state):
         super().__init__()
 
@@ -160,6 +162,8 @@ class MainWindow(QMainWindow):
 
         self.refresh()
 
+
+    # -------------------------------------------------------------------------
     def new_session(self):
         logger = self.state.logger
 
@@ -174,6 +178,8 @@ class MainWindow(QMainWindow):
 
         self.refresh()
 
+
+    # -------------------------------------------------------------------------
     def refresh(self):
         snapshot = self.state.snapshot()
 
@@ -259,4 +265,3 @@ class MainWindow(QMainWindow):
         self.kcalWidget.setValue(
             f"{session.calories_rate:.3f} / {session.calories:.1f}"
         )
-        

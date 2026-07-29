@@ -5,10 +5,24 @@ from collections import deque
 
 from logger import CsvLogger
 from logrecord import LogRecord
-import time
 
-from constants import DRAG_FACTOR, CALORIE_OFFSET, CADENCE_WINDOW, CADENCE_SMOOTHING
+from constants import (
+    CADENCE_WINDOW, CADENCE_SMOOTHING,
+)
 
+from calc import (
+    calc_delta,
+    calc_speed,
+    calc_split,
+    calc_kcal_rate,
+    calc_dist,
+    calc_work,
+    calc_kcal,
+    calc_cadence_avg,
+    calc_dist_per_stroke,
+)
+
+# =============================================================================
 @dataclass(slots=True)
 class FtmsData:
     connection: str = "Recherche..."
@@ -40,6 +54,7 @@ class FtmsData:
     heart_rate: int = 0
 
 
+# =============================================================================
 @dataclass(slots=True)
 class SessionData:
     # énergie développée
@@ -76,13 +91,18 @@ class SessionData:
     stroke_times: deque = None
     stroke_numbers: deque = None
 
+
+# =============================================================================
 @dataclass(slots=True)
 class Snapshot:
     ftms: FtmsData
     session: SessionData
 
 
+# =============================================================================
 class RowState:
+
+    # -------------------------------------------------------------------------
     def __init__(self):
 
         self._lock = Lock()
@@ -101,6 +121,7 @@ class RowState:
         self.logger = None
 
 
+    # -------------------------------------------------------------------------
     def reset_session(self):
         """
         Remet à zéro les statistiques de séance.
@@ -118,19 +139,23 @@ class RowState:
             self._last_time = self.ftms.elapsed_time
 
 
+    # -------------------------------------------------------------------------
     def initialize_replay(self, elapsed, delta_elapsed):
-        self._last_time = elapsed - delta_elapsed
+        self._last_time = calc_delta(elapsed, delta_elapsed)
 
 
+    # -------------------------------------------------------------------------
     def set_connection(self, status: str):
         with self._lock:
             self.ftms.connection = status
 
 
+    # -------------------------------------------------------------------------
     def set_logger(self, logger: CsvLogger):
         self.logger = logger
 
 
+    # -------------------------------------------------------------------------
     def update_ftms(self, data: dict):
         with self._lock:
             #
@@ -142,7 +167,7 @@ class RowState:
             if "time_elapsed" in data:
                 t = float(data["time_elapsed"])
 
-                delta_elapsed = 0 if self._last_time is None else max(0.0, t - self._last_time)
+                delta_elapsed = 0.0 if self._last_time is None else max(0.0, calc_delta(t, self._last_time))
 
                 self._last_time = t
                 self.ftms.elapsed_time = t
@@ -191,80 +216,59 @@ class RowState:
             # Travail mécanique
             #
 
-            self.session.work_j += self.ftms.power * delta_elapsed
+            self.session.work_j += calc_work(self.ftms.power, delta_elapsed)
 
             #
             # Vitesse instantanée
             #
 
-            if self.ftms.power > 0:
-                self.session.speed = (self.ftms.power / DRAG_FACTOR) ** (1.0 / 3.0)
-
-            else:
-                self.session.speed = 0.0
+            self.session.speed = calc_speed(self.ftms.power)
 
             #
             # Vitesse moyenne
             #
 
-            if self.ftms.power_avg > 0:
-                self.session.speed_avg = (self.ftms.power_avg / DRAG_FACTOR) ** (1.0 / 3.0)
-
-            else:
-                self.session.speed_avg = 0.0
+            self.session.speed_avg = calc_speed(self.ftms.power_avg)
 
             #
             # Distance intégrée
             #
 
-            self.session.distance += self.session.speed * delta_elapsed
+            self.session.distance += calc_dist(self.session.speed, delta_elapsed)
 
             #
             # Split
             #
 
-            if self.session.speed > 0:
-                self.session.split = 500.0 / self.session.speed
+            self.session.split = calc_split(self.session.speed)
 
-            else:
-                self.session.split = 0.0
-
-            if self.session.speed_avg > 0:
-                self.session.split_avg = 500.0 / self.session.speed_avg
-
-            else:
-                self.session.split_avg = 0.0
+            self.session.split_avg = calc_split(self.session.speed_avg)
 
             #
             # Calories  instantanées (kcal/s)
             # Calories cumulées (kcal)
             #
 
-            self.session.calories_rate = (4.0 * self.ftms.power + CALORIE_OFFSET) / 3600.0
+            self.session.calories_rate = calc_kcal_rate(self.ftms.power)
 
-            self.session.calories += self.session.calories_rate * delta_elapsed
+            self.session.calories += calc_kcal(self.session.calories_rate, delta_elapsed)
 
             #
             # Cadence moyenne
             #
 
-            if self.ftms.elapsed_time > 0:
-                self.session.cadence_avg = (
-                    60.0
-                    * self.ftms.stroke_count
-                    / self.ftms.elapsed_time
+            self.session.cadence_avg = calc_cadence_avg(
+                    self.ftms.stroke_count, 
+                    self.ftms.elapsed_time
                 )
-
-            else:
-                self.session.cadence_avg = 0.0
 
             #
             # Cadence instantanée
             #
 
-            delta_strokes = (
-                self.ftms.stroke_count
-                - self.session.last_strokes
+            delta_strokes = calc_delta(
+                self.ftms.stroke_count,
+                self.session.last_strokes
             )
 
             stroke_event = delta_strokes > 0
@@ -294,14 +298,12 @@ class RowState:
                     step = delta_elapsed / delta_strokes
 
                     first_time = (
-                        self.ftms.elapsed_time
-                        - delta_elapsed
+                        calc_delta(self.ftms.elapsed_time, delta_elapsed)
                         + step
                     )
 
                     first_stroke = (
-                        self.ftms.stroke_count
-                        - delta_strokes
+                        calc_delta(self.ftms.stroke_count, delta_strokes)
                         + 1
                     )
 
@@ -321,19 +323,19 @@ class RowState:
 
                 if len(self.session.stroke_times) >= 2:
 
-                    dt = (
-                        self.session.stroke_times[-1]
-                        - self.session.stroke_times[0]
+                    dt = calc_delta(
+                        self.session.stroke_times[-1],
+                        self.session.stroke_times[0]
                     )
 
-                    dn = (
-                        self.session.stroke_numbers[-1]
-                        - self.session.stroke_numbers[0]
+                    dn = calc_delta(
+                        self.session.stroke_numbers[-1],
+                        self.session.stroke_numbers[0]
                     )
 
                     if dt > 0 and dn > 0:
 
-                        cadence = 60.0 * dn / dt
+                        cadence = calc_cadence_avg(dn, dt)
 
                         #
                         # Valeur brute
@@ -368,12 +370,10 @@ class RowState:
             # Distance par coup
             #
 
-            if self.session.cadence > 0:
-                self.session.distance_per_stroke = (
-                    60.0
-                    * self.session.speed
-                    / self.session.cadence
-                )
+            self.session.distance_per_stroke = calc_dist_per_stroke(
+                self.session.speed,
+                self.session.cadence
+            )
 
             #
             # Logger
@@ -449,6 +449,7 @@ class RowState:
                 self.logger.log(record)
 
 
+    # -------------------------------------------------------------------------
     def snapshot(self):
         with self._lock:
             return Snapshot(

@@ -1,3 +1,5 @@
+VERSION = 2.1
+
 # Coefficient Concept2.
 # Peut être ajusté expérimentalement pour le Merach Q1S.
 DRAG_FACTOR  = 2.8
@@ -27,6 +29,10 @@ LOGGER_FLUSH_PERIOD = 5.0
 # Temps (en secondes) sans nouveau coup avant de considérer que
 # la séance est terminée et de forcer un flush().
 LOGGER_END_SESSION_TIMEOUT = 10.0
+
+# ----------------------------------------------------------------------
+# Replay
+# ----------------------------------------------------------------------
 
 # ----------------------------------------------------------------------
 # Source de Données (Bluetooth vs. Replay Log)

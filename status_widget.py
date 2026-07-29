@@ -1,7 +1,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QLabel, QHBoxLayout, QWidget
 
-
+# =============================================================================
 class StatusWidget(QWidget):
 
     COLORS = {
@@ -11,6 +11,7 @@ class StatusWidget(QWidget):
         "Arrêt": "#808080",
     }
 
+    # -------------------------------------------------------------------------
     def __init__(self, title="Bluetooth"):
         super().__init__()
 
@@ -30,6 +31,7 @@ class StatusWidget(QWidget):
 
         self.set_status("Recherche...")
 
+    # -------------------------------------------------------------------------
     def set_status(self, status):
 
         color = self.COLORS.get(status, "#808080")

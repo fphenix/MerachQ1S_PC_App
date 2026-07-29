@@ -5,6 +5,7 @@ Point d'entrée de l'application Merach PM Monitor.
 
 """
 
+# -----------------------------------------------------------------------------
 # !!! IMPORTANT NOTE !!!:
 #
 # #It uses pyftms 0-4-15 but there is a bug in
@@ -39,14 +40,18 @@ Point d'entrée de l'application Merach PM Monitor.
 #             self._prev = self._result.copy()
 #  
 #     self._result.clear()
-
+# -----------------------------------------------------------------------------
 
 import sys
 
 from PySide6.QtWidgets import QApplication
 
-from constants import WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, ROWER_ADDRESS
-from constants import REPLAY_FILE, REPLAY_SPEED, USE_REPLAY
+from constants import (
+    WINDOW_TITLE,
+    WINDOW_WIDTH, WINDOW_HEIGHT,
+    ROWER_ADDRESS,
+    REPLAY_FILE, REPLAY_SPEED, USE_REPLAY,
+)
 
 from state import RowState
 from gui import MainWindow
@@ -55,6 +60,7 @@ from replay import ReplayFTMS
 
 from logger import CsvLogger
 
+# -----------------------------------------------------------------------------
 def main():
 
     app = QApplication(sys.argv)
@@ -117,6 +123,6 @@ def main():
         source.stop()
         logger.close()
 
-
+# -----------------------------------------------------------------------------
 if __name__ == "__main__":
     main()

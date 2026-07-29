@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-
+# =============================================================================
 class MetricWidget(QFrame):
     """
     Affiche une métrique sous la forme :
@@ -25,6 +25,7 @@ class MetricWidget(QFrame):
          spm
     """
 
+    # -------------------------------------------------------------------------
     def __init__(self, title: str, unit: str = ""):
         super().__init__()
 
@@ -68,5 +69,6 @@ class MetricWidget(QFrame):
         layout.addWidget(self.unit)
 
 
+    # -------------------------------------------------------------------------
     def setValue(self, value):
         self.value.setText(str(value))

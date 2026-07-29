@@ -1,3 +1,4 @@
+# -----------------------------------------------------------------------------
 def format_pace(seconds: float) -> str:
     """
     Convertit un temps en secondes vers le format m:ss.
@@ -17,8 +18,7 @@ def format_pace(seconds: float) -> str:
 
     return f"{minutes}:{secondes:02}"
 
-# ---------------------------------------------------------------------------------
-
+# -----------------------------------------------------------------------------
 def format_time(seconds: float) -> str:
     """
     Convertit un temps en secondes vers le format h:mm:ss.

@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-
+# =============================================================================
 @dataclass(slots=True)
 class LogRecord:
 
@@ -54,6 +54,7 @@ class LogRecord:
     ftms_training_status: int
     ftms_heart_rate: int
 
+    # -------------------------------------------------------------------------
     def csv_header(self):
 
         return [
@@ -108,6 +109,7 @@ class LogRecord:
             "FTMS_Heart_Rate",
         ]
 
+    # -------------------------------------------------------------------------
     def csv_row(self):
 
         return [

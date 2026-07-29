@@ -1,18 +1,24 @@
 from pathlib import Path
 from datetime import datetime
-from constants import DRAG_FACTOR, USE_REPLAY, REPLAY_FILE
+from calc import calc_delta
+
 import csv
 import os
 import time
 
 from logrecord import LogRecord
 from constants import (
+    VERSION,
     LOGGER_FLUSH_PERIOD,
     LOGGER_END_SESSION_TIMEOUT,
+    DRAG_FACTOR,
+    USE_REPLAY, REPLAY_FILE,
 )
 
+# =============================================================================
 class CsvLogger:
 
+    # -------------------------------------------------------------------------
     def __init__(self):
 
         self.file = None
@@ -22,16 +28,17 @@ class CsvLogger:
 
         self.last_pc_time = None
 
+    # -------------------------------------------------------------------------
     def open(self):
         self.packet = 0
         self.last_pc_time = None
 
         Path("logs").mkdir(exist_ok=True)
 
-        logname = "replay" if USE_REPLAY else "session"
+        logbasename = "replay" if USE_REPLAY else "session"
 
         filename = datetime.now().strftime(
-            f"logs/{logname}_%Y%m%d_%H%M%S.csv"
+            f"logs/{logbasename}_%Y%m%d_%H%M%S.csv"
         )
 
         self.file = open(
@@ -63,7 +70,7 @@ class CsvLogger:
 
         self.writer.writerow([
             f"MerachQ1S PC {mode}",
-            "Version 2.1",
+            f"Version {VERSION}",
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             f"DragFactor={DRAG_FACTOR}",
         ])
@@ -117,10 +124,13 @@ class CsvLogger:
 
         self.flush()
 
+
+    # -------------------------------------------------------------------------
     def flush(self):
         """
         Force l'écriture physique du fichier.
         """
+
         if self.file is None:
             return
 
@@ -128,22 +138,30 @@ class CsvLogger:
         os.fsync(self.file.fileno())
 
         self.last_flush_time = time.monotonic()
-    
+
+
+    # -------------------------------------------------------------------------
     def periodic_flush(self):
         """
         Flush périodique.
         """
+
         now = time.monotonic()
 
-        if now - self.last_flush_time >= LOGGER_FLUSH_PERIOD:
+        if calc_delta(now, self.last_flush_time) >= LOGGER_FLUSH_PERIOD:
             self.flush()
 
+
+    # -------------------------------------------------------------------------
     def stroke_detected(self):
         """
         Appelée lorsqu'un nouveau coup est détecté.
         """
+
         self.last_stroke_time = time.monotonic()
-    
+
+
+    # -------------------------------------------------------------------------
     def check_end_session(self):
         if self.writer is None:
             return
@@ -155,11 +173,7 @@ class CsvLogger:
 
         now = time.monotonic()
 
-        if (
-            now - self.last_stroke_time
-            >= LOGGER_END_SESSION_TIMEOUT
-        ):
-
+        if calc_delta(now, self.last_stroke_time) >= LOGGER_END_SESSION_TIMEOUT:
             self.flush()
 
             #
@@ -168,6 +182,8 @@ class CsvLogger:
 
             self.last_stroke_time = now
 
+
+    # -------------------------------------------------------------------------
     def log(self, record: LogRecord):
 
         if self.writer is None:
@@ -181,6 +197,8 @@ class CsvLogger:
 
         self.periodic_flush()
 
+
+    # -------------------------------------------------------------------------
     def next_packet(self):
 
         self.packet += 1
@@ -190,12 +208,14 @@ class CsvLogger:
         if self.last_pc_time is None:
             delta = 0.0
         else:
-            delta = now - self.last_pc_time
+            delta = calc_delta(now, self.last_pc_time)
 
         self.last_pc_time = now
 
         return self.packet, now, delta
 
+
+    # -------------------------------------------------------------------------
     def close(self):
 
         if self.file is not None:
