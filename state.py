@@ -19,6 +19,7 @@ from calc import (
     calc_work,
     calc_kcal,
     calc_cadence_avg,
+    calc_cadence_inst,
     calc_dist_per_stroke,
 )
 
@@ -89,7 +90,6 @@ class SessionData:
     last_strokes: int = 0
 
     stroke_times: deque = None
-    stroke_numbers: deque = None
 
 
 # =============================================================================
@@ -112,7 +112,6 @@ class RowState:
         self.session = SessionData()
 
         self.session.stroke_times = deque(maxlen=CADENCE_WINDOW)
-        self.session.stroke_numbers = deque(maxlen=CADENCE_WINDOW)
 
         self.session.cadence_history = deque(maxlen=CADENCE_SMOOTHING)
 
@@ -132,7 +131,6 @@ class RowState:
             self.session = SessionData()
 
             self.session.stroke_times = deque(maxlen=CADENCE_WINDOW)
-            self.session.stroke_numbers = deque(maxlen=CADENCE_WINDOW)
 
             self.session.cadence_history = deque(maxlen=CADENCE_SMOOTHING)
 
@@ -289,10 +287,6 @@ class RowState:
                         self.ftms.elapsed_time
                     )
 
-                    self.session.stroke_numbers.append(
-                        self.ftms.stroke_count
-                    )
-
                 else:
 
                     step = delta_elapsed / delta_strokes
@@ -313,46 +307,16 @@ class RowState:
                             first_time + i * step
                         )
 
-                        self.session.stroke_numbers.append(
-                            first_stroke + i
-                        )
-
                 #
                 # Cadence calculée sur les derniers coups
                 #
 
-                if len(self.session.stroke_times) >= 2:
-
-                    dt = calc_delta(
-                        self.session.stroke_times[-1],
-                        self.session.stroke_times[0]
+                self.session.cadence_raw, self.session.cadence = (
+                    calc_cadence_inst(
+                        self.session.stroke_times,
+                        self.session.cadence_history,
                     )
-
-                    dn = calc_delta(
-                        self.session.stroke_numbers[-1],
-                        self.session.stroke_numbers[0]
-                    )
-
-                    if dt > 0 and dn > 0:
-
-                        cadence = calc_cadence_avg(dn, dt)
-
-                        #
-                        # Valeur brute
-                        #
-
-                        self.session.cadence_raw = cadence
-
-                        #
-                        # Valeur lissée
-                        #
-
-                        self.session.cadence_history.append(cadence)
-
-                        self.session.cadence = (
-                            sum(self.session.cadence_history)
-                            / len(self.session.cadence_history)
-                        )
+                )
 
                 #
                 # Mémorisation pour le prochain calcul

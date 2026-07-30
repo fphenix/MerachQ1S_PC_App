@@ -5,8 +5,8 @@ VERSION = 2.1
 DRAG_FACTOR  = 2.8
 
 GUI_REFRESH_MS = 100
-CADENCE_WINDOW = 5
-CADENCE_SMOOTHING = 3
+CADENCE_WINDOW = 4      # nombre de coups utilisés pour le calcul brut (ou plus précisément la taille de la fenêtre utilisée pour calculer la cadence brute)
+CADENCE_SMOOTHING = 3   # nombre de cadences calculées utilisées pour le lissage
 CALORIE_OFFSET = 300.0
 
 WINDOW_TITLE = "Merach PM Monitor"
@@ -48,7 +48,7 @@ LOGGER_END_SESSION_TIMEOUT = 10.0
 USE_REPLAY = False # False or True
 
 REPLAY_FILE = (
-    "logs/session_20260718_164643.csv" # Choose Log to replay
+    "logs/session_20260726_102757.csv" # Choose Log to replay
 )
 
 REPLAY_SPEED = 1.0
