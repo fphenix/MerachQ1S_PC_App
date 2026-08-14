@@ -24,7 +24,7 @@ class LogRecord:
 
     distance: float
 
-    cadence: float
+    cadence_raw: float
     cadence_avg: float
 
     split: float
@@ -36,23 +36,23 @@ class LogRecord:
     work_j: float
 
     #
-    # Données FTMS brutes
+    # Données brutes (FTMS pour Q1S)
     #
 
-    ftms_distance: float
-    ftms_spm: float
-    ftms_spm_avg: float
+    raw_distance: float
+    raw_stroke_rate: float
+    raw_stroke_rate_avg: float
 
-    ftms_split_inst: float
-    ftms_split_avg: float
+    raw_split_inst: float
+    raw_split_avg: float
 
-    ftms_energy: float
-    ftms_energy_hour: float
-    ftms_energy_minute: float
+    raw_energy: float
+    raw_energy_hour: float
+    raw_energy_minute: float
 
-    ftms_resistance: int
-    ftms_training_status: int
-    ftms_heart_rate: int
+    raw_resistance: int
+    raw_training_status: int
+    raw_heart_rate: int
 
     # -------------------------------------------------------------------------
     def csv_header(self):
@@ -134,7 +134,7 @@ class LogRecord:
 
             self.distance,
 
-            self.cadence,
+            self.cadence_raw,
             self.cadence_avg,
 
             self.split,
@@ -145,21 +145,21 @@ class LogRecord:
             self.calories,
             self.work_j,
 
-            self.ftms_distance,
+            self.raw_distance,
 
-            self.ftms_spm,
-            self.ftms_spm_avg,
+            self.raw_stroke_rate,
+            self.raw_stroke_rate_avg,
 
-            self.ftms_split_inst,
-            self.ftms_split_avg,
+            self.raw_split_inst,
+            self.raw_split_avg,
 
-            self.ftms_energy,
-            self.ftms_energy_hour,
-            self.ftms_energy_minute,
+            self.raw_energy,
+            self.raw_energy_hour,
+            self.raw_energy_minute,
 
-            self.ftms_resistance,
+            self.raw_resistance,
 
-            self.ftms_training_status,
+            self.raw_training_status,
 
-            self.ftms_heart_rate,
+            self.raw_heart_rate,
         ]

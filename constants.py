@@ -1,22 +1,10 @@
 VERSION = 2.1
 
-# Coefficient Concept2.
-# Peut être ajusté expérimentalement pour le Merach Q1S.
-DRAG_FACTOR  = 2.8
-
 GUI_REFRESH_MS = 100
-CADENCE_WINDOW = 4      # nombre de coups utilisés pour le calcul brut (ou plus précisément la taille de la fenêtre utilisée pour calculer la cadence brute)
-CADENCE_SMOOTHING = 3   # nombre de cadences calculées utilisées pour le lissage
-CALORIE_OFFSET = 300.0
 
-WINDOW_TITLE = "Merach PM Monitor"
+WINDOW_TITLE = "Rower PM Monitor"
 WINDOW_WIDTH = 1200
 WINDOW_HEIGHT = 700
-
-# BlueTooth address of your Q1S Merach machine. Use a BT scanner to get it.
-# Adresse Bluetooth du rameur Merach Q1S. Utiliser un scanner BT pour l'obtenir
-ROWER_ADDRESS = "24:00:0C:A0:A2:E7"
-
 
 # ----------------------------------------------------------------------
 # Logger
@@ -45,7 +33,7 @@ LOGGER_END_SESSION_TIMEOUT = 10.0
 # via BlueTooth), mettre USE_REPLAY à "False".
 # ----------------------------------------------------------------------
 
-USE_REPLAY = False # False or True
+USE_REPLAY = True # False or True
 
 REPLAY_FILE = (
     "logs/session_20260726_102757.csv" # Choose Log to replay

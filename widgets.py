@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
 # =============================================================================
 class MetricWidget(QFrame):
     """
-    Affiche une métrique sous la forme :
+    Affiche une métrique sous la forme (exemple) :
 
         Cadence
 

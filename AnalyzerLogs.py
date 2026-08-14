@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import CheckButtons
 from tkinter import Tk, filedialog
 import os
+from calc import calc_stats
 
 #
 # Choix du fichier
@@ -27,9 +28,17 @@ df = pd.read_csv(
     skiprows=2
 )
 
+# needd "import os"
+file_basename = os.path.basename(filename)
+file_corename = os.path.splitext(file_basename)[0]
+# Alt : needs "from pathlib import Path"
+# file_basename = Path(filename).stem
+
 #
 # Résumé
 #
+
+#print(df.keys())
 
 print()
 print("========== SESSION ==========")
@@ -41,7 +50,39 @@ print(f"Travail     : {df['Work_J'].iloc[-1]/1000:.1f} kJ")
 print(f"Puiss. moy. : {df['Power_Avg'].iloc[-1]:.1f} W")
 print(f"Vit. moy.   : {df['Speed_Avg'].iloc[-1]:.2f} m/s")
 print(f"Cad. moy.   : {df['Cadence_Avg'].iloc[-1]:.1f} spm")
-print("=============================")
+print("=============================\n")
+
+#
+# Stats
+#
+
+power_stats = calc_stats(df["Power"].tolist())
+
+cadence_stats = calc_stats(df["Cadence"].tolist())
+
+dps_stats = calc_stats(df["Distance_Per_Stroke"].tolist())
+
+"""
+speed_stats = calc_stats(df["Speed"].tolist())
+
+split_stats = calc_stats(df["Split"].tolist())
+
+wps_stats = calc_stats(df["Work_J"].diff().fillna(0).tolist())
+"""
+
+with open(f"./Logs/stats_{file_corename}.txt", "w", encoding="utf-8") as fw:
+    for t, title, min in [
+        [power_stats, "Power", 1], 
+        [cadence_stats, "Cadence", 1],
+        [dps_stats, "Distance/Stroke", 0.1]
+    ]:
+        fw.write(f"{title}\n-----------\n")
+        for k in ["mean", "stdev", "min", "max"]:
+            fw.write(f"{k}\t: {t[k]}\n")
+        fw.write('\n')
+
+with open(f"./Logs/stats/stats_{file_corename}.txt", 'r') as fr:
+    print(fr.read())
 
 #
 # Temps
@@ -56,7 +97,7 @@ t = df["Elapsed"]
 fig, ax = plt.subplots(6, 1, figsize=(12, 12), sharex=True)
 
 fig.canvas.manager.set_window_title("Merach Logger")
-fig.suptitle(os.path.basename(filename))
+fig.suptitle(file_basename)
 
 #
 # Puissance
@@ -200,3 +241,4 @@ fig.subplots_adjust(
 )
 
 plt.show()
+

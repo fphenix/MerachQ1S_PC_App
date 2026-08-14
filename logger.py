@@ -11,7 +11,7 @@ from constants import (
     VERSION,
     LOGGER_FLUSH_PERIOD,
     LOGGER_END_SESSION_TIMEOUT,
-    DRAG_FACTOR,
+
     USE_REPLAY, REPLAY_FILE,
 )
 
@@ -22,11 +22,14 @@ class CsvLogger:
     def __init__(self):
 
         self.file = None
+        self.filename = None
         self.writer = None
 
         self.packet = 0
 
         self.last_pc_time = None
+
+        self._has_data = False
 
     # -------------------------------------------------------------------------
     def open(self):
@@ -37,12 +40,14 @@ class CsvLogger:
 
         logbasename = "replay" if USE_REPLAY else "session"
 
-        filename = datetime.now().strftime(
-            f"logs/{logbasename}_%Y%m%d_%H%M%S.csv"
+        self.filename = Path(
+            datetime.now().strftime(
+                f"logs/{logbasename}_%Y%m%d_%H%M%S.csv"
+            )
         )
 
         self.file = open(
-            filename,
+            self.filename,
             "w",
             newline="",
             encoding="utf-8",
@@ -62,6 +67,13 @@ class CsvLogger:
 
         self.last_stroke_time = time.monotonic()
 
+        self.header()
+
+        self.flush()
+
+    # -------------------------------------------------------------------------
+    def header(self):
+
         #
         # Titre
         #
@@ -69,16 +81,15 @@ class CsvLogger:
         mode = f"Replay {REPLAY_FILE}" if USE_REPLAY else "Logger"
 
         self.writer.writerow([
-            f"MerachQ1S PC {mode}",
+            f"Rower PC {mode}",
             f"Version {VERSION}",
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            f"DragFactor={DRAG_FACTOR}",
         ])
 
         self.writer.writerow([])
 
         #
-        # Entête
+        # Entête des colonnes
         #
 
         self.writer.writerow(
@@ -96,7 +107,7 @@ class CsvLogger:
                 speed=0,
                 speed_avg=0,
                 distance=0,
-                cadence=0,
+                cadence_raw=0,
                 cadence_avg=0,
                 split=0,
                 split_avg=0,
@@ -104,26 +115,23 @@ class CsvLogger:
                 calories=0,
                 work_j=0,
 
-                ftms_distance=0,
-                ftms_spm=0,
-                ftms_spm_avg=0,
+                raw_distance=0,
+                raw_stroke_rate=0,
+                raw_stroke_rate_avg=0,
 
-                ftms_split_inst=0,
-                ftms_split_avg=0,
+                raw_split_inst=0,
+                raw_split_avg=0,
 
-                ftms_energy=0,
-                ftms_energy_hour=0,
-                ftms_energy_minute=0,
+                raw_energy=0,
+                raw_energy_hour=0,
+                raw_energy_minute=0,
 
-                ftms_resistance=0,
-                ftms_training_status=0,
-                ftms_heart_rate=0,
+                raw_resistance=0,
+                raw_training_status=0,
+                raw_heart_rate=0,
 
             ).csv_header()
         )
-
-        self.flush()
-
 
     # -------------------------------------------------------------------------
     def flush(self):
@@ -190,6 +198,7 @@ class CsvLogger:
             return
 
         self.writer.writerow(record.csv_row())
+        self._has_data = True
 
         #
         # Flush périodique
@@ -224,4 +233,11 @@ class CsvLogger:
 
             self.file = None
             self.writer = None
-            
+
+            if not self._has_data:
+                self.filename.unlink()
+                print("Log ignoré car il aurait été vide.")
+
+            self.filename = None
+            self._has_data = False
+                

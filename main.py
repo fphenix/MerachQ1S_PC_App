@@ -43,25 +43,40 @@ Point d'entrée de l'application Merach PM Monitor.
 # -----------------------------------------------------------------------------
 
 import sys
+import asyncio
 
 from PySide6.QtWidgets import QApplication
 
 from constants import (
     WINDOW_TITLE,
     WINDOW_WIDTH, WINDOW_HEIGHT,
-    ROWER_ADDRESS,
     REPLAY_FILE, REPLAY_SPEED, USE_REPLAY,
 )
 
 from state import RowState
 from gui import MainWindow
-from ftms import FtmsClient
-from replay import ReplayFTMS
+
+from rowers.merach_q1s import MerachRower
+#from rowers.concept2 import Concept2Rower
+
+from rowers.replay import ReplayRower
 
 from logger import CsvLogger
 
+# BluetoothManager permet (sur PC Win11) de s'assurer que la carte BT est
+# activé (ou l'active si besoin) et de remettre son état initial en quittant
+from bluetooth_manager import BluetoothManager
+
 # -----------------------------------------------------------------------------
 def main():
+
+    if not USE_REPLAY:
+        bluetooth_manager = BluetoothManager()
+
+        asyncio.run(bluetooth_manager.initialize()) # make sure BT is On
+
+    else:
+        print(f"REPLAY Mode : fichier chargé est {REPLAY_FILE}")
 
     app = QApplication(sys.argv)
     app.setApplicationName(WINDOW_TITLE)
@@ -87,7 +102,7 @@ def main():
 
     if USE_REPLAY:
 
-        source = ReplayFTMS(
+        source = ReplayRower(
             filename=REPLAY_FILE,
             state=state,
             speed=REPLAY_SPEED,
@@ -95,11 +110,11 @@ def main():
 
     else:
 
-        source = FtmsClient(
-            address=ROWER_ADDRESS,
+        source = MerachRower(
             state=state,
         )
 
+    state.rower = source
     source.start()
  
     #
@@ -120,8 +135,14 @@ def main():
         sys.exit(app.exec())
 
     finally:
-        source.stop()
-        logger.close()
+        try:
+            source.stop()
+        finally:
+            try:
+                logger.close()
+            finally:
+                if not USE_REPLAY:
+                    asyncio.run(bluetooth_manager.restore()) # restore BT state as it was before launching this software
 
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":

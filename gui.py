@@ -35,7 +35,7 @@ class MainWindow(QMainWindow):
 
         self.state = state
 
-        self.setWindowTitle(WINDOW_TITLE)
+        self.setWindowTitle(f"{WINDOW_TITLE} : {self.state.rower.NAME}")
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
         grid.setVerticalSpacing(12)
 
         #
-        # Etat Bluetooth
+        # Ligne 0 : Etat Bluetooth
         #
 
         self.connectionWidget = StatusWidget()
@@ -133,7 +133,7 @@ class MainWindow(QMainWindow):
         grid.addWidget(self.kcalWidget,       3, 2)
 
         #
-        # Bouton Reset
+        # Ligne 4 : Bouton Reset
         #
 
         self.resetButton = QPushButton(
@@ -183,7 +183,7 @@ class MainWindow(QMainWindow):
     def refresh(self):
         snapshot = self.state.snapshot()
 
-        ftms = snapshot.ftms
+        rowerdata = snapshot.rowerdata
         session = snapshot.session
 
         #
@@ -191,7 +191,7 @@ class MainWindow(QMainWindow):
         #
 
         self.connectionWidget.set_status(
-            ftms.connection
+            rowerdata.connection
         )
 
         #
@@ -199,7 +199,7 @@ class MainWindow(QMainWindow):
         #
 
         self.timeWidget.setValue(
-            format_time(ftms.elapsed_time)
+            format_time(rowerdata.elapsed_time)
         )
 
         #
@@ -223,7 +223,7 @@ class MainWindow(QMainWindow):
         #
 
         self.strokeWidget.setValue(
-            ftms.stroke_count
+            rowerdata.stroke_count
         )
 
         #
@@ -239,7 +239,7 @@ class MainWindow(QMainWindow):
         #
 
         self.powerWidget.setValue(
-            f"{ftms.power:.0f} / {ftms.power_avg:.0f}"
+            f"{rowerdata.power:.0f} / {rowerdata.power_avg:.0f}"
         )
 
         #
