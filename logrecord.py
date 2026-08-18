@@ -57,59 +57,59 @@ CSV_FIELDS = [
 @dataclass(slots=True)
 class LogRecord:
 
-    packet: int = 0
+    packet: int = 0                     # numéro du packet
 
-    pc_time: float = 0.0
-    delta_pc: float = 0.0
+    pc_time: float = 0.0                # temps PC
+    delta_pc: float = 0.0               # delta temps depuis packet précédent
 
-    elapsed: float = 0.0
-    delta_elapsed: float = 0.0
+    elapsed: float = 0.0                # temps
+    delta_elapsed: float = 0.0          # delta temps depuis elapsed précédent
 
-    power: float = 0.0
-    power_avg: float = 0.0
+    power: float = 0.0                  # puissance inst
+    power_avg: float = 0.0              # puissance moyenne (valeur étrange)
 
-    stroke_count: int = 0
-    delta_strokes: int = 0
-    stroke_event: bool = False
+    stroke_count: int = 0               # nombre de coups
+    delta_strokes: int = 0              # nombre de coups depuis packet précédent
+    stroke_event: bool = False          # True = un coup à eu lieu
 
-    speed: float = 0.0
-    speed_avg: float = 0.0
+    speed: float = 0.0                  # Vitesse instantanée m/s
+    speed_avg: float = 0.0              # Vitesse moyenne m/s
 
-    distance: float = 0.0
+    distance: float = 0.0               # distance en m
 
-    cadence_raw: float = 0.0
-    cadence: float = 0.0
-    cadence_avg: float = 0.0
+    cadence_raw: float = 0.0            # cadence (stroke per minute) brute
+    cadence: float = 0.0                # cadence inst lissée
+    cadence_avg: float = 0.0            # cadence moyenne
 
-    split: float = 0.0
-    split_avg: float = 0.0
+    split: float = 0.0                  # temps inst aux 500m
+    split_avg: float = 0.0              # temps moyen aux 500m
 
-    distance_per_stroke: float = 0.0
+    distance_per_stroke: float = 0.0    # distance par coup
 
-    calories_rate: float = 0.0
-    calories: float = 0.0
+    calories_rate: float = 0.0          # calories par seconde
+    calories: float = 0.0               # calories totales
 
-    work_j: float = 0.0
-    work_per_stroke: float = 0.0
+    work_j: float = 0.0                 # travail inst (J)
+    work_per_stroke: float = 0.0        # travail par coup (W/stroke)
 
     #
     # Données brutes (FTMS pour Q1S)
     #
 
-    raw_distance: float = 0.0
-    raw_stroke_rate: float = 0.0
-    raw_stroke_rate_avg: float = 0.0
+    raw_distance: float = 0.0           # Raw distance
+    raw_stroke_rate: float = 0.0        # Raw SpM inst
+    raw_stroke_rate_avg: float = 0.0    # Raw SpM average
 
-    raw_split_inst: float = 0.0
-    raw_split_avg: float = 0.0
+    raw_split_inst: float = 0.0         # Raw temps inst. aux 500m
+    raw_split_avg: float = 0.0          # Raw temps moyen aux 500m
 
-    raw_calories: float = 0.0
-    raw_calories_hour: float = 0.0
-    raw_calories_minute: float = 0.0
+    raw_calories: float = 0.0           # Raw Calories
+    raw_calories_hour: float = 0.0      # Raw Calories par heure
+    raw_calories_minute: float = 0.0    # Raw Calories par minute
 
-    raw_resistance: int = 0
-    raw_training_status: int = 0
-    raw_heart_rate: int = 0
+    raw_resistance: int = 0             # Raw Resistance
+    raw_training_status: int = 0        # Raw Training Status
+    raw_heart_rate: int = 0             # Raw Heart Rate
 
     # -------------------------------------------------------------------------
     @classmethod

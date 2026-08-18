@@ -100,7 +100,7 @@ class RowState:
                 return
 
             #
-            # Cadence moyenne
+            # Cadence moyenne (strokes per minute) : calculée
             #
 
             self.rowerdata.cadence_avg = calc_cadence_from_strokes(
@@ -109,7 +109,7 @@ class RowState:
             )
 
             #
-            # Distance par coup
+            # Distance par coup (m/stroke) : calculé
             #
 
             self.rowerdata.distance_per_stroke = calc_dist_per_stroke(

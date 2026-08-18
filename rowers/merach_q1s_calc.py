@@ -1,6 +1,6 @@
 # Merach Q1S specific recalculations
 #
-# The Q1S has untrustable figures. For instance the distance
+# The Q1S has untrustable data figures. For instance the distance
 # is nothing more than "5 * strokes" in meters and the Calories
 # roughly are "0.1428 * strokes" kcal. Hence we will try to
 # calculate the data to approach a bit more "real" figures.
@@ -8,7 +8,8 @@
 # the time, the number of strokes and the powers (instantaneous
 # and average). The powers are not perfect either, certainly not
 # generated from a sensor of strength on the handle, but we
-# need to base our calculations on something...
+# need to base our calculations on something... In fact we will
+# only use the inst power, not the average.
 
 # Coefficient Concept2 est 2.8.
 # Peut être ajusté expérimentalement pour le Merach Q1S.
@@ -18,7 +19,7 @@ CADENCE_WINDOW = 4      # nombre de coups utilisés pour le calcul brut (ou plus
 CADENCE_SMOOTHING = 3   # nombre de cadences calculées utilisées pour le lissage
 CALORIE_OFFSET = 300.0
 
-from calc import calc_delta, calc_average
+from calc import calc_delta, calc_average, calc_speed_avg
 from collections import deque
 
 class MerachQ1SCalc:
@@ -50,11 +51,12 @@ class MerachQ1SCalc:
         #
 
         power = float(data.get("power", 0.0))
-        # No longer used but let's keep it:
+
+        # NOTE: Power_avg is No longer used but let's keep it:
         power_avg = float(data.get("power_avg", 0.0))
 
         #
-        # Vitesse : recalculé
+        # Vitesse : recalculé à partir de power
         #
 
         speed = self.calc_speed(power)
@@ -63,43 +65,42 @@ class MerachQ1SCalc:
         # Power is about half of Power_Avg. Hence using Power_Avg
         # to calculate values produces the same behaviour 
         # between speed and speed_avg, and between split_abg and split.
+        #
         # We will recalculate speed_avg from the distance (thus from
         # speed) instead.
         # Old behaviour for speed_avg was:
         #speed_avg = self.calc_speed(power_avg)
 
         #
-        # Distance : recalculé
+        # Distance : recalculée à partir de Vitesse et delta temps
         #
 
         self.distance += self.calc_dist(speed, delta_elapsed)
 
         #
-        # New speed_avg calc, see NOTE above.
+        # Speed average : New speed_avg recalculée à partir de
+        #                 distance et temps, see NOTE above.
         #
 
-        speed_avg = (
-            self.distance / elapsed_time
-            if elapsed_time > 0.0
-            else 0.0
-        )
+        speed_avg = calc_speed_avg(self.distance, elapsed_time)
 
         #
-        # Split : recalculé
+        # Split : recalculé à partir de speed
+        # Split Average : recalculé à partir de speed_avg
         #
 
         split = self.calc_split(speed)
         split_avg = self.calc_split(speed_avg)
 
         #
-        # Calories : recalculé
+        # Calories inst: recalculé à partir de power
         #
 
-        calories_rate = self.calc_kcal_rate(power)
-        self.calories += self.calc_kcal(calories_rate, delta_elapsed)
+        calories_rate = self.calc_calories_rate(power)
+        self.calories += self.calc_calories(calories_rate, delta_elapsed)
 
         #
-        # Cadences
+        # Cadences (Strokes per minute)
         #
 
         delta_strokes, cadence_raw, cadence = self.calc_cadence_inst(
@@ -109,7 +110,7 @@ class MerachQ1SCalc:
         )
 
         #
-        # Work
+        # Work (J) : recalculés
         #
 
         self.work_j += self.calc_work(
@@ -161,10 +162,7 @@ class MerachQ1SCalc:
         delta_elapsed: float,
     ) -> tuple[float, float, float]: 
 
-        delta_strokes = calc_delta(
-            stroke_count,
-            self.last_strokes,
-        )
+        delta_strokes = calc_delta(stroke_count, self.last_strokes)
 
         if delta_strokes <= 0:
 
@@ -184,9 +182,7 @@ class MerachQ1SCalc:
 
             step = delta_elapsed / delta_strokes
 
-            first_time = (
-                elapsed_time - delta_elapsed
-            ) + step
+            first_time = calc_delta(elapsed_time, delta_elapsed) + step
 
             for i in range(delta_strokes):
                 self.stroke_times.append(
@@ -216,7 +212,14 @@ class MerachQ1SCalc:
         cadence = calc_average(self.cadence_history)
 
         return delta_strokes, cadence_raw, cadence
-    
+
+
+    # =========================================================================
+    # Below are calculation method that are specific to Q1S, hence in here
+    # rather than in calc.py
+    # =========================================================================
+
+
     # -----------------------------------------------------------------------------
     # Works for speed instantaneous (using power inst
     # (could also work for speed_avg based on power avg, but since
@@ -240,25 +243,22 @@ class MerachQ1SCalc:
     def calc_split(speed: float) -> float:
         return (500.0 / speed) if speed > 0.0 else 0.0
 
-
     # -----------------------------------------------------------------------------
     # calories inst
     # calories_per_second (kcal/s) = (4 * power + 300) / 3600
     # power in Watts
     @staticmethod
-    def calc_kcal_rate(power: float) -> float:
+    def calc_calories_rate(power: float) -> float:
         return ((4.0 * power) + CALORIE_OFFSET) / 3600.0
-
 
     # -----------------------------------------------------------------------------
     # calories total
     # calories (kcal) = calories_per_second * time
     # or calories = SUM from k=1 to max Samples of [ ( 4 * Pik + 300) * delta_tk) / 3600]
-    # kcal_rate in kcal/s, delta_t in s
+    # calories_rate in kcal/s, delta_t in s
     @staticmethod
-    def calc_kcal(kcal_rate: float, delta_t:float) -> float:
-        return kcal_rate * delta_t
-
+    def calc_calories(calories_rate: float, delta_t:float) -> float:
+        return calories_rate * delta_t
 
     # -----------------------------------------------------------------------------
     # distance (m) = time * speed

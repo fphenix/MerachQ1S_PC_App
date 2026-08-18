@@ -49,28 +49,30 @@ class MerachRower(RowerClient):
         self.reset()
 
         # Le mapping traduit les noms de champs FTMS vers les
-        # noms génériques de RowerData. Ces valeurs peuvent
-        # être recalculées.
+        # noms génériques de RowerData. Ces valeurs peuvent être
+        # ensuite recalculées et non utilisées telles quelles.
+        # Les champs indiqués par un "(*)" sont ceux qui sont
+        # utilisés pour recalculer toutes les autres métriques.
         self.mapping = {
-            "time_elapsed": "elapsed_time",
+            "time_elapsed": "elapsed_time",                 # (*) temps de la session
 
-            "distance_total": "distance",
+            "distance_total": "distance",                   # distance (recalculée)
 
-            "stroke_count": "stroke_count",
+            "stroke_count": "stroke_count",                 # (*) nombre de coups
 
-            "power_instant": "power",
-            "power_average": "power_avg",
+            "power_instant": "power",                       # (*) puissance instantanée
+            "power_average": "power_avg",                   # puissance moyenne (non utilisée)
 
-            "split_time_instant": "split_inst",
-            "split_time_average": "split_avg",
+            "split_time_instant": "split_inst",             # temps instantané aux 500m (recalculée)
+            "split_time_average": "split_avg",              # temps moyen aux 500m (recalculée)
 
-            "energy_total": "calories",
-            "energy_per_hour": "calories_hour",
-            "energy_per_minute": "calories_minute",
+            "energy_total": "calories",                     # calories dépensées (recalculées)
+            "energy_per_hour": "calories_hour",             # calories par heure (non utilisées)
+            "energy_per_minute": "calories_minute",         # calories par minute (non utilisées)
 
-            "resistance_level": "resistance_level",
-            "training_status": "training_status",
-            "heart_rate": "heart_rate",
+            "resistance_level": "resistance_level",         # resistance de la machine (non diffusée sur Q1S)
+            "training_status": "training_status",           # training status (Q1S envoie 13 ; 1=Idle, 13=Manual Mode, 16:Pre-Workout, 17 Post-Workout)
+            "heart_rate": "heart_rate",                     # pulsation cardiaque (non diffusée sur Q1S)
         }
 
         # Valeurs FTMS brutes à conserver séparément.
@@ -78,21 +80,21 @@ class MerachRower(RowerClient):
         # Elles peuvent ensuite être remplacées par les calculs du
         # calculateur Q1S dans les champs génériques de RowerData.
         self.raw_mapping = {
-            "distance_total": "raw_distance",
+            "distance_total": "raw_distance",               # distance (par expérience, sur Q1S dist = 5 * stroke_count)
 
-            "split_time_instant": "raw_split_inst",
-            "split_time_average": "raw_split_avg",
+            "split_time_instant": "raw_split_inst",         # temps instantané aux 500m
+            "split_time_average": "raw_split_avg",          # temps moyen aux 500m
 
-            "energy_total": "raw_calories",
-            "energy_per_hour": "raw_calories_hour",
-            "energy_per_minute": "raw_calories_minute",
+            "energy_total": "raw_calories",                 # calories dépensées (d'expérience sur Q1S, kcal ~= 0.1428 * stroke_count)
+            "energy_per_hour": "raw_calories_hour",         # calories par heure (non diffusée sur Q1S)
+            "energy_per_minute": "raw_calories_minute",     # calories par minute (non diffusée sur Q1S)
 
-            "stroke_rate_instant": "raw_stroke_rate",
-            "stroke_rate_average": "raw_stroke_rate_avg",
+            "stroke_rate_instant": "raw_stroke_rate",       # cadence instantanée (nb de coups par minute)
+            "stroke_rate_average": "raw_stroke_rate_avg",   # cadence moyenne 
             
-            "resistance_level": "raw_resistance",
-            "training_status": "raw_training_status",
-            "heart_rate": "raw_heart_rate",
+            "resistance_level": "raw_resistance",           # resistance de la machine (non diffusée)
+            "training_status": "raw_training_status",       # training status (Q1S envoie 13 ; 1=Idle, 13=Manual Mode, 16:Pre-Workout, 17 Post-Workout)
+            "heart_rate": "raw_heart_rate",                 # pulsation cardiaque (non diffusée sur Q1S)
         }
 
 
@@ -145,14 +147,18 @@ class MerachRower(RowerClient):
         delta_elapsed: float,
     ) -> RowerData:
 
+        # Valeurs brutes du Q1S réutilisées pour recalculer toutes
+        # les autres métriques
         data = {
-            "elapsed_time": rowerdata.elapsed_time,
-            "stroke_count": rowerdata.stroke_count,
+            "elapsed_time": rowerdata.elapsed_time, # temps/durée de la session
+            "stroke_count": rowerdata.stroke_count, # nombre de coups
             
-            "power": rowerdata.power,
-            "power_avg": rowerdata.power_avg,
+            "power": rowerdata.power,               # puissance instantanée
+            "power_avg": rowerdata.power_avg,       # NOTE: non utilisée pour recalculer autre chose car semble peu fiable
         }
 
+        # On passe ces données au calculateur qui va produire les
+        # autres métriques
         data = self.calculator.process(
             data,
             delta_elapsed,
@@ -310,6 +316,8 @@ class MerachRower(RowerClient):
 
             if source_name in data:
                 self._last_data[target_name] = data[source_name]
+
+        self._last_data["connection"] = self.state.rowerdata.connection
 
         return RowerData(**self._last_data)
 

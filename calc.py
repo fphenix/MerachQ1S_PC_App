@@ -7,24 +7,29 @@ from statistics import mean, stdev
 def calc_average(values: deque) -> float:
     return sum(values) / len(values)
 
-
 # -----------------------------------------------------------------------------
 # delta = curr - prev
 # both values must be in the same unit
 def calc_delta(curr: float, prev: float) -> float:
     return curr - prev
 
-   
 # -----------------------------------------------------------------------------
 # distance_per_stroke (m/stroke) = 60 * speed / strokes_per_minute
 # speed in m/s, cadence in spm (number of strokes per minutes)
 def calc_dist_per_stroke(speed: float, cadence: float) -> float:
     return (60.0 * speed) / cadence if cadence > 0 else 0.0
 
-
 # -----------------------------------------------------------------------------
 def calc_cadence_from_strokes(stroke_count: int, delta_t:float) -> float:
     return (60.0 * stroke_count) / delta_t if delta_t > 0 else 0.0
+
+# -----------------------------------------------------------------------------
+def calc_speed_avg(distance: float, total_time: float) -> float:
+    return (
+            distance / total_time
+            if total_time > 0.0
+            else 0.0
+        )    
 
 
 # --------------------------------------------------------
