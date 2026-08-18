@@ -10,9 +10,9 @@
 # generated from a sensor of strength on the handle, but we
 # need to base our calculations on something...
 
-# Coefficient Concept2.
+# Coefficient Concept2 est 2.8.
 # Peut être ajusté expérimentalement pour le Merach Q1S.
-DRAG_FACTOR  = 2.8
+DRAG_FACTOR  = 2.5
 
 CADENCE_WINDOW = 4      # nombre de coups utilisés pour le calcul brut (ou plus précisément la taille de la fenêtre utilisée pour calculer la cadence brute)
 CADENCE_SMOOTHING = 3   # nombre de cadences calculées utilisées pour le lissage
@@ -25,22 +25,32 @@ class MerachQ1SCalc:
 
     def __init__(self):
 
+        self.stroke_times = deque(maxlen=CADENCE_WINDOW)
+        self.cadence_history = deque(maxlen=CADENCE_SMOOTHING)
+
+        self.reset()
+
+    def reset(self):
         self.distance = 0.0
         self.calories = 0.0
         self.work_j = 0.0
         self.work_per_stroke = 0.0
 
-        self.stroke_times = deque(maxlen=CADENCE_WINDOW)
-        self.cadence_history = deque(maxlen=CADENCE_SMOOTHING)
+        self.stroke_times.clear()
+        self.cadence_history.clear()
+
         self.last_strokes = 0
 
     def process(self, data: dict, delta_elapsed: float) -> dict:
+
+        elapsed_time = float(data.get("elapsed_time", 0.0))
 
         #
         # Power : venant du Q1S
         #
 
         power = float(data.get("power", 0.0))
+        # No longer used but let's keep it:
         power_avg = float(data.get("power_avg", 0.0))
 
         #
@@ -48,13 +58,31 @@ class MerachQ1SCalc:
         #
 
         speed = self.calc_speed(power)
-        speed_avg = self.calc_speed(power_avg)
+
+        # NOTE: FTMS Power (raw data from the Q1S machine) is weird:
+        # Power is about half of Power_Avg. Hence using Power_Avg
+        # to calculate values produces the same behaviour 
+        # between speed and speed_avg, and between split_abg and split.
+        # We will recalculate speed_avg from the distance (thus from
+        # speed) instead.
+        # Old behaviour for speed_avg was:
+        #speed_avg = self.calc_speed(power_avg)
 
         #
         # Distance : recalculé
         #
 
         self.distance += self.calc_dist(speed, delta_elapsed)
+
+        #
+        # New speed_avg calc, see NOTE above.
+        #
+
+        speed_avg = (
+            self.distance / elapsed_time
+            if elapsed_time > 0.0
+            else 0.0
+        )
 
         #
         # Split : recalculé
@@ -68,7 +96,6 @@ class MerachQ1SCalc:
         #
 
         calories_rate = self.calc_kcal_rate(power)
-
         self.calories += self.calc_kcal(calories_rate, delta_elapsed)
 
         #
@@ -77,7 +104,7 @@ class MerachQ1SCalc:
 
         delta_strokes, cadence_raw, cadence = self.calc_cadence_inst(
             stroke_count=int(data.get("stroke_count", 0)),
-            elapsed_time=float(data.get("elapsed_time", 0.0)),
+            elapsed_time=elapsed_time,
             delta_elapsed=delta_elapsed,
         )
 
@@ -109,8 +136,8 @@ class MerachQ1SCalc:
         data["split_inst"] = split
         data["split_avg"] = split_avg
 
-        data["kcal_rate"] = calories_rate
-        data["kcal"] = self.calories
+        data["calories_rate"] = calories_rate
+        data["calories"] = self.calories
 
         data["cadence_raw"] = cadence_raw
         data["cadence"] = cadence
@@ -126,13 +153,13 @@ class MerachQ1SCalc:
     # et applique un lissage sur les dernières valeurs.
     # on va faire la moyenne des dernières valeurs instantanées pour lisser les valeurs
     # inputs: list of times and list of cadences inst
-    # outputs : raw cadence et cadence lissée
+    # outputs : delta_strokes, cadence_raw, cadence lissée
     def calc_cadence_inst(
         self,
         stroke_count: int,
         elapsed_time: float,
         delta_elapsed: float,
-    ) -> tuple[float, float, float]:
+    ) -> tuple[float, float, float]: 
 
         delta_strokes = calc_delta(
             stroke_count,
@@ -140,9 +167,14 @@ class MerachQ1SCalc:
         )
 
         if delta_strokes <= 0:
-            return self.cadence_history[-1] if self.cadence_history else 0.0, (
-                self.cadence_history[-1] if self.cadence_history else 0.0
-            )
+
+            if not self.cadence_history:
+                return 0.0, 0.0, 0.0
+
+            cadence_raw = self.cadence_history[-1]
+            cadence = calc_average(self.cadence_history)
+
+            return 0.0, cadence_raw, cadence
 
         if delta_strokes == 1:
 
@@ -164,7 +196,7 @@ class MerachQ1SCalc:
         self.last_strokes = stroke_count
 
         if len(self.stroke_times) < CADENCE_WINDOW:
-            return 0.0, 0.0
+            return delta_strokes, 0.0, 0.0
 
         delta_time = calc_delta(
             self.stroke_times[-1],
@@ -172,7 +204,7 @@ class MerachQ1SCalc:
         )
 
         if delta_time <= 0:
-            return 0.0, 0.0
+            return delta_strokes, 0.0, 0.0
 
         cadence_raw = self.calc_cadence_window(
             CADENCE_WINDOW - 1,
@@ -186,7 +218,10 @@ class MerachQ1SCalc:
         return delta_strokes, cadence_raw, cadence
     
     # -----------------------------------------------------------------------------
-    # Works for speed instantaneous or speed average (using respectively power inst or power avg)
+    # Works for speed instantaneous (using power inst
+    # (could also work for speed_avg based on power avg, but since
+    # power_avg from the q1s can't be trusted, we will recalculate
+    # speed_avg separately)
     # speed (m/s) = (power / drag_factor)^(1/3)
     # power in Watts
     @staticmethod

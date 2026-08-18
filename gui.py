@@ -103,7 +103,7 @@ class MainWindow(QMainWindow):
             "min/500m  /  avg",
         )
 
-        self.kcalWidget = MetricWidget(
+        self.caloriesWidget = MetricWidget(
             "Calories",
             "kcal/s  /  kcal",
         )
@@ -130,7 +130,7 @@ class MainWindow(QMainWindow):
 
         grid.addWidget(self.cadenceWidget,    3, 0)
         grid.addWidget(self.splitWidget,      3, 1)
-        grid.addWidget(self.kcalWidget,       3, 2)
+        grid.addWidget(self.caloriesWidget,   3, 2)
 
         #
         # Ligne 4 : Bouton Reset
@@ -176,6 +176,8 @@ class MainWindow(QMainWindow):
 
         self.state.reset_session()
 
+        self.state.rower.reset()
+
         self.refresh()
 
 
@@ -184,7 +186,6 @@ class MainWindow(QMainWindow):
         snapshot = self.state.snapshot()
 
         rowerdata = snapshot.rowerdata
-        session = snapshot.session
 
         #
         # Bluetooth
@@ -207,7 +208,7 @@ class MainWindow(QMainWindow):
         #
 
         self.distanceWidget.setValue(
-            f"{session.distance:.0f}"
+            f"{rowerdata.distance:.0f}"
         )
 
         #
@@ -215,7 +216,7 @@ class MainWindow(QMainWindow):
         #
 
         self.speedWidget.setValue(
-            f"{session.speed:.2f} / {session.speed_avg:.2f}"
+            f"{rowerdata.speed:.2f} / {rowerdata.speed_avg:.2f}"
         )
 
         #
@@ -231,7 +232,7 @@ class MainWindow(QMainWindow):
         #
 
         self.distStrokeWidget.setValue(
-            f"{session.distance_per_stroke:.2f}"
+            f"{rowerdata.distance_per_stroke:.2f}"
         )
 
         #
@@ -247,7 +248,7 @@ class MainWindow(QMainWindow):
         #
 
         self.cadenceWidget.setValue(
-            f"{session.cadence:.1f} / {session.cadence_avg:.1f}"
+            f"{rowerdata.cadence:.1f} / {rowerdata.cadence_avg:.1f}"
         )
 
         #
@@ -255,13 +256,12 @@ class MainWindow(QMainWindow):
         #
 
         self.splitWidget.setValue(
-            f"{format_pace(session.split)} / {format_pace(session.split_avg)}"
+            f"{format_pace(rowerdata.split_inst)} / {format_pace(rowerdata.split_avg)}"
         )
 
         #
         # Calories
         #
-
-        self.kcalWidget.setValue(
-            f"{session.calories_rate:.3f} / {session.calories:.1f}"
+        self.caloriesWidget.setValue(
+            f"{rowerdata.calories_rate:.3f} / {rowerdata.calories:.1f}"
         )

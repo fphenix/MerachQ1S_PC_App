@@ -11,6 +11,7 @@ class StatusWidget(QWidget):
         "Recherche...": "#F5B041",
         "Déconnecté": "#D64541",
         "Arrêt": "#808080",
+        "Replay": "#AA00CC",
     }
 
     # -------------------------------------------------------------------------
@@ -24,7 +25,7 @@ class StatusWidget(QWidget):
         self.led = QLabel("●")
         self.led.setAlignment(Qt.AlignCenter)
 
-        self.text = QLabel("Recherche...")
+        self.text = QLabel("---")
 
         layout = QHBoxLayout(self)
 

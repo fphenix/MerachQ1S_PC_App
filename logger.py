@@ -21,6 +21,8 @@ class CsvLogger:
     # -------------------------------------------------------------------------
     def __init__(self):
 
+        self.rower_name = "Unknown Rower"
+
         self.file = None
         self.filename = None
         self.writer = None
@@ -32,6 +34,10 @@ class CsvLogger:
         self._has_data = False
 
     # -------------------------------------------------------------------------
+    def set_rower_name(self, name: str):
+        self.rower_name = name
+
+   # -------------------------------------------------------------------------
     def open(self):
         self.packet = 0
         self.last_pc_time = None
@@ -81,7 +87,7 @@ class CsvLogger:
         mode = f"Replay {REPLAY_FILE}" if USE_REPLAY else "Logger"
 
         self.writer.writerow([
-            f"Rower PC {mode}",
+            f"{self.rower_name} PC {mode}",
             f"Version {VERSION}",
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         ])
@@ -95,25 +101,38 @@ class CsvLogger:
         self.writer.writerow(
             LogRecord(
                 packet=0,
+                
                 pc_time=0,
                 delta_pc=0,
+
                 elapsed=0,
                 delta_elapsed=0,
+
                 power=0,
                 power_avg=0,
+
                 stroke_count=0,
                 delta_strokes=0,
                 stroke_event=False,
+
                 speed=0,
                 speed_avg=0,
+
                 distance=0,
+
                 cadence_raw=0,
                 cadence_avg=0,
+
                 split=0,
                 split_avg=0,
+
                 distance_per_stroke=0,
+
+                calories_rate=0,
                 calories=0,
+
                 work_j=0,
+                work_per_stroke=0,
 
                 raw_distance=0,
                 raw_stroke_rate=0,
@@ -122,9 +141,9 @@ class CsvLogger:
                 raw_split_inst=0,
                 raw_split_avg=0,
 
-                raw_energy=0,
-                raw_energy_hour=0,
-                raw_energy_minute=0,
+                raw_calories=0,
+                raw_calories_hour=0,
+                raw_calories_minute=0,
 
                 raw_resistance=0,
                 raw_training_status=0,

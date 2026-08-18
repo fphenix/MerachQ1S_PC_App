@@ -33,10 +33,10 @@ LOGGER_END_SESSION_TIMEOUT = 10.0
 # via BlueTooth), mettre USE_REPLAY à "False".
 # ----------------------------------------------------------------------
 
-USE_REPLAY = False # False or True
+USE_REPLAY = True # False or True
 
 REPLAY_FILE = (
     "logs/session_20260726_102757.csv" # Choose Log to replay
 )
 
-REPLAY_SPEED = 1.0
+REPLAY_SPEED = 50.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.

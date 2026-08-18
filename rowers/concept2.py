@@ -46,6 +46,10 @@ class Concept2Rower(RowerClient):
 
         super().__init__(address, state)
 
+        self.reset()
+
+    # -------------------------------------------------------------------------
+    def reset(self):
         self._thread = None
         self._running = False
 

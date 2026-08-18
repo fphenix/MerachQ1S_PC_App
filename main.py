@@ -88,15 +88,6 @@ def main():
     state = RowState()
 
     #
-    # Data Logger
-    #
-
-    logger = CsvLogger()
-    logger.open()
-
-    state.set_logger(logger)
-
-    #
     # Source des données (Bluetooth FTMS ou Replay Log)
     #
 
@@ -115,6 +106,21 @@ def main():
         )
 
     state.rower = source
+
+    #
+    # Data Logger
+    #
+
+    logger = CsvLogger()
+    logger.set_rower_name(source.NAME)
+    logger.open()
+
+    state.set_logger(logger)
+
+    #
+    # Start the Rower Client
+    #
+
     source.start()
  
     #

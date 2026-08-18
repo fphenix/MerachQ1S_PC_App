@@ -31,3 +31,9 @@ class RowerClient(ABC):
     @abstractmethod
     def stop(self):
         pass
+
+    # -------------------------------------------------------------------------
+    # Abstract
+    @abstractmethod
+    def reset(self):
+        pass

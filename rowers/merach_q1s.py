@@ -42,41 +42,59 @@ class MerachRower(RowerClient):
 
         super().__init__(self.MERACH_Q1S_ADDRESS, state)
 
-        self._thread = None
-        self._running = False
-
-        self._rower = None
         self.calculator = MerachQ1SCalc()
 
-        # Date de la dernière trame FTMS reçue.
-        self._last_update = time.monotonic()
+        self._last_data = {}
+        
+        self.reset()
 
+        # Le mapping traduit les noms de champs FTMS vers les
+        # noms génériques de RowerData. Ces valeurs peuvent
+        # être recalculées.
         self.mapping = {
             "time_elapsed": "elapsed_time",
 
             "distance_total": "distance",
 
+            "stroke_count": "stroke_count",
+
             "power_instant": "power",
             "power_average": "power_avg",
-
-            "stroke_rate_instant": "stroke_rate",
-            "stroke_rate_average": "stroke_rate_avg",
-
-            "stroke_count": "stroke_count",
 
             "split_time_instant": "split_inst",
             "split_time_average": "split_avg",
 
-            "energy_total": "kcal",
-            "energy_per_hour": "energy_hour",
-            "energy_per_minute": "energy_minute",
+            "energy_total": "calories",
+            "energy_per_hour": "calories_hour",
+            "energy_per_minute": "calories_minute",
 
             "resistance_level": "resistance_level",
-
             "training_status": "training_status",
-
             "heart_rate": "heart_rate",
         }
+
+        # Valeurs FTMS brutes à conserver séparément.
+        #
+        # Elles peuvent ensuite être remplacées par les calculs du
+        # calculateur Q1S dans les champs génériques de RowerData.
+        self.raw_mapping = {
+            "distance_total": "raw_distance",
+
+            "split_time_instant": "raw_split_inst",
+            "split_time_average": "raw_split_avg",
+
+            "energy_total": "raw_calories",
+            "energy_per_hour": "raw_calories_hour",
+            "energy_per_minute": "raw_calories_minute",
+
+            "stroke_rate_instant": "raw_stroke_rate",
+            "stroke_rate_average": "raw_stroke_rate_avg",
+            
+            "resistance_level": "raw_resistance",
+            "training_status": "raw_training_status",
+            "heart_rate": "raw_heart_rate",
+        }
+
 
 
     # -------------------------------------------------------------------------
@@ -105,6 +123,20 @@ class MerachRower(RowerClient):
         if self._thread is not None:
             self._thread.join(timeout=5)
 
+    # -------------------------------------------------------------------------
+    # Abstracted in parent class
+    def reset(self):
+
+        self._thread = None
+        self._running = False
+
+        self._rower = None
+        
+        # Date de la dernière trame FTMS reçue.
+        self._last_update = time.monotonic()
+
+        self._last_data.clear()
+        self.calculator.reset()
 
     # -------------------------------------------------------------------------
     def process(
@@ -114,8 +146,9 @@ class MerachRower(RowerClient):
     ) -> RowerData:
 
         data = {
-            "time_elapsed": rowerdata.elapsed_time,
-
+            "elapsed_time": rowerdata.elapsed_time,
+            "stroke_count": rowerdata.stroke_count,
+            
             "power": rowerdata.power,
             "power_avg": rowerdata.power_avg,
         }
@@ -125,22 +158,22 @@ class MerachRower(RowerClient):
             delta_elapsed,
         )
 
-        rowerdata.speed = data["speed"]
-        rowerdata.speed_avg = data["speed_avg"]
+        rowerdata.delta_strokes = data["delta_strokes"]
+        rowerdata.stroke_event = data["stroke_event"]
 
         rowerdata.distance = data["distance"]
+
+        rowerdata.cadence_raw = data["cadence_raw"]
+        rowerdata.cadence = data["cadence"]
+
+        rowerdata.speed = data["speed"]
+        rowerdata.speed_avg = data["speed_avg"]
 
         rowerdata.split_inst = data["split_inst"]
         rowerdata.split_avg = data["split_avg"]
 
         rowerdata.calories_rate = data["calories_rate"]
-        rowerdata.kcal = data["kcal"]
-
-        rowerdata.delta_strokes = data["delta_strokes"]
-        rowerdata.stroke_event = data["stroke_event"]
-
-        rowerdata.cadence_raw = data["cadence_raw"]
-        rowerdata.cadence = data["cadence"]
+        rowerdata.calories = data["calories"]
 
         rowerdata.work_j = data["work_j"]
         rowerdata.work_per_stroke = data["work_per_stroke"]
@@ -246,16 +279,39 @@ class MerachRower(RowerClient):
         print("Thread FTMS terminé.")
 
     # -------------------------------------------------------------------------
+    def _get_value(self, data, key, default=0):
+        if key in data:
+            self._last_data[key] = data[key]
+            return data[key]
+
+        return self._last_data.get(key, default)
+
+    # -------------------------------------------------------------------------
     def _to_rower_data(self, data: dict) -> RowerData:
 
-        values = {}
-
+        # ---------------------------------------------------------------------
+        # Valeurs FTMS génériques.
+        #
+        # _last_data conserve la dernière valeur connue lorsqu'une trame
+        # FTMS ne contient pas le champ concerné.
+        # ---------------------------------------------------------------------
         for source_name, target_name in self.mapping.items():
 
             if source_name in data:
-                values[target_name] = data[source_name]
+                self._last_data[target_name] = data[source_name]
 
-        return RowerData(**values)
+        # ---------------------------------------------------------------------
+        # Valeurs FTMS brutes.
+        #
+        # Elles sont copiées dans des champs dédiés afin que les calculs
+        # effectués plus tard ne puissent pas les écraser.
+        # ---------------------------------------------------------------------
+        for source_name, target_name in self.raw_mapping.items():
+
+            if source_name in data:
+                self._last_data[target_name] = data[source_name]
+
+        return RowerData(**self._last_data)
 
     # -------------------------------------------------------------------------
     def _on_ftms_event(self, event):
