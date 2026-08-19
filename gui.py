@@ -31,6 +31,7 @@ class MainWindow(QMainWindow):
 
     # -------------------------------------------------------------------------
     def __init__(self, state):
+
         super().__init__()
 
         self.state = state
@@ -165,6 +166,7 @@ class MainWindow(QMainWindow):
 
     # -------------------------------------------------------------------------
     def new_session(self):
+
         logger = self.state.logger
 
         if logger is not None:
@@ -183,6 +185,7 @@ class MainWindow(QMainWindow):
 
     # -------------------------------------------------------------------------
     def refresh(self):
+        
         snapshot = self.state.snapshot()
 
         rowerdata = snapshot.rowerdata

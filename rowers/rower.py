@@ -18,6 +18,7 @@ class RowerClient(ABC):
         rowerdata: RowerData,
         delta_elapsed: float,
     ) -> RowerData:
+        
         return rowerdata
 
     # -------------------------------------------------------------------------

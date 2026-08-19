@@ -16,6 +16,7 @@ class StatusWidget(QWidget):
 
     # -------------------------------------------------------------------------
     def __init__(self, title="Bluetooth"):
+        
         super().__init__()
 
         self.bt_led = QLabel("●")

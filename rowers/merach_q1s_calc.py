@@ -22,8 +22,10 @@ CALORIE_OFFSET = 300.0
 from calc import calc_delta, calc_average, calc_speed_avg
 from collections import deque
 
+# -------------------------------------------------------------------------
 class MerachQ1SCalc:
 
+    # -------------------------------------------------------------------------
     def __init__(self):
 
         self.stroke_times = deque(maxlen=CADENCE_WINDOW)
@@ -31,7 +33,9 @@ class MerachQ1SCalc:
 
         self.reset()
 
+    # -------------------------------------------------------------------------
     def reset(self):
+
         self.distance = 0.0
         self.calories = 0.0
         self.work_j = 0.0
@@ -42,6 +46,7 @@ class MerachQ1SCalc:
 
         self.last_strokes = 0
 
+    # -------------------------------------------------------------------------
     def process(self, data: dict, delta_elapsed: float) -> dict:
 
         elapsed_time = float(data.get("elapsed_time", 0.0))
@@ -229,6 +234,7 @@ class MerachQ1SCalc:
     # power in Watts
     @staticmethod
     def calc_speed(power: float) -> float:
+        
         return (
             (power / DRAG_FACTOR) ** (1.0 / 3.0)
             if power > 0.0

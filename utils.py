@@ -27,6 +27,7 @@ def format_time(seconds: float) -> str:
         118.4 -> 0:01:58
         89.9  -> 0:01:30
     """
+    
     if seconds <= 0:
         return "--:--:--"
     

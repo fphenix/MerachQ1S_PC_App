@@ -9,11 +9,13 @@ from winrt.windows.devices.radios import Radio, RadioKind, RadioState
 class BluetoothManager:
 
     def __init__(self):
+
         self.initial_state = None
         self.radio = None
 
     # -------------------------------------------------------------------------
     async def initialize(self):
+
         # get button
         self.radio = await self.get_radiobtn_state()
 
@@ -37,12 +39,14 @@ class BluetoothManager:
 
     # -------------------------------------------------------------------------
     async def turn_on(self):
+
         # Activation
         await self.radio.set_state_async(RadioState.ON)
         print("Bluetooth card turned ON")
 
     # -------------------------------------------------------------------------
     async def turn_off(self):
+
         # Désactivation
         await self.radio.set_state_async(RadioState.OFF)
         print("Bluetooth card turned OFF")
@@ -63,6 +67,7 @@ class BluetoothManager:
 
     # -------------------------------------------------------------------------
     async def restore(self):
+        
         if self.radio is None or self.initial_state is None:
             return
 

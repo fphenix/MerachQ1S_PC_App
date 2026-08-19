@@ -3,6 +3,7 @@ from dataclasses import dataclass
 # =============================================================================
 @dataclass(slots=True)
 class RowerData:
+
     connection: str = "Recherche..."
 
     elapsed_time: float = 0.0               # session time
@@ -27,12 +28,12 @@ class RowerData:
     split_inst: float = 0.0                 # time inst per 500m
     split_avg: float = 0.0                  # time average per 500m
 
-    calories_rate:float = 0.0               # calories inst (kcal)
+    calories_rate: float = 0.0              # calories inst (kcal/s)
     calories: float = 0.0                   # calories total (kcal)
     calories_hour: float = 0.0              # calories (kcal) per hour
     calories_minute: float = 0.0            # calories (kcal) per minute
 
-    work_j: float = 0.0                     # Work (J) inst
+    work_j: float = 0.0                     # Total Work (J)
     work_per_stroke: float = 0.0            # Work per stroke (J/stroke)
 
     resistance_level: int = 0               # resistance (number)

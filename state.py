@@ -27,6 +27,8 @@ class RowState:
         self.rowerdata = RowerData()
 
         self._last_time = None
+        self._elapsed_offset = 0.0
+        self._stroke_offset = 0
         self.delta_strokes = 0
         self.stroke_event = False
 
@@ -41,22 +43,27 @@ class RowState:
         """
 
         with self._lock:
-            self._last_time = self.rowerdata.elapsed_time
+            self._elapsed_offset = self.rowerdata.elapsed_time
+            self._stroke_offset = self.rowerdata.stroke_count
 
+            self._last_time = 0.0
 
     # -------------------------------------------------------------------------
     def initialize_replay(self, elapsed, delta_elapsed):
+
         self._last_time = calc_delta(elapsed, delta_elapsed)
 
 
     # -------------------------------------------------------------------------
     def set_connection(self, status: str):
+
         with self._lock:
             self.rowerdata.connection = status
 
 
     # -------------------------------------------------------------------------
     def set_logger(self, logger: CsvLogger):
+
         self.logger = logger
 
 
@@ -70,6 +77,9 @@ class RowState:
             #
 
             delta_elapsed = 0.0
+
+            rowerdata.elapsed_time = max(0.0, rowerdata.elapsed_time - self._elapsed_offset)
+            rowerdata.stroke_count = max(0, rowerdata.stroke_count - self._stroke_offset)
 
             temp = float(rowerdata.elapsed_time)
 
@@ -193,6 +203,7 @@ class RowState:
 
     # -------------------------------------------------------------------------
     def snapshot(self):
+        
         with self._lock:
             return Snapshot(
                 deepcopy(self.rowerdata),

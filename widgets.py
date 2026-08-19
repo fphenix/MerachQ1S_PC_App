@@ -27,6 +27,7 @@ class MetricWidget(QFrame):
 
     # -------------------------------------------------------------------------
     def __init__(self, title: str, unit: str = ""):
+
         super().__init__()
 
         self.setFrameShape(QFrame.Box)
@@ -68,7 +69,7 @@ class MetricWidget(QFrame):
         layout.addStretch()
         layout.addWidget(self.unit)
 
-
     # -------------------------------------------------------------------------
     def setValue(self, value):
+
         self.value.setText(str(value))

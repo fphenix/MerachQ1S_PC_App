@@ -89,8 +89,8 @@ class LogRecord:
     calories_rate: float = 0.0          # calories par seconde
     calories: float = 0.0               # calories totales
 
-    work_j: float = 0.0                 # travail inst (J)
-    work_per_stroke: float = 0.0        # travail par coup (W/stroke)
+    work_j: float = 0.0                 # travail total (J)
+    work_per_stroke: float = 0.0        # travail par coup (J/stroke)
 
     #
     # Données brutes (FTMS pour Q1S)
@@ -114,8 +114,10 @@ class LogRecord:
     # -------------------------------------------------------------------------
     @classmethod
     def csv_header(cls):
+
         return [header for header, _ in CSV_FIELDS]
 
     # -------------------------------------------------------------------------
     def csv_row(self):
+        
         return [getattr(self, field_name) for _, field_name in CSV_FIELDS]

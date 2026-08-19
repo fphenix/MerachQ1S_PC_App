@@ -97,8 +97,6 @@ class MerachRower(RowerClient):
             "heart_rate": "raw_heart_rate",                 # pulsation cardiaque (non diffusée sur Q1S)
         }
 
-
-
     # -------------------------------------------------------------------------
     # Abstracted in parent class
     def start(self):
@@ -286,6 +284,7 @@ class MerachRower(RowerClient):
 
     # -------------------------------------------------------------------------
     def _get_value(self, data, key, default=0):
+        
         if key in data:
             self._last_data[key] = data[key]
             return data[key]

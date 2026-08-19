@@ -19,10 +19,7 @@ class ReplayRower(RowerClient):
     NAME = 'Replay'
 
     # -------------------------------------------------------------------------
-    def __init__(self,
-                 filename,
-                 state,
-                 speed=1.0):
+    def __init__(self, filename, state, speed=1.0):
 
         super().__init__("REPLAY", state)
 
@@ -34,11 +31,13 @@ class ReplayRower(RowerClient):
 
     # -------------------------------------------------------------------------
     def reset(self):
+
         self._thread = None
         self._running = False
 
     # -------------------------------------------------------------------------
     def csv_value(self, row, *columns, default=0):
+
         for col in columns:
 
             if col in row.index:
@@ -185,6 +184,7 @@ class ReplayRower(RowerClient):
 
     # -------------------------------------------------------------------------
     def stop(self):
+
         self._running = False
 
         if self._thread is not None:
