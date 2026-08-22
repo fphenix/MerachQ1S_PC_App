@@ -1,7 +1,7 @@
 """
 replay.py
 
-Replay un Log pour émuler une Communication Bluetooth FTMS.
+Replay un Log pour émuler une Communication Bluetooth venant d'un Rameur.
 
 """
 import time
@@ -86,7 +86,7 @@ class ReplayRower(RowerClient):
         #
 
         self.state.initialize_replay(
-            elapsed = first_packet["Elapsed"], 
+            elapsed = first_packet["Raw_Elapsed"], 
             delta_elapsed = first_packet["Delta_Elapsed"]
         )
 
@@ -97,8 +97,8 @@ class ReplayRower(RowerClient):
 
             self.state.set_connection("Replay")
 
-            power = float(self.csv_value(row, "Power"))
-            stroke_count = int(self.csv_value(row, "Stroke_Count"))
+            power = float(self.csv_value(row, "Raw_Power"))
+            stroke_count = int(self.csv_value(row, "Raw_Stroke_Count"))
             work_j = float(self.csv_value(row, "Work_J"))
 
             # Speed of the Replay
@@ -132,34 +132,24 @@ class ReplayRower(RowerClient):
                 )
 
             rower_data = RowerData(
-                elapsed_time=float(self.csv_value(row, "Elapsed")),
                 delta_strokes=int(self.csv_value(row, "Delta_Strokes")),
                 stroke_event=bool(int(self.csv_value(row, "Stroke_Event"))),
-
-                stroke_count=stroke_count,
+                elapsed_time=float(self.csv_value(row, "Elapsed", "Raw_Elapsed")),
 
                 distance=float(self.csv_value(row, "Distance")),
                 distance_per_stroke=float(self.csv_value(row, "Distance_Per_Stroke")),
 
-                power=power,
-                power_avg=float(self.csv_value(row, "Power_Avg")),
-
                 speed=float(self.csv_value(row, "Speed")),
                 speed_avg=float(self.csv_value(row, "Speed_Avg")),
 
-                cadence_raw=float(self.csv_value(row, "Cadence")),
+                cadence_inst=float(self.csv_value(row, "Cadence_Inst")),
                 cadence=float(self.csv_value(row, "Cadence")),
 
                 split_inst=float(self.csv_value(row, "Split")),
                 split_avg=float(self.csv_value(row, "Split_Avg")),
 
                 calories_rate=calories_rate,
-                calories=float(self.csv_value(
-                        row,
-                        "Calories",
-                        "Raw_Energy",
-                    )
-                ),
+                calories=float(self.csv_value(row, "Calories", "Raw_Energy")),
 
                 calories_hour=float(self.csv_value(row, "Raw_Energy_Hour")),
                 calories_minute=float(self.csv_value(row, "Raw_Energy_Minute")),
@@ -167,9 +157,27 @@ class ReplayRower(RowerClient):
                 work_j=work_j,
                 work_per_stroke=work_per_stroke,
 
-                resistance_level=int(self.csv_value(row, "Raw_Resistance")),
-                training_status=int(self.csv_value(row, "Raw_Training_Status")),
-                heart_rate=int(self.csv_value(row, "Raw_Heart_Rate")),
+                raw_elapsed_time=float(self.csv_value(row, "Raw_Elapsed")),
+                raw_stroke_count=stroke_count,
+
+                raw_distance=float(self.csv_value(row, "Raw_Distance")),
+
+                raw_stroke_rate=float(self.csv_value(row, "Raw_Stroke_Rate")),
+                raw_stroke_rate_avg=float(self.csv_value(row, "Raw_Stroke_Rate_Avg")),
+
+                raw_power=power,
+                raw_power_avg=float(self.csv_value(row, "Raw_Power_Avg", "Power_Avg")),
+
+                raw_split_inst=float(self.csv_value(row, "Raw_Split_Instant")),
+                raw_split_avg=float(self.csv_value(row, "Raw_Split_Avg")),
+
+                raw_calories=float(self.csv_value(row, "Raw_Energy")),
+                raw_calories_hour=float(self.csv_value(row, "Raw_Energy_Hour")),
+                raw_calories_minute=float(self.csv_value(row, "Raw_Energy_Minute")),
+
+                raw_resistance=int(self.csv_value(row, "Raw_Resistance")),
+                raw_training_status=int(self.csv_value(row, "Raw_Training_Status")),
+                raw_heart_rate=int(self.csv_value(row, "Raw_Heart_Rate")),
             )
 
             if not firstPacket and self.speed > 0:
@@ -194,7 +202,7 @@ class ReplayRower(RowerClient):
     def process(
         self,
         rowerdata: RowerData,
-        delta_elapsed: float,
+        delta_elapsed: float
     ) -> RowerData:
         
         return rowerdata

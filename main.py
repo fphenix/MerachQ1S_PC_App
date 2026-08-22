@@ -8,7 +8,7 @@ Point d'entrée de l'application Merach PM Monitor.
 # -----------------------------------------------------------------------------
 # !!! IMPORTANT NOTE !!!:
 #
-# #It uses pyftms 0-4-15 but there is a bug in
+# #It uses pyftms 0-4-15 (for the Merach Q1S for exemple) but there is a bug in
 # # C:\Users\????\AppData\Local\Programs\Python\Python313\Lib\site-packages\pyftms\client then in backends\update.py
 #
 # #I had to modify the on_notify() method in the DataUpdater class of the PyFTMS 0.4.15 lib like this:
@@ -88,7 +88,7 @@ def main():
     state = RowState()
 
     #
-    # Source des données (Bluetooth FTMS ou Replay Log)
+    # Source des données (Bluetooth FTMS for Q1S ou Replay Log (and later BLE for C2))
     #
 
     if USE_REPLAY:

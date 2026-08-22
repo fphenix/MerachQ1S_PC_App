@@ -13,10 +13,11 @@ class RowerClient(ABC):
         self.address = address
         self.state = state
 
+    # -------------------------------------------------------------------------
     def process(
         self,
         rowerdata: RowerData,
-        delta_elapsed: float,
+        delta_elapsed: float
     ) -> RowerData:
         
         return rowerdata

@@ -46,44 +46,31 @@ class MerachRower(RowerClient):
 
         self._last_data = {}
         
+        self._thread = None
+        self._running = False
+
+        self._rower = None
+ 
+        
         self.reset()
 
         # Le mapping traduit les noms de champs FTMS vers les
-        # noms génériques de RowerData. Ces valeurs peuvent être
-        # ensuite recalculées et non utilisées telles quelles.
+        # noms génériques de la dataclass RowerData.
+        # Ces valeurs peuvent être ensuite recalculées sans
+        # être utilisées telles quelles.
         # Les champs indiqués par un "(*)" sont ceux qui sont
         # utilisés pour recalculer toutes les autres métriques.
-        self.mapping = {
-            "time_elapsed": "elapsed_time",                 # (*) temps de la session
-
-            "distance_total": "distance",                   # distance (recalculée)
-
-            "stroke_count": "stroke_count",                 # (*) nombre de coups
-
-            "power_instant": "power",                       # (*) puissance instantanée
-            "power_average": "power_avg",                   # puissance moyenne (non utilisée)
-
-            "split_time_instant": "split_inst",             # temps instantané aux 500m (recalculée)
-            "split_time_average": "split_avg",              # temps moyen aux 500m (recalculée)
-
-            "energy_total": "calories",                     # calories dépensées (recalculées)
-            "energy_per_hour": "calories_hour",             # calories par heure (non utilisées)
-            "energy_per_minute": "calories_minute",         # calories par minute (non utilisées)
-
-            "resistance_level": "resistance_level",         # resistance de la machine (non diffusée sur Q1S)
-            "training_status": "training_status",           # training status (Q1S envoie 13 ; 1=Idle, 13=Manual Mode, 16:Pre-Workout, 17 Post-Workout)
-            "heart_rate": "heart_rate",                     # pulsation cardiaque (non diffusée sur Q1S)
-        }
-
-        # Valeurs FTMS brutes à conserver séparément.
-        #
-        # Elles peuvent ensuite être remplacées par les calculs du
-        # calculateur Q1S dans les champs génériques de RowerData.
         self.raw_mapping = {
+            "time_elapsed": "raw_elapsed_time",             # (*) temps de la session
+            "stroke_count": "raw_stroke_count",             # (*) nombre de coups
+ 
             "distance_total": "raw_distance",               # distance (par expérience, sur Q1S dist = 5 * stroke_count)
 
             "split_time_instant": "raw_split_inst",         # temps instantané aux 500m
             "split_time_average": "raw_split_avg",          # temps moyen aux 500m
+
+            "power_instant": "raw_power",                   # (*) puissance instantanée
+            "power_average": "raw_power_avg",               # puissance moyenne (non utilisée)
 
             "energy_total": "raw_calories",                 # calories dépensées (d'expérience sur Q1S, kcal ~= 0.1428 * stroke_count)
             "energy_per_hour": "raw_calories_hour",         # calories par heure (non diffusée sur Q1S)
@@ -126,12 +113,7 @@ class MerachRower(RowerClient):
     # -------------------------------------------------------------------------
     # Abstracted in parent class
     def reset(self):
-
-        self._thread = None
-        self._running = False
-
-        self._rower = None
-        
+       
         # Date de la dernière trame FTMS reçue.
         self._last_update = time.monotonic()
 
@@ -142,24 +124,22 @@ class MerachRower(RowerClient):
     def process(
         self,
         rowerdata: RowerData,
-        delta_elapsed: float,
+        delta_elapsed: float
     ) -> RowerData:
 
         # Valeurs brutes du Q1S réutilisées pour recalculer toutes
         # les autres métriques
         data = {
-            "elapsed_time": rowerdata.elapsed_time, # temps/durée de la session
-            "stroke_count": rowerdata.stroke_count, # nombre de coups
-            
-            "power": rowerdata.power,               # puissance instantanée
-            "power_avg": rowerdata.power_avg,       # NOTE: non utilisée pour recalculer autre chose car semble peu fiable
+            "elapsed_time": rowerdata.elapsed_time,         # temps/durée de la session
+            "stroke_count": rowerdata.stroke_count,         # nombre de coups de la session
+            "power": rowerdata.raw_power,                   # puissance instantanée
         }
 
         # On passe ces données au calculateur qui va produire les
         # autres métriques
         data = self.calculator.process(
             data,
-            delta_elapsed,
+            delta_elapsed
         )
 
         rowerdata.delta_strokes = data["delta_strokes"]
@@ -167,7 +147,7 @@ class MerachRower(RowerClient):
 
         rowerdata.distance = data["distance"]
 
-        rowerdata.cadence_raw = data["cadence_raw"]
+        rowerdata.cadence_inst = data["cadence_inst"]
         rowerdata.cadence = data["cadence"]
 
         rowerdata.speed = data["speed"]
@@ -295,28 +275,20 @@ class MerachRower(RowerClient):
     def _to_rower_data(self, data: dict) -> RowerData:
 
         # ---------------------------------------------------------------------
-        # Valeurs FTMS génériques.
+        # Valeurs FTMS venant du Rameur Merach Q1S.
         #
         # _last_data conserve la dernière valeur connue lorsqu'une trame
         # FTMS ne contient pas le champ concerné.
-        # ---------------------------------------------------------------------
-        for source_name, target_name in self.mapping.items():
-
-            if source_name in data:
-                self._last_data[target_name] = data[source_name]
-
-        # ---------------------------------------------------------------------
-        # Valeurs FTMS brutes.
         #
-        # Elles sont copiées dans des champs dédiés afin que les calculs
-        # effectués plus tard ne puissent pas les écraser.
+        # Elles sont copiées dans des champs dédiés (raw_*) afin que les
+        # calculs effectués plus tard ne puissent pas les écraser.
         # ---------------------------------------------------------------------
         for source_name, target_name in self.raw_mapping.items():
 
             if source_name in data:
                 self._last_data[target_name] = data[source_name]
 
-        self._last_data["connection"] = self.state.rowerdata.connection
+        self._last_data["connection"] = self.state.curr_rowerdata.connection
 
         return RowerData(**self._last_data)
 
@@ -335,8 +307,8 @@ class MerachRower(RowerClient):
         if event.event_id != "update":
             return
 
-        rower_data = self._to_rower_data(
+        new_rowerdata = self._to_rower_data(
             event.event_data
         )
 
-        self.state.update(rower_data)
+        self.state.update(new_rowerdata)

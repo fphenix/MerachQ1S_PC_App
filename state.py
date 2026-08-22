@@ -24,7 +24,7 @@ class RowState:
 
         self.rower = None
 
-        self.rowerdata = RowerData()
+        self.curr_rowerdata = RowerData()
 
         self._last_time = None
         self._elapsed_offset = 0.0
@@ -38,15 +38,22 @@ class RowState:
     # -------------------------------------------------------------------------
     def reset_session(self):
         """
-        Remet à zéro les statistiques de séance.
-        Les données restent inchangées.
+        Remet à zéro les données de séance sans arrêter le rameur.
+        La connexion et les compteurs raw de la machine sont conservés
+        via les offsets de session.
         """
 
         with self._lock:
-            self._elapsed_offset = self.rowerdata.elapsed_time
-            self._stroke_offset = self.rowerdata.stroke_count
+            connection = self.curr_rowerdata.connection
 
-            self._last_time = 0.0
+            self._elapsed_offset = self.curr_rowerdata.raw_elapsed_time
+            self._stroke_offset = self.curr_rowerdata.raw_stroke_count
+
+            self._last_time = None
+
+            self.curr_rowerdata = RowerData(
+                connection=connection,
+            )
 
     # -------------------------------------------------------------------------
     def initialize_replay(self, elapsed, delta_elapsed):
@@ -58,7 +65,7 @@ class RowState:
     def set_connection(self, status: str):
 
         with self._lock:
-            self.rowerdata.connection = status
+            self.curr_rowerdata.connection = status
 
 
     # -------------------------------------------------------------------------
@@ -68,7 +75,7 @@ class RowState:
 
 
     # -------------------------------------------------------------------------
-    def update(self, rowerdata: RowerData):
+    def update(self, new_rowerdata: RowerData):
 
         with self._lock:
 
@@ -78,10 +85,10 @@ class RowState:
 
             delta_elapsed = 0.0
 
-            rowerdata.elapsed_time = max(0.0, rowerdata.elapsed_time - self._elapsed_offset)
-            rowerdata.stroke_count = max(0, rowerdata.stroke_count - self._stroke_offset)
+            elapsed_time = max(0.0, calc_delta(new_rowerdata.raw_elapsed_time, self._elapsed_offset))
+            stroke_count = max(0, calc_delta(new_rowerdata.raw_stroke_count, self._stroke_offset))
 
-            temp = float(rowerdata.elapsed_time)
+            temp = float(elapsed_time)
 
             if self._last_time is not None:
                 delta_elapsed = max(
@@ -91,16 +98,19 @@ class RowState:
 
             self._last_time = temp
 
-            self.rowerdata = rowerdata
+            self.curr_rowerdata = new_rowerdata
+
+            self.curr_rowerdata.elapsed_time = elapsed_time
+            self.curr_rowerdata.stroke_count = stroke_count
 
             if self.rower is not None:
-                self.rowerdata = self.rower.process(
-                    self.rowerdata,
-                    delta_elapsed,
+                self.curr_rowerdata = self.rower.process(
+                    self.curr_rowerdata,
+                    delta_elapsed
                 )
 
-            self.delta_strokes = self.rowerdata.delta_strokes
-            self.stroke_event = self.rowerdata.stroke_event
+            self.delta_strokes = self.curr_rowerdata.delta_strokes
+            self.stroke_event = self.curr_rowerdata.stroke_event
 
             #
             # Aucun calcul au premier paquet
@@ -113,18 +123,18 @@ class RowState:
             # Cadence moyenne (strokes per minute) : calculée
             #
 
-            self.rowerdata.cadence_avg = calc_cadence_from_strokes(
-                self.rowerdata.stroke_count, 
-                self.rowerdata.elapsed_time
+            self.curr_rowerdata.cadence_avg = calc_cadence_from_strokes(
+                stroke_count, 
+                elapsed_time
             )
 
             #
             # Distance par coup (m/stroke) : calculé
             #
 
-            self.rowerdata.distance_per_stroke = calc_dist_per_stroke(
-                self.rowerdata.speed,
-                self.rowerdata.cadence,
+            self.curr_rowerdata.distance_per_stroke = calc_dist_per_stroke(
+                self.curr_rowerdata.speed,
+                self.curr_rowerdata.cadence,
             )
 
             #
@@ -147,55 +157,58 @@ class RowState:
                     pc_time=pc_time,
                     delta_pc=delta_pc,
 
-                    elapsed=self.rowerdata.elapsed_time,
+                    elapsed_time=elapsed_time,
                     delta_elapsed=delta_elapsed,
 
-                    power=self.rowerdata.power,
-                    power_avg=self.rowerdata.power_avg,
-
-                    stroke_count=self.rowerdata.stroke_count,
+                    stroke_count=stroke_count,
                     delta_strokes=self.delta_strokes,
                     stroke_event=self.stroke_event,
 
-                    speed=self.rowerdata.speed,
-                    speed_avg=self.rowerdata.speed_avg,
+                    speed=self.curr_rowerdata.speed,
+                    speed_avg=self.curr_rowerdata.speed_avg,
 
-                    distance=self.rowerdata.distance,
+                    distance=self.curr_rowerdata.distance,
 
-                    cadence_raw=self.rowerdata.cadence_raw,   # "Cadence" : cadence instantanée brute calculée sur la fenêtre
-                    cadence=self.rowerdata.cadence,           # "Cadence_Inst": cadence instantanée lissée
-                    cadence_avg=self.rowerdata.cadence_avg,   # "Cadence_Avg": cadence moyenne sur la séance
+                    cadence_inst=self.curr_rowerdata.cadence_inst,   # "Cadence" : cadence instantanée brute calculée sur la fenêtre
+                    cadence=self.curr_rowerdata.cadence,             # "Cadence_Inst": cadence instantanée lissée
+                    cadence_avg=self.curr_rowerdata.cadence_avg,     # "Cadence_Avg": cadence moyenne sur la séance
 
-                    split=self.rowerdata.split_inst,
-                    split_avg=self.rowerdata.split_avg,
+                    split=self.curr_rowerdata.split_inst,
+                    split_avg=self.curr_rowerdata.split_avg,
 
-                    distance_per_stroke=self.rowerdata.distance_per_stroke,
+                    distance_per_stroke=self.curr_rowerdata.distance_per_stroke,
 
-                    calories_rate= self.rowerdata.calories_rate,
-                    calories=self.rowerdata.calories,
+                    calories_rate= self.curr_rowerdata.calories_rate,
+                    calories=self.curr_rowerdata.calories,
 
-                    work_j=self.rowerdata.work_j,
-                    work_per_stroke=self.rowerdata.work_per_stroke,
+                    work_j=self.curr_rowerdata.work_j,
+                    work_per_stroke=self.curr_rowerdata.work_per_stroke,
 
                     #
-                    # FTMS bruts
+                    # Autres valeurs venant diretement du Rameur
                     #
 
-                    raw_distance=self.rowerdata.raw_distance,
+                    raw_elapsed_time=new_rowerdata.raw_elapsed_time,
+                    raw_distance=self.curr_rowerdata.raw_distance,
 
-                    raw_stroke_rate=self.rowerdata.raw_stroke_rate,
-                    raw_stroke_rate_avg=self.rowerdata.raw_stroke_rate_avg,
+                    raw_stroke_count=new_rowerdata.raw_stroke_count,
 
-                    raw_split_inst=self.rowerdata.raw_split_inst,
-                    raw_split_avg=self.rowerdata.raw_split_avg,
+                    raw_stroke_rate=self.curr_rowerdata.raw_stroke_rate,
+                    raw_stroke_rate_avg=self.curr_rowerdata.raw_stroke_rate_avg,
 
-                    raw_calories=self.rowerdata.raw_calories,
-                    raw_calories_hour=self.rowerdata.raw_calories_hour,
-                    raw_calories_minute=self.rowerdata.raw_calories_minute,
+                    raw_power=self.curr_rowerdata.raw_power,
+                    raw_power_avg=self.curr_rowerdata.raw_power_avg,
 
-                    raw_resistance=self.rowerdata.raw_resistance,
-                    raw_training_status=self.rowerdata.raw_training_status,
-                    raw_heart_rate=self.rowerdata.raw_heart_rate,
+                    raw_split_inst=self.curr_rowerdata.raw_split_inst,
+                    raw_split_avg=self.curr_rowerdata.raw_split_avg,
+
+                    raw_calories=self.curr_rowerdata.raw_calories,
+                    raw_calories_hour=self.curr_rowerdata.raw_calories_hour,
+                    raw_calories_minute=self.curr_rowerdata.raw_calories_minute,
+
+                    raw_resistance=self.curr_rowerdata.raw_resistance,
+                    raw_training_status=self.curr_rowerdata.raw_training_status,
+                    raw_heart_rate=self.curr_rowerdata.raw_heart_rate,
                 )
 
                 self.logger.log(record)
@@ -206,5 +219,5 @@ class RowState:
         
         with self._lock:
             return Snapshot(
-                deepcopy(self.rowerdata),
+                deepcopy(self.curr_rowerdata),
             )

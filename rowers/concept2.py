@@ -1,8 +1,10 @@
 """
 IMPORTANT NOTE:
 
-C2 "mode" is a work in progress. I do not own a C2, so don't have the means to test the code.
+C2 "mode" is a work in progress.
+I do not own a C2, so don't have the means to test the code.
 I added what I could, but it is NOT a working mode.
+C2 uses a proprietary BLE transfert over BT, not FTMS.
 """
 
 from bleak import BleakClient
@@ -25,7 +27,7 @@ class Concept2Rower(RowerClient):
     Toute la communication avec le rameur est encapsulée ici.
     """
 
-    NAME = "Concept2 PM5"
+    NAME = "Concept2 PM5" # PM : Performance Monitor
 
     #
     # UUID à compléter

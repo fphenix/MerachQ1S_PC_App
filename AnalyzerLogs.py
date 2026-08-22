@@ -47,7 +47,7 @@ print(f"Distance    : {df['Distance'].iloc[-1]:.1f} m")
 print(f"Coups       : {int(df['Stroke_Count'].iloc[-1])}")
 print(f"Calories    : {df['Calories'].iloc[-1]:.1f} kcal")
 print(f"Travail     : {df['Work_J'].iloc[-1]/1000:.1f} kJ")
-print(f"Puiss. moy. : {df['Power_Avg'].iloc[-1]:.1f} W")
+print(f"Puiss. moy. : {df['Raw_Power_Avg'].iloc[-1]:.1f} W")
 print(f"Vit. moy.   : {df['Speed_Avg'].iloc[-1]:.2f} m/s")
 print(f"Cad. moy.   : {df['Cadence_Avg'].iloc[-1]:.1f} spm")
 print("=============================\n")
@@ -56,11 +56,12 @@ print("=============================\n")
 # Stats
 #
 
-power_stats = calc_stats(df["Power"].tolist())
-
-cadence_stats = calc_stats(df["Cadence"].tolist())
-
-dps_stats = calc_stats(df["Distance_Per_Stroke"].tolist())
+power_stats = calc_stats(df["Raw_Power"].tolist(), minimum=1)
+cadence_stats = calc_stats(df["Cadence"].tolist(), minimum=1)
+dps_stats = calc_stats(
+    df["Distance_Per_Stroke"].tolist(),
+    minimum=0.1,
+)
 
 """
 speed_stats = calc_stats(df["Speed"].tolist())
@@ -71,18 +72,15 @@ wps_stats = calc_stats(df["Work_J"].diff().fillna(0).tolist())
 """
 
 with open(f"./Logs/stats_{file_corename}.txt", "w", encoding="utf-8") as fw:
-    for t, title, min in [
-        [power_stats, "Power", 1], 
-        [cadence_stats, "Cadence", 1],
-        [dps_stats, "Distance/Stroke", 0.1]
+    for t, title in [
+        (power_stats, "Raw_Power"),
+        (cadence_stats, "Cadence"),
+        (dps_stats, "Distance/Stroke"),
     ]:
         fw.write(f"{title}\n-----------\n")
         for k in ["mean", "stdev", "min", "max"]:
             fw.write(f"{k}\t: {t[k]}\n")
         fw.write('\n')
-
-with open(f"./Logs/stats/stats_{file_corename}.txt", 'r') as fr:
-    print(fr.read())
 
 #
 # Temps
@@ -103,8 +101,8 @@ fig.suptitle(file_basename)
 # Puissance
 #
 
-ax[0].plot(t, df["Power"], label="Power")
-ax[0].plot(t, df["Power_Avg"], label="Average")
+ax[0].plot(t, df["Raw_Power"], label="Power")
+ax[0].plot(t, df["Raw_Power_Avg"], label="Average")
 ax[0].set_ylabel("W")
 ax[0].grid(True)
 ax[0].legend()
@@ -155,22 +153,22 @@ line_avg, = ax[4].plot(
     linewidth=2,
 )
 
-line_ftms = None
-line_ftms_avg = None
+line_rower = None
+line_rower_avg = None
 
-if "FTMS_Split_Instant" in df.columns:
-    line_ftms, = ax[4].plot(
+if "Raw_Split_Instant" in df.columns:
+    line_rower, = ax[4].plot(
         t,
-        df["FTMS_Split_Instant"],
-        label="FTMS Instant",
+        df["Raw_Split_Instant"],
+        label="Rower Instant",
         linestyle="--",
     )
 
-if "FTMS_Split_Avg" in df.columns:
-    line_ftms_avg, = ax[4].plot(
+if "Raw_Split_Avg" in df.columns:
+    line_rower_avg, = ax[4].plot(
         t,
-        df["FTMS_Split_Avg"],
-        label="FTMS Average",
+        df["Raw_Split_Avg"],
+        label="Rower Average",
         linestyle=":",
     )
 
@@ -196,12 +194,12 @@ rax = plt.axes([0.82, 0.80, 0.16, 0.12])
 labels = []
 states = []
 
-if line_ftms is not None:
-    labels.append("FTMS Instant")
+if line_rower is not None:
+    labels.append("Rower Instant")
     states.append(True)
 
-if line_ftms_avg is not None:
-    labels.append("FTMS Average")
+if line_rower_avg is not None:
+    labels.append("Rower Average")
     states.append(False)
 
 check = CheckButtons(rax, labels, states)
@@ -210,20 +208,20 @@ check = CheckButtons(rax, labels, states)
 # Masque les courbes décochées
 #
 
-if line_ftms_avg is not None:
-    line_ftms_avg.set_visible(False)
+if line_rower_avg is not None:
+    line_rower_avg.set_visible(False)
 
 
 def toggle(label):
 
-    if label == "FTMS Instant":
-        line_ftms.set_visible(
-            not line_ftms.get_visible()
+    if label == "Rower Instant":
+        line_rower.set_visible(
+            not line_rower.get_visible()
         )
 
-    elif label == "FTMS Average":
-        line_ftms_avg.set_visible(
-            not line_ftms_avg.get_visible()
+    elif label == "Rower Average":
+        line_rower_avg.set_visible(
+            not line_rower_avg.get_visible()
         )
 
     fig.canvas.draw_idle()
@@ -241,4 +239,3 @@ fig.subplots_adjust(
 )
 
 plt.show()
-

@@ -1,17 +1,16 @@
 from dataclasses import dataclass
 
 # Column Title, variable holding the data
+# Les valeurs "Rax_*"" viennent directement de la machine via 
+# le protocole BlueTooth utilisé (par exemple FTMS pour Merach Q1S)
 CSV_FIELDS = [
     ("Packet", "packet"),
 
     ("PC_Time", "pc_time"),
     ("Delta_PC", "delta_pc"),
 
-    ("Elapsed", "elapsed"),
+    ("Elapsed", "elapsed_time"),
     ("Delta_Elapsed", "delta_elapsed"),
-
-    ("Power", "power"),
-    ("Power_Avg", "power_avg"),
 
     ("Stroke_Count", "stroke_count"),
     ("Delta_Strokes", "delta_strokes"),
@@ -22,9 +21,9 @@ CSV_FIELDS = [
 
     ("Distance", "distance"),
 
-    ("Cadence", "cadence_raw"),
-    ("Cadence_Inst", "cadence"),
-    ("Cadence_Avg", "cadence_avg"),
+    ("Cadence_Inst", "cadence_inst"),   # Cadence Instantanée calculée
+    ("Cadence", "cadence"),             # Cadence Instantanée calculée et lissée
+    ("Cadence_Avg", "cadence_avg"),     # Cadence Moyenne sur la session
 
     ("Split", "split"),
     ("Split_Avg", "split_avg"),
@@ -37,9 +36,16 @@ CSV_FIELDS = [
     ("Work_J", "work_j"),
     ("Work_Per_Stroke", "work_per_stroke"),
 
+    ("Raw_Elapsed", "raw_elapsed_time"),
+
+    ("Raw_Stroke_Count", "raw_stroke_count"),
     ("Raw_Distance", "raw_distance"),
-    ("Raw_Stroke_Rate", "raw_stroke_rate"),
-    ("Raw_Stroke_Rate_Avg", "raw_stroke_rate_avg"),
+
+    ("Raw_Stroke_Rate", "raw_stroke_rate"),             # Raw Cadence inst
+    ("Raw_Stroke_Rate_Avg", "raw_stroke_rate_avg"),     # Raw Cadence Moyenne
+
+    ("Raw_Power", "raw_power"),
+    ("Raw_Power_Avg", "raw_power_avg"),
 
     ("Raw_Split_Instant", "raw_split_inst"),
     ("Raw_Split_Avg", "raw_split_avg"),
@@ -62,11 +68,8 @@ class LogRecord:
     pc_time: float = 0.0                # temps PC
     delta_pc: float = 0.0               # delta temps depuis packet précédent
 
-    elapsed: float = 0.0                # temps
+    elapsed_time: float = 0.0           # temps (remis à 0 en cas de nouvelle session)
     delta_elapsed: float = 0.0          # delta temps depuis elapsed précédent
-
-    power: float = 0.0                  # puissance inst
-    power_avg: float = 0.0              # puissance moyenne (valeur étrange)
 
     stroke_count: int = 0               # nombre de coups
     delta_strokes: int = 0              # nombre de coups depuis packet précédent
@@ -77,7 +80,7 @@ class LogRecord:
 
     distance: float = 0.0               # distance en m
 
-    cadence_raw: float = 0.0            # cadence (stroke per minute) brute
+    cadence_inst: float = 0.0           # cadence inst (stroke per minute) calculée
     cadence: float = 0.0                # cadence inst lissée
     cadence_avg: float = 0.0            # cadence moyenne
 
@@ -93,12 +96,19 @@ class LogRecord:
     work_per_stroke: float = 0.0        # travail par coup (J/stroke)
 
     #
-    # Données brutes (FTMS pour Q1S)
+    # Données brutes venant du Rameur (par exemple via FTMS pour Q1S)
     #
+
+    raw_elapsed_time: float = 0.0       # temps
+
+    raw_stroke_count: int = 0           # nombre de coups
 
     raw_distance: float = 0.0           # Raw distance
     raw_stroke_rate: float = 0.0        # Raw SpM inst
     raw_stroke_rate_avg: float = 0.0    # Raw SpM average
+
+    raw_power: float = 0.0              # puissance inst
+    raw_power_avg: float = 0.0          # Raw puissance moyenne (valeur étrange)
 
     raw_split_inst: float = 0.0         # Raw temps inst. aux 500m
     raw_split_avg: float = 0.0          # Raw temps moyen aux 500m
