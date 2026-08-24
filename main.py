@@ -52,6 +52,7 @@ from constants import (
     WINDOW_WIDTH, WINDOW_HEIGHT,
     REPLAY_FILE, REPLAY_SPEED, USE_REPLAY,
 )
+from utils import echo
 
 from state import RowState
 from gui import MainWindow
@@ -76,7 +77,7 @@ def main():
         asyncio.run(bluetooth_manager.initialize()) # make sure BT is On
 
     else:
-        print(f"REPLAY Mode : fichier chargé est {REPLAY_FILE}")
+        echo(f"REPLAY Mode : fichier chargé est {REPLAY_FILE}")
 
     app = QApplication(sys.argv)
     app.setApplicationName(WINDOW_TITLE)

@@ -10,6 +10,7 @@ C2 uses a proprietary BLE transfert over BT, not FTMS.
 from bleak import BleakClient
 
 from .rower import RowerClient
+from utils import echo
 
 C2_BASE_UUID = "CE06XXXX-43E5-11E4-916C-0800200C9A66"
 
@@ -77,13 +78,13 @@ class Concept2Rower(RowerClient):
 
         await self._client.connect()
 
-        print("Concept2 connecté")
+        echo("Concept2 connecté")
 
         for service in self._client.services:
-            print(f"Service: {service.uuid}")
+            echo(f"Service: {service.uuid}")
 
             for characteristic in service.characteristics:
-                print(
+                echo(
                     f"  Characteristic: {characteristic.uuid} "
                     f"{characteristic.properties}"
                 )
@@ -190,7 +191,7 @@ class Concept2Rower(RowerClient):
 
         self.force_curve = bytes(data)
 
-        print(
+        echo(
             f"C2 Force Curve reçue : "
             f"{len(data)} octets"
         )

@@ -17,6 +17,8 @@ class RowerData:
     speed: float = 0.0                      # speed inst (m/s)
     speed_avg: float = 0.0                  # speed average (m/s)
 
+    power_avg: float = 0.0                  # Power average (W) recalculée
+
     cadence_inst: float = 0.0               # cadence ou stroke_rate (strokes per minute) instantanée, calculée non lissée
     cadence: float = 0.0                    # cadence ou stroke_rate (strokes per minute) instantanée lissée
     cadence_avg: float = 0.0                # cadence ou stroke_rate (strokes per minute) moyenne sur la session
@@ -31,10 +33,6 @@ class RowerData:
 
     work_j: float = 0.0                     # Total Work (J)
     work_per_stroke: float = 0.0            # Work per stroke (J/stroke)
-
-    resistance_level: int = 0               # resistance (number)
-    training_status: int = 0                # training status (eg. FTMS code, 13=Manual Mode)
-    heart_rate: int = 0                     # Heart rate (pulse/min) : Not available on Q1S)
 
     # -------------------------------------------------------------------------
     # Valeurs brutes reçues du rameur.

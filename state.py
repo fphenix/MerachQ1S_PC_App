@@ -8,11 +8,9 @@ from rowers.data import RowerData
 
 from snapshot import Snapshot
 
-from calc import (
-    calc_delta,
-    calc_cadence_from_strokes,
-    calc_dist_per_stroke,
-)
+from calc import calc_delta
+
+from utils import debug
 
 # =============================================================================
 class RowState:
@@ -29,6 +27,7 @@ class RowState:
         self._last_time = None
         self._elapsed_offset = 0.0
         self._stroke_offset = 0
+
         self.delta_strokes = 0
         self.stroke_event = False
 
@@ -85,23 +84,43 @@ class RowState:
 
             delta_elapsed = 0.0
 
-            elapsed_time = max(0.0, calc_delta(new_rowerdata.raw_elapsed_time, self._elapsed_offset))
-            stroke_count = max(0, calc_delta(new_rowerdata.raw_stroke_count, self._stroke_offset))
+            # for elapsed_time and stroke_count we want the value
+            # minus the "New Session" offset (offset is 0 for first
+            # session). We also clamp is to 0 if it ever goes negative.
+            elapsed_time = max(
+                0.0, 
+                calc_delta(
+                    new_rowerdata.raw_elapsed_time, 
+                    self._elapsed_offset
+                )
+            )
 
-            temp = float(elapsed_time)
+            stroke_count = max(
+                0, 
+                calc_delta(
+                    new_rowerdata.raw_stroke_count,
+                    self._stroke_offset
+                )
+            )
 
-            if self._last_time is not None:
+            if self._last_time is None: # first packet
+                delta_elapsed = 0.0
+            else:
                 delta_elapsed = max(
                     0.0,
-                    calc_delta(temp, self._last_time),
+                    calc_delta(elapsed_time, self._last_time),
                 )
 
-            self._last_time = temp
+            self._last_time = elapsed_time
 
             self.curr_rowerdata = new_rowerdata
 
             self.curr_rowerdata.elapsed_time = elapsed_time
             self.curr_rowerdata.stroke_count = stroke_count
+
+            #
+            # Process the data with the machine model
+            #
 
             if self.rower is not None:
                 self.curr_rowerdata = self.rower.process(
@@ -111,31 +130,6 @@ class RowState:
 
             self.delta_strokes = self.curr_rowerdata.delta_strokes
             self.stroke_event = self.curr_rowerdata.stroke_event
-
-            #
-            # Aucun calcul au premier paquet
-            #
-
-            if delta_elapsed <= 0:
-                return
-
-            #
-            # Cadence moyenne (strokes per minute) : calculée
-            #
-
-            self.curr_rowerdata.cadence_avg = calc_cadence_from_strokes(
-                stroke_count, 
-                elapsed_time
-            )
-
-            #
-            # Distance par coup (m/stroke) : calculé
-            #
-
-            self.curr_rowerdata.distance_per_stroke = calc_dist_per_stroke(
-                self.curr_rowerdata.speed,
-                self.curr_rowerdata.cadence,
-            )
 
             #
             # Logger
@@ -160,6 +154,8 @@ class RowState:
                     elapsed_time=elapsed_time,
                     delta_elapsed=delta_elapsed,
 
+                    power_avg=self.curr_rowerdata.power_avg,
+
                     stroke_count=stroke_count,
                     delta_strokes=self.delta_strokes,
                     stroke_event=self.stroke_event,
@@ -169,8 +165,8 @@ class RowState:
 
                     distance=self.curr_rowerdata.distance,
 
-                    cadence_inst=self.curr_rowerdata.cadence_inst,   # "Cadence" : cadence instantanée brute calculée sur la fenêtre
-                    cadence=self.curr_rowerdata.cadence,             # "Cadence_Inst": cadence instantanée lissée
+                    cadence_inst=self.curr_rowerdata.cadence_inst,   # "Cadence_Inst" : cadence instantanée brute
+                    cadence=self.curr_rowerdata.cadence,             # "Cadence": cadence instantanée lissée
                     cadence_avg=self.curr_rowerdata.cadence_avg,     # "Cadence_Avg": cadence moyenne sur la séance
 
                     split=self.curr_rowerdata.split_inst,

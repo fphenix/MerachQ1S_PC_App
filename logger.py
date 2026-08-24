@@ -14,6 +14,7 @@ from constants import (
 
     USE_REPLAY, REPLAY_FILE,
 )
+from utils import echo
 
 # =============================================================================
 class CsvLogger:
@@ -208,7 +209,7 @@ class CsvLogger:
 
             if not self._has_data:
                 self.filename.unlink()
-                print("Log ignoré car il aurait été vide.")
+                echo("Log ignoré car il aurait été vide.")
 
             self.filename = None
             self._has_data = False

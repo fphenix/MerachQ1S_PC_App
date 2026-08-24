@@ -21,6 +21,7 @@ from constants import (
 from utils import (
     format_pace,
     format_time,
+    debug,
 )
 
 from widgets import MetricWidget
@@ -243,7 +244,7 @@ class MainWindow(QMainWindow):
         #
 
         self.powerWidget.setValue(
-            f"{rowerdata.raw_power:.0f} / {rowerdata.raw_power_avg:.0f}"
+            f"{rowerdata.raw_power:.0f} / {rowerdata.power_avg:.0f}"
         )
 
         #

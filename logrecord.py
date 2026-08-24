@@ -12,6 +12,8 @@ CSV_FIELDS = [
     ("Elapsed", "elapsed_time"),
     ("Delta_Elapsed", "delta_elapsed"),
 
+    ("Power_Avg", "power_avg"),
+
     ("Stroke_Count", "stroke_count"),
     ("Delta_Strokes", "delta_strokes"),
     ("Stroke_Event", "stroke_event"),
@@ -21,7 +23,7 @@ CSV_FIELDS = [
 
     ("Distance", "distance"),
 
-    ("Cadence_Inst", "cadence_inst"),   # Cadence Instantanée calculée
+    ("Cadence_Inst", "cadence_inst"),   # Cadence Instantanée calculée et brute
     ("Cadence", "cadence"),             # Cadence Instantanée calculée et lissée
     ("Cadence_Avg", "cadence_avg"),     # Cadence Moyenne sur la session
 
@@ -71,6 +73,8 @@ class LogRecord:
     elapsed_time: float = 0.0           # temps (remis à 0 en cas de nouvelle session)
     delta_elapsed: float = 0.0          # delta temps depuis elapsed précédent
 
+    power_avg: float = 0.0              # puissance moyenne (recalculée)
+
     stroke_count: int = 0               # nombre de coups
     delta_strokes: int = 0              # nombre de coups depuis packet précédent
     stroke_event: bool = False          # True = un coup à eu lieu
@@ -107,7 +111,7 @@ class LogRecord:
     raw_stroke_rate: float = 0.0        # Raw SpM inst
     raw_stroke_rate_avg: float = 0.0    # Raw SpM average
 
-    raw_power: float = 0.0              # puissance inst
+    raw_power: float = 0.0              # Raw puissance inst
     raw_power_avg: float = 0.0          # Raw puissance moyenne (valeur étrange)
 
     raw_split_inst: float = 0.0         # Raw temps inst. aux 500m

@@ -21,6 +21,7 @@ from .rower import RowerClient
 from .merach_q1s_calc import MerachQ1SCalc
 
 from .data import RowerData
+from utils import echo, echoerr
 
 # =============================================================================
 class MerachRower(RowerClient):
@@ -149,6 +150,8 @@ class MerachRower(RowerClient):
 
         rowerdata.cadence_inst = data["cadence_inst"]
         rowerdata.cadence = data["cadence"]
+        rowerdata.cadence_avg = data["cadence_avg"]
+        rowerdata.distance_per_stroke = data["distance_per_stroke"]
 
         rowerdata.speed = data["speed"]
         rowerdata.speed_avg = data["speed_avg"]
@@ -162,6 +165,8 @@ class MerachRower(RowerClient):
         rowerdata.work_j = data["work_j"]
         rowerdata.work_per_stroke = data["work_per_stroke"]
 
+        rowerdata.power_avg = data["power_avg"]
+
         return rowerdata
 
     # -------------------------------------------------------------------------
@@ -171,7 +176,7 @@ class MerachRower(RowerClient):
             asyncio.run(self._run())
 
         except Exception as ex:
-            print("FTMS :", ex)
+            echo("FTMS :", ex)
 
 
     # -------------------------------------------------------------------------
@@ -184,7 +189,7 @@ class MerachRower(RowerClient):
 
             try:
 
-                print("Recherche du rameur...")
+                echo("Recherche du rameur...")
 
                 device = await BleakScanner.find_device_by_address(
                     self.address,
@@ -196,7 +201,7 @@ class MerachRower(RowerClient):
                     await asyncio.sleep(2)
                     continue
 
-                print(f"Connecté : {device.address}")
+                echo(f"Connecté : {device.address}")
 
                 self._rower = Rower(
                     device,
@@ -212,7 +217,7 @@ class MerachRower(RowerClient):
                 #
                 self._last_update = time.monotonic()
 
-                print("Lecture FTMS...")
+                echo("Lecture FTMS...")
 
                 while self._running:
 
@@ -224,7 +229,7 @@ class MerachRower(RowerClient):
 
                     if time.monotonic() - self._last_update > 5:
 
-                        print("Connexion FTMS perdue.")
+                        echo("Connexion FTMS perdue.")
 
                         self.state.set_connection("Déconnecté")
 
@@ -234,7 +239,7 @@ class MerachRower(RowerClient):
 
             except Exception as ex:
 
-                print("Erreur FTMS :", ex)
+                echoerr("FTMS :", ex)
 
                 self.state.set_connection("Déconnecté")
 
@@ -254,13 +259,13 @@ class MerachRower(RowerClient):
 
                 self.state.set_connection("Recherche...")
 
-                print("Nouvelle tentative dans 2 secondes...")
+                echo("Nouvelle tentative dans 2 secondes...")
 
                 await asyncio.sleep(2)
 
         self.state.set_connection("Arrêt")
 
-        print("Thread FTMS terminé.")
+        echo("Thread FTMS terminé.")
 
     # -------------------------------------------------------------------------
     def _get_value(self, data, key, default=0):

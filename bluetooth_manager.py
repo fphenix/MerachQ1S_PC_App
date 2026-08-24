@@ -1,4 +1,5 @@
 from winrt.windows.devices.radios import Radio, RadioKind, RadioState
+from utils import echo
 
 # =============================================================================
 # Cette class peut agir sur le bouton que l'on trouve dans Windows11 
@@ -42,14 +43,14 @@ class BluetoothManager:
 
         # Activation
         await self.radio.set_state_async(RadioState.ON)
-        print("Bluetooth card turned ON")
+        echo("Bluetooth card turned ON")
 
     # -------------------------------------------------------------------------
     async def turn_off(self):
 
         # Désactivation
         await self.radio.set_state_async(RadioState.OFF)
-        print("Bluetooth card turned OFF")
+        echo("Bluetooth card turned OFF")
 
     # -------------------------------------------------------------------------
     async def toggle(self):
@@ -63,7 +64,7 @@ class BluetoothManager:
             await self.turn_on()
             
         else:
-            print(f"BluetoothManager toggle() did not find a valid state to switch from; state = {state}")
+            echo(f"BluetoothManager toggle() did not find a valid state to switch from; state = {state}")
 
     # -------------------------------------------------------------------------
     async def restore(self):
