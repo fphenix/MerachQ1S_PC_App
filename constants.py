@@ -18,6 +18,11 @@ LOGGER_FLUSH_PERIOD = 5.0
 # la séance est terminée et de forcer un flush().
 LOGGER_END_SESSION_TIMEOUT = 10.0
 
+# choisi de créer un .csv OU un .zip contenant un .csv
+LOGGER_FORMAT_CSV = "csv"
+LOGGER_FORMAT_ZIP = "zip"
+LOGGER_FORMAT = LOGGER_FORMAT_ZIP
+
 # ----------------------------------------------------------------------
 # Replay
 # ----------------------------------------------------------------------
@@ -33,10 +38,13 @@ LOGGER_END_SESSION_TIMEOUT = 10.0
 # via BlueTooth), mettre USE_REPLAY à "False".
 # ----------------------------------------------------------------------
 
-USE_REPLAY = False # False or True
+USE_REPLAY = True # False or True
 
+# Le fichier REPLAY_FILE peut être:
+# * un .csv
+# * un .zip ayant un (et un seul) .csv à l'intérieur
 REPLAY_FILE = (
-    "logs/session_20260824_172641.csv" # Choose Log to replay
+    "logs/session_20260824_172641.zip" # Choose Log to replay (csv ou zip)
 )
 
 REPLAY_SPEED = 100.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.

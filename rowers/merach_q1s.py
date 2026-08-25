@@ -64,7 +64,7 @@ class MerachRower(RowerClient):
         self.raw_mapping = {
             "time_elapsed": "raw_elapsed_time",             # (*) temps de la session
             "stroke_count": "raw_stroke_count",             # (*) nombre de coups
- 
+
             "distance_total": "raw_distance",               # distance (par expérience, sur Q1S dist = 5 * stroke_count)
 
             "split_time_instant": "raw_split_inst",         # temps instantané aux 500m
@@ -73,13 +73,13 @@ class MerachRower(RowerClient):
             "power_instant": "raw_power",                   # (*) puissance instantanée
             "power_average": "raw_power_avg",               # puissance moyenne (non utilisée)
 
+            "stroke_rate_instant": "raw_stroke_rate",       # cadence instantanée (nb de coups par minute)
+            "stroke_rate_average": "raw_stroke_rate_avg",   # cadence moyenne 
+
             "energy_total": "raw_calories",                 # calories dépensées (d'expérience sur Q1S, kcal ~= 0.1428 * stroke_count)
             "energy_per_hour": "raw_calories_hour",         # calories par heure (non diffusée sur Q1S)
             "energy_per_minute": "raw_calories_minute",     # calories par minute (non diffusée sur Q1S)
 
-            "stroke_rate_instant": "raw_stroke_rate",       # cadence instantanée (nb de coups par minute)
-            "stroke_rate_average": "raw_stroke_rate_avg",   # cadence moyenne 
-            
             "resistance_level": "raw_resistance",           # resistance de la machine (non diffusée)
             "training_status": "raw_training_status",       # training status (Q1S envoie 13 ; 1=Idle, 13=Manual Mode, 16:Pre-Workout, 17 Post-Workout)
             "heart_rate": "raw_heart_rate",                 # pulsation cardiaque (non diffusée sur Q1S)

@@ -1,18 +1,20 @@
 from pathlib import Path
 from datetime import datetime
-from calc import calc_delta
 
 import csv
 import zipfile
 import os
+import io
 import time
+
+from calc import calc_delta
 
 from logrecord import LogRecord
 from constants import (
     VERSION,
     LOGGER_FLUSH_PERIOD,
     LOGGER_END_SESSION_TIMEOUT,
-
+    LOGGER_FORMAT,
     USE_REPLAY, REPLAY_FILE,
 )
 from utils import echo
@@ -25,8 +27,9 @@ class CsvLogger:
 
         self.rower_name = "Unknown Rower"
 
-        self.file = None
+        self._file = None
         self.filename = None
+        self.log_format = LOGGER_FORMAT
         self.writer = None
 
         self.packet = 0
@@ -41,7 +44,7 @@ class CsvLogger:
         self.rower_name = name
 
     # -------------------------------------------------------------------------
-    def open(self):
+    def start(self):
 
         self.packet = 0
         self.last_pc_time = None
@@ -56,14 +59,14 @@ class CsvLogger:
             )
         )
 
-        self.file = open(
+        self._file = open(
             self.filename,
             "w",
             newline="",
             encoding="utf-8",
         )
 
-        self.writer = csv.writer(self.file)
+        self.writer = csv.writer(self._file)
 
         #
         # Flush automatique
@@ -112,11 +115,11 @@ class CsvLogger:
         Force l'écriture physique du fichier.
         """
 
-        if self.file is None:
+        if self._file is None:
             return
 
-        self.file.flush()
-        os.fsync(self.file.fileno())
+        self._file.flush()
+        os.fsync(self._file.fileno())
 
         self.last_flush_time = time.monotonic()
 
@@ -199,19 +202,51 @@ class CsvLogger:
 
 
     # -------------------------------------------------------------------------
-    def close(self):
+    def stop(self):
 
-        if self.file is not None:
-            self.flush()
-            self.file.close()
+        if self._file is None:
+            return
+        
+        self.flush()
+        self._file.close()
 
-            self.file = None
-            self.writer = None
+        self._file = None
+        self.writer = None
 
-            if not self._has_data:
-                self.filename.unlink()
-                echo("Log ignoré car il aurait été vide.")
+        # si fichier log vide, efface le
+        if not self._has_data:
+            self.filename.unlink() # unlink = remove
+            echo("Log ignoré car il aurait été vide.")
 
-            self.filename = None
-            self._has_data = False
+        # si on veut zip, on compresse le csv et on l'efface
+        elif self.log_format == "zip":
+
+            zip_filename = self.filename.with_suffix(".zip")
+
+            with zipfile.ZipFile(
+                zip_filename,
+                mode="w",
+                compression=zipfile.ZIP_DEFLATED,
+            ) as archive:
+                
+                archive.write(
+                    self.filename,
+                    arcname=self.filename.name,
+                )
+
+            self.filename.unlink() # unlink = remove
+            self.filename = zip_filename
+
+        # si on veut csv, il est déjà créé, rien de plus à faire
+        elif self.log_format == "csv":
+            pass
+
+        # si log_format n'est pas de la bonne forme, error
+        else:
+            raise ValueError(
+                f"Format de log inconnu : {self.log_format}"
+            )
+
+        self.filename = None
+        self._has_data = False
                 

@@ -1,9 +1,77 @@
+import io
+import zipfile
+from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.widgets import CheckButtons
 from tkinter import Tk, filedialog
 import os
 from calc import calc_stats
+
+# -----------------------------------------------------------------------------
+def toggle(label):
+    global line_rower, line_rower_avg
+
+    if label == "Rower Instant":
+        line_rower.set_visible(
+            not line_rower.get_visible()
+        )
+
+    elif label == "Rower Average":
+        line_rower_avg.set_visible(
+            not line_rower_avg.get_visible()
+        )
+
+    fig.canvas.draw_idle()
+
+# -----------------------------------------------------------------------------
+def load_log(filename: str | Path) -> pd.DataFrame:
+    path = Path(filename)
+
+    if not path.exists():
+        raise FileNotFoundError(
+            f"Fichier de log introuvable : {path}"
+        )
+
+    suffix = path.suffix.lower()
+
+    if suffix == ".csv":
+        return pd.read_csv(
+            path,
+            skiprows=2,
+        )
+
+    if suffix == ".zip":
+        with zipfile.ZipFile(path, "r") as archive:
+
+            csv_files = [
+                name
+                for name in archive.namelist()
+                if name.lower().endswith(".csv")
+                and not name.endswith("/")
+            ]
+
+            if len(csv_files) != 1:
+                raise ValueError(
+                    f"{path.name} doit contenir exactement "
+                    f"un fichier CSV."
+                )
+
+            csv_data = archive.read(csv_files[0])
+
+        return pd.read_csv(
+            io.BytesIO(csv_data),
+            skiprows=2,
+        )
+
+    raise ValueError(
+        f"Format de log non supporté : {suffix}"
+    )
+
+# -----------------------------------------------------------------------------
+
+
+# =============================================================================
 
 #
 # Choix du fichier
@@ -13,7 +81,7 @@ Tk().withdraw()
 
 filename = filedialog.askopenfilename(
     title="Choisir un fichier CSV",
-    filetypes=[("CSV", "*.csv")]
+    filetypes=[("CSV", "*.csv"),("Zipped CSV", "*.zip")]
 )
 
 if filename == "":
@@ -23,10 +91,7 @@ if filename == "":
 # Lecture du fichier
 #
 
-df = pd.read_csv(
-    filename,
-    skiprows=2
-)
+df = load_log(filename)
 
 # needd "import os"
 file_basename = os.path.basename(filename)
@@ -82,11 +147,76 @@ with open(f"./Logs/stats/stats_{file_corename}.txt", "w", encoding="utf-8") as f
             fw.write(f"{k}\t: {t[k]}\n")
         fw.write('\n')
 
+# =============================================================================
+
 #
 # Temps
 #
 
 t = df["Elapsed"]
+
+#
+# Plots
+# * Graph 1 : Puissance
+# * Graph 2 : Vitesse
+# * Graph 3 : Cadence
+# * Graph 4 : Distance
+# * Graph 5 : Split
+# * Graph 6 : Calories
+#
+
+plots = [
+    {
+        "id": 0,
+        "title": ["Power", "Average"],
+        "x": t,
+        "y": ["Power_Recalibrated", "Power_Avg"],
+        "xlabel": "Temps (s)",
+        "ylabel": "W",
+    },
+    {
+        "id": 1,
+        "title": ["Speed", "Average"],
+        "x": t,
+        "y": ["Speed", "Speed_Avg"],
+        "xlabel": "Temps (s)",
+        "ylabel": "m/s",
+    },
+    {
+        "id": 2,
+        "title": ["Cadence", "Average"],
+        "x": t,
+        "y": ["Cadence", "Cadence_Avg"],
+        "xlabel": "Temps (s)",
+        "ylabel": "spm",
+    },
+    {
+        "id": 3,
+        "title": ["Distance"],
+        "x": t,
+        "y": ["Distance"],
+        "xlabel": "Temps (s)",
+        "ylabel": "m",
+    },
+    {
+        "id": 4,
+        "title": ["Split Calculated", "Average", "Raw Inst", "Raw Avg"],
+        "x": t,
+        "y": ["Split", "Split_Avg", "Raw_Split_Instant", "Raw_Split_Avg"],
+        "xlabel": "Temps (s)",
+        "ylabel": "s/500m",
+        "linewidth": [2, 2, 1, 1],
+        "linestyle": ["solid", "solid", "dashed", "dashdot"],
+    },
+    {
+        "id": 5,
+        "title": ["Calories"],
+        "x": t,
+        "y": ["Calories"],
+        "xlabel": "Temps (s)",
+        "ylabel": "kcal",
+    },
+]
 
 #
 # Figure
@@ -99,96 +229,56 @@ fig, ax = plt.subplots(
     sharex=True
 )
 
-fig.canvas.manager.set_window_title("Merach Logger")
+fig.canvas.manager.set_window_title("Merach Q1S Logger Analyzer")
 fig.suptitle(file_basename)
 
 #
-# Puissance
+# Graphs
 #
 
-ax[0].plot(t, df["Power_Recalibrated"], label="Power")
-ax[0].plot(t, df["Power_Avg"], label="Average")
-ax[0].set_ylabel("W")
-ax[0].grid(True)
-ax[0].legend()
+for c_plot in plots:
 
-#
-# Vitesse
-#
+    id = c_plot["id"]
+    title=c_plot["title"] # list
+    x = c_plot["x"]
+    y = c_plot["y"] # list
+    xlabel = c_plot["xlabel"]
+    ylabel = c_plot["ylabel"]
 
-ax[1].plot(t, df["Speed"], label="Speed")
-ax[1].plot(t, df["Speed_Avg"], label="Average")
-ax[1].set_ylabel("m/s")
-ax[1].grid(True)
-ax[1].legend()
+    for j, _ in enumerate(title):
 
-#
-# Cadence
-#
+        if "linestyle" in c_plot.keys():
+            linestyle = c_plot["linestyle"][j]
+        else:
+            linestyle = "solid"
 
-ax[2].plot(t, df["Cadence"], label="Cadence")
-ax[2].plot(t, df["Cadence_Avg"], label="Average")
-ax[2].set_ylabel("spm")
-ax[2].grid(True)
-ax[2].legend()
+        if "linewidth" in c_plot.keys():
+            linewidth = c_plot["linewidth"][j]
+        else:
+            linewidth = 1
 
-#
-# Distance
-#
+        line, = ax[id].plot(
+            x, 
+            df[y[j]], 
+            label=title[j], 
+            linewidth= linewidth, 
+            linestyle=linestyle
+        )
 
-ax[3].plot(t, df["Distance"])
-ax[3].set_ylabel("m")
-ax[3].grid(True)
-
-#
-# Split
-#
-
-line_calc, = ax[4].plot(
-    t,
-    df["Split"],
-    label="Calculated",
-    linewidth=2,
-)
-
-line_avg, = ax[4].plot(
-    t,
-    df["Split_Avg"],
-    label="Average",
-    linewidth=2,
-)
-
-line_rower = None
-line_rower_avg = None
-
-if "Raw_Split_Instant" in df.columns:
-    line_rower, = ax[4].plot(
-        t,
-        df["Raw_Split_Instant"],
-        label="Rower Instant",
-        linestyle="--",
-    )
-
-if "Raw_Split_Avg" in df.columns:
-    line_rower_avg, = ax[4].plot(
-        t,
-        df["Raw_Split_Avg"],
-        label="Rower Average",
-        linestyle=":",
-    )
-
-ax[4].set_ylabel("s/500m")
-ax[4].grid(True)
-ax[4].legend()
-
-#
-# Calories
-#
-
-ax[5].plot(t, df["Calories"])
-ax[5].set_ylabel("kcal")
-ax[5].set_xlabel("Temps (s)")
-ax[5].grid(True)
+        match y[j]:
+            case "Split":
+                line_calc = line
+            case "Split_Avg":
+                line_avg = line
+            case "Raw_Split_Instant":
+                line_rower = line
+            case "Raw_Split_Avg":
+                line_rower_avg = line
+        
+    ax[id].set_xlabel(xlabel)
+    ax[id].set_ylabel(ylabel)
+    ax[id].grid(True)
+    ax[id].legend()
 
 #
 # Cases à cocher
@@ -205,32 +295,9 @@ if line_rower is not None:
 
 if line_rower_avg is not None:
     labels.append("Rower Average")
-    states.append(False)
+    states.append(True)
 
-check = CheckButtons(rax, labels, states)
-
-#
-# Masque les courbes décochées
-#
-
-if line_rower_avg is not None:
-    line_rower_avg.set_visible(False)
-
-
-def toggle(label):
-
-    if label == "Rower Instant":
-        line_rower.set_visible(
-            not line_rower.get_visible()
-        )
-
-    elif label == "Rower Average":
-        line_rower_avg.set_visible(
-            not line_rower_avg.get_visible()
-        )
-
-    fig.canvas.draw_idle()
-
+check = CheckButtons(rax, labels, states) 
 
 check.on_clicked(toggle)
 

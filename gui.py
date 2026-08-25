@@ -172,8 +172,8 @@ class MainWindow(QMainWindow):
 
         if logger is not None:
             logger.flush()
-            logger.close()
-            logger.open()
+            logger.stop()
+            logger.start()
 
             self.state.set_logger(logger)
 

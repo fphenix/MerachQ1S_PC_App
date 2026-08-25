@@ -117,7 +117,7 @@ def main():
 
     logger = CsvLogger()
     logger.set_rower_name(source.NAME)
-    logger.open()
+    logger.start()
 
     state.set_logger(logger)
 
@@ -149,7 +149,7 @@ def main():
             source.stop()
         finally:
             try:
-                logger.close()
+                logger.stop()
             finally:
                 if not USE_REPLAY:
                     asyncio.run(bluetooth_manager.restore()) # restore BT state as it was before launching this software
