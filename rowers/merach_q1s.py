@@ -133,7 +133,7 @@ class MerachRower(RowerClient):
         data = {
             "elapsed_time": rowerdata.elapsed_time,         # temps/durée de la session
             "stroke_count": rowerdata.stroke_count,         # nombre de coups de la session
-            "power": rowerdata.raw_power,                   # puissance instantanée
+            "raw_power": rowerdata.raw_power,               # puissance instantanée
         }
 
         # On passe ces données au calculateur qui va produire les
@@ -165,6 +165,7 @@ class MerachRower(RowerClient):
         rowerdata.work_j = data["work_j"]
         rowerdata.work_per_stroke = data["work_per_stroke"]
 
+        rowerdata.power = data["power"]
         rowerdata.power_avg = data["power_avg"]
 
         return rowerdata
@@ -229,7 +230,7 @@ class MerachRower(RowerClient):
 
                     if time.monotonic() - self._last_update > 5:
 
-                        echo("Connexion FTMS perdue.")
+                        echoerr("Connexion FTMS perdue.")
 
                         self.state.set_connection("Déconnecté")
 
@@ -298,6 +299,13 @@ class MerachRower(RowerClient):
         return RowerData(**self._last_data)
 
     # -------------------------------------------------------------------------
+    def feed_raw_data(self, data: dict):
+        """Injecte une trame raw provenant du Bluetooth ou d'un Replay."""
+
+        new_rowerdata = self._to_rower_data(data)
+        self.state.update(new_rowerdata)
+
+    # -------------------------------------------------------------------------
     def _on_ftms_event(self, event):
 
         #
@@ -312,8 +320,4 @@ class MerachRower(RowerClient):
         if event.event_id != "update":
             return
 
-        new_rowerdata = self._to_rower_data(
-            event.event_data
-        )
-
-        self.state.update(new_rowerdata)
+        self.feed_raw_data(event.event_data)

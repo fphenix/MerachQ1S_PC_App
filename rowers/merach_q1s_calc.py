@@ -11,9 +11,13 @@
 # need to base our calculations on something... In fact we will
 # only use the inst power, not the average.
 
-# Coefficient Concept2 est 2.8.
+# Frottements : Coefficient Concept2 est 2.8.
 # Peut être ajusté expérimentalement pour le Merach Q1S.
 DRAG_FACTOR  = 2.5
+
+# Power : le raw_power venant du Q1S semble beaucoup trop bas (30-35 au lieu de 90-120W!)
+# On va le calibrer grâce à cette valeur:
+POWER_SCALE = 3.8
 
 CADENCE_WINDOW = 4      # nombre de coups utilisés pour le calcul brut (ou plus précisément la taille de la fenêtre utilisée pour calculer la cadence brute)
 CADENCE_SMOOTHING = 3   # nombre de cadences calculées utilisées pour le lissage
@@ -68,9 +72,11 @@ class MerachQ1SCalc:
 
         #
         # Power : venant du Q1S
+        #         Note: la raw power venant du Q1S est trop basse, nous devons la recalibrer
         #
 
-        power = float(data.get("power", 0.0))
+        raw_power = float(data.get("raw_power", 0.0))
+        power = raw_power * POWER_SCALE
 
         #
         # Vitesse : recalculé à partir de power
@@ -197,6 +203,7 @@ class MerachQ1SCalc:
         data["work_j"] = self.work_j
         data["work_per_stroke"] = self.work_per_stroke
 
+        data["power"] = power
         data["power_avg"] = power_avg
 
         return data

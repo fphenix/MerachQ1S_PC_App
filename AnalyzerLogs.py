@@ -56,7 +56,7 @@ print("=============================\n")
 # Stats
 #
 
-power_stats = calc_stats(df["Raw_Power"].tolist(), minimum=1)
+power_stats = calc_stats(df["Power_Recalibrated"].tolist(), minimum=1)
 cadence_stats = calc_stats(df["Cadence"].tolist(), minimum=1)
 dps_stats = calc_stats(
     df["Distance_Per_Stroke"].tolist(),
@@ -71,9 +71,9 @@ split_stats = calc_stats(df["Split"].tolist())
 wps_stats = calc_stats(df["Work_J"].diff().fillna(0).tolist())
 """
 
-with open(f"./Logs/stats_{file_corename}.txt", "w", encoding="utf-8") as fw:
+with open(f"./Logs/stats/stats_{file_corename}.txt", "w", encoding="utf-8") as fw:
     for t, title in [
-        (power_stats, "Raw_Power"),
+        (power_stats, "Power_Recalibrated"),
         (cadence_stats, "Cadence"),
         (dps_stats, "Distance/Stroke"),
     ]:
@@ -92,7 +92,12 @@ t = df["Elapsed"]
 # Figure
 #
 
-fig, ax = plt.subplots(6, 1, figsize=(12, 12), sharex=True)
+fig, ax = plt.subplots(
+    nrows= 6,
+    ncols= 1,
+    figsize=(12, 12),
+    sharex=True
+)
 
 fig.canvas.manager.set_window_title("Merach Logger")
 fig.suptitle(file_basename)
@@ -101,7 +106,7 @@ fig.suptitle(file_basename)
 # Puissance
 #
 
-ax[0].plot(t, df["Raw_Power"], label="Power")
+ax[0].plot(t, df["Power_Recalibrated"], label="Power")
 ax[0].plot(t, df["Power_Avg"], label="Average")
 ax[0].set_ylabel("W")
 ax[0].grid(True)

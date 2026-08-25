@@ -244,7 +244,7 @@ class MainWindow(QMainWindow):
         #
 
         self.powerWidget.setValue(
-            f"{rowerdata.raw_power:.0f} / {rowerdata.power_avg:.0f}"
+            f"{rowerdata.power:.0f} / {rowerdata.power_avg:.0f}"
         )
 
         #

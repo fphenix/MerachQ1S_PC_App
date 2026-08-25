@@ -33,7 +33,6 @@ class RowState:
 
         self.logger = None
 
-
     # -------------------------------------------------------------------------
     def reset_session(self):
         """
@@ -154,6 +153,7 @@ class RowState:
                     elapsed_time=elapsed_time,
                     delta_elapsed=delta_elapsed,
 
+                    power=self.curr_rowerdata.power,
                     power_avg=self.curr_rowerdata.power_avg,
 
                     stroke_count=stroke_count,
@@ -208,7 +208,6 @@ class RowState:
                 )
 
                 self.logger.log(record)
-
 
     # -------------------------------------------------------------------------
     def snapshot(self):

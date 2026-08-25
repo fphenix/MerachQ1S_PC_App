@@ -60,7 +60,8 @@ from gui import MainWindow
 from rowers.merach_q1s import MerachRower
 #from rowers.concept2 import Concept2Rower
 
-from rowers.replay import ReplayRower
+from replays.replay_q1s import ReplayQ1S
+#from replays.replay_c2 import ReplayC2
 
 from logger import CsvLogger
 
@@ -94,11 +95,13 @@ def main():
 
     if USE_REPLAY:
 
-        source = ReplayRower(
+        source = ReplayQ1S(
             filename=REPLAY_FILE,
             state=state,
             speed=REPLAY_SPEED,
         )
+
+        state.rower = source.rower
 
     else:
 
@@ -106,7 +109,7 @@ def main():
             state=state,
         )
 
-    state.rower = source
+        state.rower = source
 
     #
     # Data Logger

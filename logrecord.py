@@ -12,6 +12,7 @@ CSV_FIELDS = [
     ("Elapsed", "elapsed_time"),
     ("Delta_Elapsed", "delta_elapsed"),
 
+    ("Power_Recalibrated", "power"),
     ("Power_Avg", "power_avg"),
 
     ("Stroke_Count", "stroke_count"),
@@ -73,6 +74,7 @@ class LogRecord:
     elapsed_time: float = 0.0           # temps (remis à 0 en cas de nouvelle session)
     delta_elapsed: float = 0.0          # delta temps depuis elapsed précédent
 
+    power: float = 0.0                  # Recalibrated puissance inst
     power_avg: float = 0.0              # puissance moyenne (recalculée)
 
     stroke_count: int = 0               # nombre de coups

@@ -1,4 +1,4 @@
-VERSION = 2.1
+VERSION = 3.2
 
 GUI_REFRESH_MS = 100
 
@@ -36,7 +36,7 @@ LOGGER_END_SESSION_TIMEOUT = 10.0
 USE_REPLAY = False # False or True
 
 REPLAY_FILE = (
-    "logs/session_20260823_162416.csv"  #session_20260726_102757.csv" # Choose Log to replay
+    "logs/session_20260824_172641.csv" # Choose Log to replay
 )
 
 REPLAY_SPEED = 100.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.

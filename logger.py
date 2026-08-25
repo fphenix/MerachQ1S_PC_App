@@ -3,6 +3,7 @@ from datetime import datetime
 from calc import calc_delta
 
 import csv
+import zipfile
 import os
 import time
 
@@ -39,7 +40,7 @@ class CsvLogger:
 
         self.rower_name = name
 
-   # -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     def open(self):
 
         self.packet = 0

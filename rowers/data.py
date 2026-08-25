@@ -17,6 +17,7 @@ class RowerData:
     speed: float = 0.0                      # speed inst (m/s)
     speed_avg: float = 0.0                  # speed average (m/s)
 
+    power: float = 0.0                      # Recalibrated Power inst (W)
     power_avg: float = 0.0                  # Power average (W) recalculée
 
     cadence_inst: float = 0.0               # cadence ou stroke_rate (strokes per minute) instantanée, calculée non lissée
