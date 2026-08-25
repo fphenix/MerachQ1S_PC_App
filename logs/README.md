@@ -1,1 +1,1 @@
-Sessions log files
+Sessions and Replay log files
