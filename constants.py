@@ -38,7 +38,7 @@ LOGGER_FORMAT = LOGGER_FORMAT_ZIP
 # via BlueTooth), mettre USE_REPLAY à "False".
 # ----------------------------------------------------------------------
 
-USE_REPLAY = True # False or True
+USE_REPLAY = False # False or True
 
 # Le fichier REPLAY_FILE peut être:
 # * un .csv
