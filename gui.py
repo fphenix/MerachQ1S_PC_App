@@ -25,6 +25,7 @@ from utils import (
 )
 
 from widgets import MetricWidget
+from progbar_widget import GradientGauge
 
 
 # =============================================================================
@@ -79,6 +80,9 @@ class MainWindow(QMainWindow):
         self.speedWidget = MetricWidget(
             "Vitesse",
             "m/s  /  moy",
+            gauge=GradientGauge(
+                zones=[0, 3, 5, 7, 15],
+            ),
         )
 
         self.strokeWidget = MetricWidget(
@@ -88,21 +92,33 @@ class MainWindow(QMainWindow):
         self.distStrokeWidget = MetricWidget(
             "Dist/Coup",
             "m/coup  /  moy",
+            gauge=GradientGauge(
+                zones=[0, 5, 10, 20, 30],
+            ),
         )
 
         self.powerWidget = MetricWidget(
             "Puissance",
             "W  /  W moy",
+            gauge=GradientGauge(
+                zones=[0, 75, 150, 225, 300],
+            ),
         )
 
         self.cadenceWidget = MetricWidget(
             "Cadence",
             "cpm  /  cpm moy",
+            gauge=GradientGauge(
+                zones=[15, 22, 25, 28, 45],
+            ),
         )
 
         self.splitWidget = MetricWidget(
             "Split",
             "mm:ss/500m  /  moy",
+            gauge=GradientGauge(
+                zones=[60, 100, 140, 220, 300],
+            ),
         )
 
         self.caloriesWidget = MetricWidget(
@@ -217,10 +233,12 @@ class MainWindow(QMainWindow):
 
         #
         # Vitesse et Vmoy
+        # + Gauge
         #
 
         self.speedWidget.setValue(
-            f"{rowerdata.speed:.2f} / {rowerdata.speed_avg:.2f}"
+            f"{rowerdata.speed:.2f} / {rowerdata.speed_avg:.2f}",
+            rowerdata.speed
         )
 
         #
@@ -232,35 +250,43 @@ class MainWindow(QMainWindow):
         )
 
         #
-        # Distance / coup et DpS moyenne
+        # Distance/coup et DpS moyenne
+        # + Gauge
         #
 
         self.distStrokeWidget.setValue(
-            f"{rowerdata.distance_per_stroke:.2f} / {rowerdata.dist_per_stroke_avg:.2f}"
+            f"{rowerdata.distance_per_stroke:.2f} / {rowerdata.dist_per_stroke_avg:.2f}",
+            rowerdata.distance_per_stroke
         )
 
         #
-        # Puissance et P moyenne
+        # Puissance (recalibrée) et P moyenne
+        # + Gauge
         #
 
         self.powerWidget.setValue(
-            f"{rowerdata.power:.0f} / {rowerdata.power_avg:.0f}"
+            f"{rowerdata.power:.0f} / {rowerdata.power_avg:.0f}",
+            rowerdata.power
         )
 
         #
         # Cadence et SPM moyen
+        # + Gauge
         #
 
         self.cadenceWidget.setValue(
-            f"{rowerdata.cadence:.1f} / {rowerdata.cadence_avg:.1f}"
+            f"{rowerdata.cadence:.1f} / {rowerdata.cadence_avg:.1f}",
+            rowerdata.cadence
         )
 
         #
         # Split et Split Moyen
+        # + Gauge
         #
 
         self.splitWidget.setValue(
-            f"{format_pace(rowerdata.split_inst)} / {format_pace(rowerdata.split_avg)}"
+            f"{format_pace(rowerdata.split_inst)} / {format_pace(rowerdata.split_avg)}",
+            rowerdata.split_inst
         )
 
         #

@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QVBoxLayout,
 )
+from progbar_widget import GradientGauge
 
 # =============================================================================
 class MetricWidget(QFrame):
@@ -26,7 +27,12 @@ class MetricWidget(QFrame):
     """
 
     # -------------------------------------------------------------------------
-    def __init__(self, title: str, unit: str = ""):
+    def __init__(
+            self,
+            title: str,
+            unit: str = "",
+            gauge: GradientGauge | None = None,
+        ):
 
         super().__init__()
 
@@ -46,6 +52,8 @@ class MetricWidget(QFrame):
 
         self.unit = QLabel(unit)
         self.unit.setAlignment(Qt.AlignCenter)
+
+        self.gauge = gauge
 
         title_font = QFont("Segoe UI", 11)
         title_font.setBold(True)
@@ -69,7 +77,13 @@ class MetricWidget(QFrame):
         layout.addStretch()
         layout.addWidget(self.unit)
 
+        if gauge is not None:
+            layout.addWidget(self.gauge)
+
     # -------------------------------------------------------------------------
-    def setValue(self, value):
+    def setValue(self, value, gaugevalue: int|float|None = None):
 
         self.value.setText(str(value))
+
+        if gaugevalue is not None:
+            self.gauge.set_value(gaugevalue)

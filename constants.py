@@ -52,4 +52,4 @@ REPLAY_FILE = (
     "logs/session_20260824_172641.zip" # Choose Log to replay (csv ou zip)
 )
 
-REPLAY_SPEED = 100.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.
+REPLAY_SPEED = 5.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.
