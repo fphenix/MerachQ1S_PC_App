@@ -13,6 +13,7 @@ class RowerData:
 
     distance: float = 0.0                   # distance in meters
     distance_per_stroke: float = 0.0        # distance (m) per stroke
+    dist_per_stroke_avg: float = 0.0        # distance per stroke average (m/stroke)
 
     speed: float = 0.0                      # speed inst (m/s)
     speed_avg: float = 0.0                  # speed average (m/s)

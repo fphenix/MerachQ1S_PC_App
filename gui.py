@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
 
         self.speedWidget = MetricWidget(
             "Vitesse",
-            "m/s  /  avg",
+            "m/s  /  moy",
         )
 
         self.strokeWidget = MetricWidget(
@@ -87,22 +87,22 @@ class MainWindow(QMainWindow):
 
         self.distStrokeWidget = MetricWidget(
             "Dist/Coup",
-            "m/coup",
+            "m/coup  /  moy",
         )
 
         self.powerWidget = MetricWidget(
             "Puissance",
-            "W  /  Wavg",
+            "W  /  W moy",
         )
 
         self.cadenceWidget = MetricWidget(
             "Cadence",
-            "spm  /  spm avg",
+            "cpm  /  cpm moy",
         )
 
         self.splitWidget = MetricWidget(
             "Split",
-            "min/500m  /  avg",
+            "mm:ss/500m  /  moy",
         )
 
         self.caloriesWidget = MetricWidget(
@@ -216,7 +216,7 @@ class MainWindow(QMainWindow):
         )
 
         #
-        # Vitesse
+        # Vitesse et Vmoy
         #
 
         self.speedWidget.setValue(
@@ -232,15 +232,15 @@ class MainWindow(QMainWindow):
         )
 
         #
-        # Distance / coup
+        # Distance / coup et DpS moyenne
         #
 
         self.distStrokeWidget.setValue(
-            f"{rowerdata.distance_per_stroke:.2f}"
+            f"{rowerdata.distance_per_stroke:.2f} / {rowerdata.dist_per_stroke_avg:.2f}"
         )
 
         #
-        # Puissance
+        # Puissance et P moyenne
         #
 
         self.powerWidget.setValue(
@@ -248,7 +248,7 @@ class MainWindow(QMainWindow):
         )
 
         #
-        # Cadence
+        # Cadence et SPM moyen
         #
 
         self.cadenceWidget.setValue(
@@ -256,7 +256,7 @@ class MainWindow(QMainWindow):
         )
 
         #
-        # Split
+        # Split et Split Moyen
         #
 
         self.splitWidget.setValue(
@@ -264,7 +264,7 @@ class MainWindow(QMainWindow):
         )
 
         #
-        # Calories
+        # Calories Rate et Calories Totales
         #
         self.caloriesWidget.setValue(
             f"{rowerdata.calories_rate:.3f} / {rowerdata.calories:.1f}"

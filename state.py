@@ -173,6 +173,7 @@ class RowState:
                     split_avg=self.curr_rowerdata.split_avg,
 
                     distance_per_stroke=self.curr_rowerdata.distance_per_stroke,
+                    dist_per_stroke_avg=self.curr_rowerdata.dist_per_stroke_avg,
 
                     calories_rate= self.curr_rowerdata.calories_rate,
                     calories=self.curr_rowerdata.calories,

@@ -152,6 +152,7 @@ class MerachRower(RowerClient):
         rowerdata.cadence = data["cadence"]
         rowerdata.cadence_avg = data["cadence_avg"]
         rowerdata.distance_per_stroke = data["distance_per_stroke"]
+        rowerdata.dist_per_stroke_avg = data["dist_per_stroke_avg"]
 
         rowerdata.speed = data["speed"]
         rowerdata.speed_avg = data["speed_avg"]

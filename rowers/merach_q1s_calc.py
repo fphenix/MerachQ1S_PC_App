@@ -32,6 +32,7 @@ from calc import (
     calc_split500,
     calc_dist,
     calc_dist_per_stroke,
+    calc_dist_per_stroke_avg,
     calc_calories,
     calc_work,
     calc_work_per_stroke,
@@ -62,6 +63,7 @@ class MerachQ1SCalc:
 
         self.cadence_avg = 0.0
         self.distance_per_stroke = 0.0
+        self.dist_per_stroke_avg = 0.0
 
         self.last_strokes = 0
 
@@ -145,6 +147,7 @@ class MerachQ1SCalc:
 
         #
         # Distance per stroke : recalculée
+        # Distance per stroke Moyenne
         #
 
         if delta_elapsed > 0.0 and cadence > 0.0:
@@ -152,6 +155,11 @@ class MerachQ1SCalc:
                 speed=speed,
                 cadence=cadence,
             )
+
+        self.dist_per_stroke_avg = calc_dist_per_stroke_avg(
+            distance= self.distance,
+            stroke_count= stroke_count
+        )
 
         #
         # Work (J) : recalculé
@@ -199,6 +207,7 @@ class MerachQ1SCalc:
         data["cadence_avg"] = self.cadence_avg
 
         data["distance_per_stroke"] = self.distance_per_stroke
+        data["dist_per_stroke_avg"] = self.dist_per_stroke_avg
 
         data["work_j"] = self.work_j
         data["work_per_stroke"] = self.work_per_stroke

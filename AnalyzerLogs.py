@@ -8,21 +8,6 @@ from tkinter import Tk, filedialog
 import os
 from calc import calc_stats
 
-# -----------------------------------------------------------------------------
-def toggle(label):
-    global line_rower, line_rower_avg
-
-    if label == "Rower Instant":
-        line_rower.set_visible(
-            not line_rower.get_visible()
-        )
-
-    elif label == "Rower Average":
-        line_rower_avg.set_visible(
-            not line_rower_avg.get_visible()
-        )
-
-    fig.canvas.draw_idle()
 
 # -----------------------------------------------------------------------------
 def load_log(filename: str | Path) -> pd.DataFrame:
@@ -68,11 +53,265 @@ def load_log(filename: str | Path) -> pd.DataFrame:
         f"Format de log non supporté : {suffix}"
     )
 
+
 # -----------------------------------------------------------------------------
+def toggle(label):
+    global line_rower
+    global line_rower_avg
+
+    if label == "Rower Instant" and line_rower is not None:
+        line_rower.set_visible(
+            not line_rower.get_visible()
+        )
+
+    elif label == "Rower Average" and line_rower_avg is not None:
+        line_rower_avg.set_visible(
+            not line_rower_avg.get_visible()
+        )
+
+    fig.canvas.draw_idle()
+
+
+# -----------------------------------------------------------------------------
+def draw_plot(plot, axis):
+    """
+    Dessine un graphe à partir de sa définition dans 'plot'.
+
+    Retourne les lignes créées pour permettre de les gérer ensuite.
+    """
+    lines = []
+
+    title = plot["title"]
+    x = plot["x"]
+    y = plot["y"]
+
+    for j in range(len(title)):
+
+        linestyle = (
+            plot["linestyle"][j]
+            if "linestyle" in plot
+            else "solid"
+        )
+
+        linewidth = (
+            plot["linewidth"][j]
+            if "linewidth" in plot
+            else 1
+        )
+
+        line, = axis.plot(
+            x,
+            df[y[j]],
+            label=title[j],
+            linewidth=linewidth,
+            linestyle=linestyle,
+        )
+
+        lines.append((y[j], line))
+
+    axis.set_xlabel(plot["xlabel"])
+    axis.set_ylabel(plot["ylabel"])
+    axis.grid(True)
+    axis.legend()
+
+    return lines
+
+
+# -----------------------------------------------------------------------------
+def create_checkbuttons():
+    """
+    Crée les cases à cocher utilisées pour les courbes Split raw.
+    """
+
+    global rax
+    global check
+    global line_rower
+    global line_rower_avg
+
+    rax = plt.axes([0.82, 0.80, 0.16, 0.12])
+
+    labels = []
+    states = []
+
+    if line_rower is not None:
+        labels.append("Rower Instant")
+        states.append(line_rower.get_visible())
+
+    if line_rower_avg is not None:
+        labels.append("Rower Average")
+        states.append(line_rower_avg.get_visible())
+
+    if labels:
+        check = CheckButtons(
+            rax,
+            labels,
+            states,
+        )
+
+        check.on_clicked(toggle)
+    else:
+        check = None
+
+
+# -----------------------------------------------------------------------------
+def draw_all_plots():
+    """
+    Affiche les six graphes.
+    """
+
+    global ax
+    global line_calc
+    global line_avg
+    global line_rower
+    global line_rower_avg
+
+    fig.clear()
+
+    ax = fig.subplots(
+        nrows=6,
+        ncols=1,
+        sharex=True,
+        gridspec_kw={
+            "height_ratios": [2, 2, 2, 3, 2, 1],
+        },
+    )
+
+    if not isinstance(ax, (list, tuple)):
+        ax = list(ax)
+
+    line_calc = None
+    line_avg = None
+    line_rower = None
+    line_rower_avg = None
+
+    for plot in plots:
+
+        plot_id = plot["id"]
+
+        lines = draw_plot(
+            plot,
+            ax[plot_id],
+        )
+
+        for field_name, line in lines:
+
+            if field_name == "Split":
+                line_calc = line
+
+            elif field_name == "Split_Avg":
+                line_avg = line
+
+            elif field_name == "Raw_Split_Instant":
+                line_rower = line
+
+            elif field_name == "Raw_Split_Avg":
+                line_rower_avg = line
+
+    create_checkbuttons()
+
+    fig.subplots_adjust(
+        left=0.08,
+        right=0.78,
+        top=0.95,
+        bottom=0.06,
+        hspace=0.35,
+    )
+
+    fig.canvas.draw_idle()
+
+
+# -----------------------------------------------------------------------------
+def draw_single_plot(plot_id):
+    """
+    Affiche un seul graphe en plein cadre.
+    """
+
+    global ax
+    global line_calc
+    global line_avg
+    global line_rower
+    global line_rower_avg
+    global rax
+    global check
+
+    fig.clear()
+
+    ax = [fig.add_subplot(111)]
+
+    line_calc = None
+    line_avg = None
+    line_rower = None
+    line_rower_avg = None
+
+    plot = plots[plot_id]
+
+    lines = draw_plot(
+        plot,
+        ax[0],
+    )
+
+    for field_name, line in lines:
+
+        if field_name == "Split":
+            line_calc = line
+
+        elif field_name == "Split_Avg":
+            line_avg = line
+
+        elif field_name == "Raw_Split_Instant":
+            line_rower = line
+
+        elif field_name == "Raw_Split_Avg":
+            line_rower_avg = line
+
+    # Pas de CheckButtons en mode plein écran.
+    rax = None
+    check = None
+
+    fig.subplots_adjust(
+        left=0.08,
+        right=0.95,
+        top=0.92,
+        bottom=0.08,
+    )
+
+    fig.canvas.draw_idle()
+
+
+# -----------------------------------------------------------------------------
+def plot_click(event):
+    """
+    Premier clic sur un graphe :
+        → agrandit ce graphe.
+
+    Clic suivant :
+        → retour aux six graphes.
+    """
+
+    global expanded_plot
+
+    if event.inaxes is None:
+        return
+
+    # Si un graphe est déjà agrandi :
+    # n'importe quel clic dans celui-ci revient à la vue globale.
+    if expanded_plot is not None:
+        expanded_plot = None
+        draw_all_plots()
+        return
+
+    # Sinon, chercher quel graphe a été cliqué.
+    for plot in plots:
+
+        plot_id = plot["id"]
+
+        if event.inaxes is ax[plot_id]:
+            expanded_plot = plot_id
+            draw_single_plot(plot_id)
+            return
 
 
 # =============================================================================
-
 #
 # Choix du fichier
 #
@@ -80,8 +319,12 @@ def load_log(filename: str | Path) -> pd.DataFrame:
 Tk().withdraw()
 
 filename = filedialog.askopenfilename(
-    title="Choisir un fichier CSV",
-    filetypes=[("CSV", "*.csv"),("Zipped CSV", "*.zip")]
+    title="Choisir un fichier de log",
+    filetypes=[
+        ("All Files", "*.*"),
+        ("CSV", "*.csv"),
+        ("Zipped CSV", "*.zip"),
+    ],
 )
 
 if filename == "":
@@ -93,17 +336,14 @@ if filename == "":
 
 df = load_log(filename)
 
-# needd "import os"
 file_basename = os.path.basename(filename)
 file_corename = os.path.splitext(file_basename)[0]
-# Alt : needs "from pathlib import Path"
-# file_basename = Path(filename).stem
 
+
+# =============================================================================
 #
 # Résumé
 #
-
-#print(df.keys())
 
 print()
 print("========== SESSION ==========")
@@ -111,59 +351,90 @@ print(f"Durée       : {df['Elapsed'].iloc[-1]:.1f} s")
 print(f"Distance    : {df['Distance'].iloc[-1]:.1f} m")
 print(f"Coups       : {int(df['Stroke_Count'].iloc[-1])}")
 print(f"Calories    : {df['Calories'].iloc[-1]:.1f} kcal")
-print(f"Travail     : {df['Work_J'].iloc[-1]/1000:.1f} kJ")
+print(f"Travail     : {df['Work_J'].iloc[-1] / 1000:.1f} kJ")
 print(f"Puiss. moy. : {df['Power_Avg'].iloc[-1]:.1f} W")
 print(f"Vit. moy.   : {df['Speed_Avg'].iloc[-1]:.2f} m/s")
 print(f"Cad. moy.   : {df['Cadence_Avg'].iloc[-1]:.1f} spm")
 print("=============================\n")
 
+
+# =============================================================================
 #
 # Stats
 #
 
-power_stats = calc_stats(df["Power_Recalibrated"].tolist(), minimum=1)
-cadence_stats = calc_stats(df["Cadence"].tolist(), minimum=1)
+power_stats = calc_stats(
+    df["Power_Recalibrated"].tolist(),
+    minimum=1,
+)
+
+cadence_stats = calc_stats(
+    df["Cadence"].tolist(),
+    minimum=1,
+)
+
 dps_stats = calc_stats(
     df["Distance_Per_Stroke"].tolist(),
     minimum=0.1,
 )
 
-"""
-speed_stats = calc_stats(df["Speed"].tolist())
+stats_path = Path(
+    f"./Logs/stats/stats_{file_corename}.txt"
+)
 
-split_stats = calc_stats(df["Split"].tolist())
+stats_path.parent.mkdir(
+    parents=True,
+    exist_ok=True,
+)
 
-wps_stats = calc_stats(df["Work_J"].diff().fillna(0).tolist())
-"""
+with stats_path.open(
+    "w",
+    encoding="utf-8",
+) as fw:
 
-with open(f"./Logs/stats/stats_{file_corename}.txt", "w", encoding="utf-8") as fw:
-    for t, title in [
+    for t_stats, title in [
         (power_stats, "Power_Recalibrated"),
         (cadence_stats, "Cadence"),
         (dps_stats, "Distance/Stroke"),
     ]:
-        fw.write(f"{title}\n-----------\n")
-        for k in ["mean", "stdev", "min", "max"]:
-            fw.write(f"{k}\t: {t[k]}\n")
-        fw.write('\n')
+
+        fw.write(
+            f"{title}\n"
+            "-----------\n"
+        )
+
+        for key in [
+            "mean",
+            "stdev",
+            "min",
+            "max",
+        ]:
+            fw.write(
+                f"{key}\t: {t_stats[key]}\n"
+            )
+
+        fw.write("\n")
+
 
 # =============================================================================
-
 #
 # Temps
 #
 
 t = df["Elapsed"]
 
+
+# =============================================================================
 #
 # Plots
-# * Graph 1 : Puissance
-# * Graph 2 : Vitesse
-# * Graph 3 : Cadence
-# * Graph 4 : Distance
-# * Graph 5 : Split
-# * Graph 6 : Calories
 #
+
+line_calc = None
+line_avg = None
+line_rower = None
+line_rower_avg = None
+
+expanded_plot = None
 
 plots = [
     {
@@ -176,9 +447,9 @@ plots = [
     },
     {
         "id": 1,
-        "title": ["Speed", "Average"],
+        "title": ["Speed", "Average", "DPSavg (m/coup)"],
         "x": t,
-        "y": ["Speed", "Speed_Avg"],
+        "y": ["Speed", "Speed_Avg", "Dist_Per_Stroke_Avg"],
         "xlabel": "Temps (s)",
         "ylabel": "m/s",
     },
@@ -200,13 +471,28 @@ plots = [
     },
     {
         "id": 4,
-        "title": ["Split Calculated", "Average", "Raw Inst", "Raw Avg"],
+        "title": [
+            "Split Calculated",
+            "Average",
+            "Raw Inst",
+            "Raw Avg",
+        ],
         "x": t,
-        "y": ["Split", "Split_Avg", "Raw_Split_Instant", "Raw_Split_Avg"],
+        "y": [
+            "Split",
+            "Split_Avg",
+            "Raw_Split_Instant",
+            "Raw_Split_Avg",
+        ],
         "xlabel": "Temps (s)",
         "ylabel": "s/500m",
         "linewidth": [2, 2, 1, 1],
-        "linestyle": ["solid", "solid", "dashed", "dashdot"],
+        "linestyle": [
+            "solid",
+            "solid",
+            "dashed",
+            "dashdot",
+        ],
     },
     {
         "id": 5,
@@ -218,96 +504,33 @@ plots = [
     },
 ]
 
+
+# =============================================================================
 #
 # Figure
 #
 
 fig, ax = plt.subplots(
-    nrows= 6,
-    ncols= 1,
+    nrows=6,
+    ncols=1,
     figsize=(12, 12),
-    sharex=True
+    sharex=True,
+    gridspec_kw={
+        "height_ratios": [2, 2, 2, 3, 2, 1],
+    },
 )
 
-fig.canvas.manager.set_window_title("Merach Q1S Logger Analyzer")
+fig.canvas.manager.set_window_title(
+    "Merach Q1S Logger Analyzer"
+)
+
 fig.suptitle(file_basename)
 
-#
-# Graphs
-#
-
-for c_plot in plots:
-
-    id = c_plot["id"]
-    title=c_plot["title"] # list
-    x = c_plot["x"]
-    y = c_plot["y"] # list
-    xlabel = c_plot["xlabel"]
-    ylabel = c_plot["ylabel"]
-
-    for j, _ in enumerate(title):
-
-        if "linestyle" in c_plot.keys():
-            linestyle = c_plot["linestyle"][j]
-        else:
-            linestyle = "solid"
-
-        if "linewidth" in c_plot.keys():
-            linewidth = c_plot["linewidth"][j]
-        else:
-            linewidth = 1
-
-        line, = ax[id].plot(
-            x, 
-            df[y[j]], 
-            label=title[j], 
-            linewidth= linewidth, 
-            linestyle=linestyle
-        )
-
-        match y[j]:
-            case "Split":
-                line_calc = line
-            case "Split_Avg":
-                line_avg = line
-            case "Raw_Split_Instant":
-                line_rower = line
-            case "Raw_Split_Avg":
-                line_rower_avg = line
-        
-    ax[id].set_xlabel(xlabel)
-    ax[id].set_ylabel(ylabel)
-    ax[id].grid(True)
-    ax[id].legend()
-
-#
-# Cases à cocher
-#
-
-rax = plt.axes([0.82, 0.80, 0.16, 0.12])
-
-labels = []
-states = []
-
-if line_rower is not None:
-    labels.append("Rower Instant")
-    states.append(True)
-
-if line_rower_avg is not None:
-    labels.append("Rower Average")
-    states.append(True)
-
-check = CheckButtons(rax, labels, states) 
-
-check.on_clicked(toggle)
-
-#plt.tight_layout(rect=[0, 0, 0.80, 1])
-fig.subplots_adjust(
-    left=0.08,
-    right=0.78,
-    top=0.95,
-    bottom=0.06,
-    hspace=0.35,
+fig.canvas.mpl_connect(
+    "button_press_event",
+    plot_click,
 )
+
+draw_all_plots()
 
 plt.show()

@@ -32,6 +32,7 @@ CSV_FIELDS = [
     ("Split_Avg", "split_avg"),
 
     ("Distance_Per_Stroke", "distance_per_stroke"),
+    ("Dist_Per_Stroke_Avg", "dist_per_stroke_avg"),
 
     ("Calories_Rate", "calories_rate"),
     ("Calories", "calories"),
@@ -94,6 +95,7 @@ class LogRecord:
     split_avg: float = 0.0              # temps moyen aux 500m
 
     distance_per_stroke: float = 0.0    # distance par coup
+    dist_per_stroke_avg: float = 0.0    # distance par coup moyenne
 
     calories_rate: float = 0.0          # calories par seconde
     calories: float = 0.0               # calories totales

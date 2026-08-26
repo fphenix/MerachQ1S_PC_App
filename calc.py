@@ -20,10 +20,10 @@ def calc_delta(curr: int|float, prev: int|float) -> int|float:
 # -----------------------------------------------------------------------------
 # generic metric average : metric / per_unit
 # returns 0.0 if the per_unit is negative or null
-def calc_metric_avg(metric: float, per_unit: float) -> float:
+def calc_metric_avg(metric: float, per_unit: int|float) -> float:
     return (
-            metric / per_unit
-            if per_unit > 0.0
+            metric / float(per_unit)
+            if float(per_unit) > 0.0
             else 0.0
         )
 
@@ -73,6 +73,11 @@ def calc_dist(speed: float, delta_t: float) -> float:
 # cadence in spm (number of strokes per minutes)
 def calc_dist_per_stroke(speed: float, cadence: float) -> float:
     return calc_metric_avg((60.0 * speed), cadence)
+
+# -----------------------------------------------------------------------------
+# distance_per_stroke_avg (m/stroke) = distance (m) / strokes_total (number)
+def calc_dist_per_stroke_avg(distance: float, stroke_count: int) -> float:
+    return calc_metric_avg(distance, stroke_count)
 
 # -----------------------------------------------------------------------------
 # average cadence (strokes per minute) from 
