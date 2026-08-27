@@ -40,8 +40,6 @@ class ReplaySource:
         self._running = False
 
     # -------------------------------------------------------------------------
-    # Abstract
-    @abstractmethod
     def start(self) -> None:
         if self._running:
             return
@@ -54,8 +52,6 @@ class ReplaySource:
         self._thread.start()
 
     # -------------------------------------------------------------------------
-    # Abstract
-    @abstractmethod
     def stop(self) -> None:
         self._running = False
 

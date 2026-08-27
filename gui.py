@@ -21,7 +21,6 @@ from constants import (
 from utils import (
     format_pace,
     format_time,
-    debug,
 )
 
 from widgets import MetricWidget
@@ -68,63 +67,63 @@ class MainWindow(QMainWindow):
         #
 
         self.timeWidget = MetricWidget(
-            "Temps",
-            "h:mm:ss"
+            title= "Temps",
+            unit= "h:mm:ss",
         )
 
         self.distanceWidget = MetricWidget(
-            "Distance",
-            "m",
+            title= "Distance",
+            unit= "m",
         )
 
         self.speedWidget = MetricWidget(
-            "Vitesse",
-            "m/s  /  moy",
-            gauge=GradientGauge(
+            title= "Vitesse",
+            unit= "m/s  /  moy",
+            gauge= GradientGauge(
                 zones=[0, 2, 4, 6, 8], # 2 à 6 m/s est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
         )
 
         self.strokeWidget = MetricWidget(
-            "Coups",
+            title= "Coups",
         )
 
         self.distStrokeWidget = MetricWidget(
-            "Dist/Coup",
-            "m/coup  /  moy",
-            gauge=GradientGauge(
+            title= "Dist/Coup",
+            unit= "m/coup  /  moy",
+            gauge= GradientGauge(
                 zones=[0, 5, 10, 15, 20], # 6 à 15 m/coup est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
         )
 
         self.powerWidget = MetricWidget(
-            "Puissance",
-            "W  /  W moy",
-            gauge=GradientGauge(
+            title= "Puissance",
+            unit= "W  /  W moy",
+            gauge= GradientGauge(
                 zones=[0, 100, 200, 300, 400], # 60 à 350 W est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
         )
 
         self.cadenceWidget = MetricWidget(
-            "Cadence",
-            "cpm  /  cpm moy",
-            gauge=GradientGauge(
+            title= "Cadence",
+            unit= "cpm  /  cpm moy",
+            gauge= GradientGauge(
                 zones=[10, 20, 24, 30, 40], # 18 à 34 est plus réaliste pour h/f-débutant à h/f-très-confirmé
             ),
         )
 
         self.splitWidget = MetricWidget(
-            "Split",
-            "mm:ss/500m  /  moy",
-            gauge=GradientGauge(
+            title= "Split",
+            unit= "mm:ss/500m  /  moy",
+            gauge= GradientGauge(
                 zones=[80, 100, 130, 160, 200], # en sec/500m ; 2:55 à 1:45 mm:ss/500m est plus réaliste pour femme-débutante à homme-très-confirmé
                 inverted= True,
             ),
         )
 
         self.caloriesWidget = MetricWidget(
-            "Calories",
-            "kcal/s  /  kcal",
+            title= "Calories",
+            unit= "kcal/s  /  kcal",
         )
 
         #
@@ -221,7 +220,7 @@ class MainWindow(QMainWindow):
         #
 
         self.timeWidget.setValue(
-            format_time(rowerdata.elapsed_time)
+            textvalue= format_time(rowerdata.elapsed_time)
         )
 
         #
@@ -229,7 +228,7 @@ class MainWindow(QMainWindow):
         #
 
         self.distanceWidget.setValue(
-            f"{rowerdata.distance:.0f}"
+            textvalue= f"{rowerdata.distance:.0f}"
         )
 
         #
@@ -238,8 +237,8 @@ class MainWindow(QMainWindow):
         #
 
         self.speedWidget.setValue(
-            f"{rowerdata.speed:.2f} / {rowerdata.speed_avg:.2f}",
-            rowerdata.speed
+            textvalue= f"{rowerdata.speed:.2f} / {rowerdata.speed_avg:.2f}",
+            gaugevalue= rowerdata.speed
         )
 
         #
@@ -247,7 +246,7 @@ class MainWindow(QMainWindow):
         #
 
         self.strokeWidget.setValue(
-            rowerdata.stroke_count
+            textvalue= rowerdata.stroke_count
         )
 
         #
@@ -256,8 +255,8 @@ class MainWindow(QMainWindow):
         #
 
         self.distStrokeWidget.setValue(
-            f"{rowerdata.distance_per_stroke:.2f} / {rowerdata.dist_per_stroke_avg:.2f}",
-            rowerdata.distance_per_stroke
+            textvalue= f"{rowerdata.distance_per_stroke:.2f} / {rowerdata.dist_per_stroke_avg:.2f}",
+            gaugevalue= rowerdata.distance_per_stroke
         )
 
         #
@@ -266,8 +265,8 @@ class MainWindow(QMainWindow):
         #
 
         self.powerWidget.setValue(
-            f"{rowerdata.power:.0f} / {rowerdata.power_avg:.0f}",
-            rowerdata.power
+            textvalue= f"{rowerdata.power:.0f} / {rowerdata.power_avg:.0f}",
+            gaugevalue=rowerdata.power
         )
 
         #
@@ -276,8 +275,8 @@ class MainWindow(QMainWindow):
         #
 
         self.cadenceWidget.setValue(
-            f"{rowerdata.cadence:.1f} / {rowerdata.cadence_avg:.1f}",
-            rowerdata.cadence
+            textvalue= f"{rowerdata.cadence:.1f} / {rowerdata.cadence_avg:.1f}",
+            gaugevalue= rowerdata.cadence
         )
 
         #
@@ -286,13 +285,13 @@ class MainWindow(QMainWindow):
         #
 
         self.splitWidget.setValue(
-            f"{format_pace(rowerdata.split_inst)} / {format_pace(rowerdata.split_avg)}",
-            rowerdata.split_inst
+            textvalue= f"{format_pace(rowerdata.split_inst)} / {format_pace(rowerdata.split_avg)}",
+            gaugevalue= rowerdata.split_inst
         )
 
         #
         # Calories Rate et Calories Totales
         #
         self.caloriesWidget.setValue(
-            f"{rowerdata.calories_rate:.3f} / {rowerdata.calories:.1f}"
+            textvalue= f"{rowerdata.calories_rate:.3f} / {rowerdata.calories:.1f}"
         )

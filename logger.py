@@ -4,7 +4,6 @@ from datetime import datetime
 import csv
 import zipfile
 import os
-import io
 import time
 
 from calc import calc_delta

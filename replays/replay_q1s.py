@@ -11,7 +11,6 @@ Il injecte des données raw dans le même pipeline que le Bluetooth :
 
 from __future__ import annotations
 
-import threading
 import time
 
 from rowers.merach_q1s import MerachRower

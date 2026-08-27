@@ -1,13 +1,15 @@
 import io
+import os
 import zipfile
 from pathlib import Path
 import pandas as pd
+
 import matplotlib.pyplot as plt
 from matplotlib.widgets import CheckButtons
-from tkinter import Tk, filedialog
-import os
-from calc import calc_stats
 
+from tkinter import Tk, filedialog
+
+from calc import calc_stats
 
 # -----------------------------------------------------------------------------
 def load_log(filename: str | Path) -> pd.DataFrame:

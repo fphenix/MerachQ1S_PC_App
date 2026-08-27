@@ -10,8 +10,6 @@ from snapshot import Snapshot
 
 from calc import calc_delta
 
-from utils import debug
-
 # =============================================================================
 class RowState:
 

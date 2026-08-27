@@ -5,23 +5,29 @@
 # roughly are "0.1428 * strokes" kcal. Hence we will try to
 # calculate the data to approach a bit more "real" figures.
 # The data that we will trust/use from the Merach Q1S are:
-# the time, the number of strokes and the powers (instantaneous
-# and average). The powers are not perfect either, certainly not
-# generated from a sensor of strength on the handle, but we
-# need to base our calculations on something... In fact we will
-# only use the inst power, not the average.
+# the time, the number of strokes and the instantaneous power.
+# The powers are not perfect either, certainly not generated
+# from a sensor of strength on the handle, but we need to base
+# our calculations on something... We will only use the inst power
+# (not the raw average).
 
 # Frottements : Coefficient Concept2 est 2.8.
 # Peut être ajusté expérimentalement pour le Merach Q1S.
-DRAG_FACTOR  = 2.5
+DRAG_FACTOR  = 2.8
 
 # Power : le raw_power venant du Q1S semble beaucoup trop bas (30-35 au lieu de 90-120W!)
 # On va le calibrer grâce à cette valeur:
-POWER_SCALE = 3.8
+POWER_SCALE = 3.6
 
+# Candence : lissage
 CADENCE_WINDOW = 4      # nombre de coups utilisés pour le calcul brut (ou plus précisément la taille de la fenêtre utilisée pour calculer la cadence brute)
 CADENCE_SMOOTHING = 3   # nombre de cadences calculées utilisées pour le lissage
+
+# Calories
+USE_C2_CALORIES = False
 CALORIE_OFFSET = 300.0
+CALORIES_CALIB = 1.1639
+CALORIES_PER_WATT = 3.4
 
 from calc import (
     calc_delta,
@@ -309,13 +315,17 @@ class MerachQ1SCalc:
 
     # -----------------------------------------------------------------------------
     # calories inst
-    # calories_per_second (kcal/s) = (4 * power + offset) / 3600
+    # Formule Concept2:
+    # calories_per_second (kcal/s) = ((4 * power / 1.1639) + offset) / 3600
     # power in Watts
     # Note : due to the offset, the resulting value is non-null even when
     #        power is 0. You may want to rework that formulae to sort this out.
     @staticmethod
     def q1s_calc_calories_rate(power: float) -> float:
-        return ((4.0 * power) + CALORIE_OFFSET) / 3600.0
+        if USE_C2_CALORIES:
+            return ((4.0 * power / CALORIES_CALIB) + CALORIE_OFFSET) / 3600.0
+        else:
+            return (CALORIES_PER_WATT * power) / 3600.0
 
     # -----------------------------------------------------------------------------
     # Cadence (strokes per minute) = 60 * nb_strokes / time

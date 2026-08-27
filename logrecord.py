@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 # Column Title, variable holding the data
-# Les valeurs "Rax_*"" viennent directement de la machine via 
+# Les valeurs "Raw_*"" viennent directement de la machine via 
 # le protocole BlueTooth utilisé (par exemple FTMS pour Merach Q1S)
 CSV_FIELDS = [
     ("Packet", "packet"),
@@ -24,7 +24,7 @@ CSV_FIELDS = [
 
     ("Distance", "distance"),
 
-    ("Cadence_Inst", "cadence_inst"),   # Cadence Instantanée calculée et brute
+    ("Cadence_Inst", "cadence_inst"),   # Cadence Instantanée calculée
     ("Cadence", "cadence"),             # Cadence Instantanée calculée et lissée
     ("Cadence_Avg", "cadence_avg"),     # Cadence Moyenne sur la session
 

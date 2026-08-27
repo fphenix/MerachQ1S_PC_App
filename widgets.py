@@ -24,6 +24,8 @@ class MetricWidget(QFrame):
           24.5
 
          spm
+
+    En option on peut aussi ajouter une jauge.
     """
 
     # -------------------------------------------------------------------------
@@ -81,9 +83,9 @@ class MetricWidget(QFrame):
             layout.addWidget(self.gauge)
 
     # -------------------------------------------------------------------------
-    def setValue(self, value, gaugevalue: int|float|None = None):
+    def setValue(self, textvalue, gaugevalue: int|float|None = None):
 
-        self.value.setText(str(value))
+        self.value.setText(str(textvalue))
 
         if gaugevalue is not None:
             self.gauge.set_value(gaugevalue)

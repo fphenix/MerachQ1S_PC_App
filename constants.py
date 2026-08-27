@@ -1,4 +1,4 @@
-VERSION = 3.3
+VERSION = 3.5
 
 GUI_REFRESH_MS = 100 # miliseconds
 
