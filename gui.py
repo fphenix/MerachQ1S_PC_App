@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
             "Vitesse",
             "m/s  /  moy",
             gauge=GradientGauge(
-                zones=[0, 3, 5, 7, 15],
+                zones=[0, 2, 4, 6, 8], # 2 à 6 m/s est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
         )
 
@@ -93,7 +93,7 @@ class MainWindow(QMainWindow):
             "Dist/Coup",
             "m/coup  /  moy",
             gauge=GradientGauge(
-                zones=[0, 5, 10, 20, 30],
+                zones=[0, 5, 10, 15, 20], # 6 à 15 m/coup est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
         )
 
@@ -101,7 +101,7 @@ class MainWindow(QMainWindow):
             "Puissance",
             "W  /  W moy",
             gauge=GradientGauge(
-                zones=[0, 75, 150, 225, 300],
+                zones=[0, 100, 200, 300, 400], # 60 à 350 W est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
         )
 
@@ -109,7 +109,7 @@ class MainWindow(QMainWindow):
             "Cadence",
             "cpm  /  cpm moy",
             gauge=GradientGauge(
-                zones=[15, 22, 25, 28, 45],
+                zones=[10, 20, 24, 30, 40], # 18 à 34 est plus réaliste pour h/f-débutant à h/f-très-confirmé
             ),
         )
 
@@ -117,7 +117,8 @@ class MainWindow(QMainWindow):
             "Split",
             "mm:ss/500m  /  moy",
             gauge=GradientGauge(
-                zones=[60, 100, 140, 220, 300],
+                zones=[80, 100, 130, 160, 200], # en sec/500m ; 2:55 à 1:45 mm:ss/500m est plus réaliste pour femme-débutante à homme-très-confirmé
+                inverted= True,
             ),
         )
 

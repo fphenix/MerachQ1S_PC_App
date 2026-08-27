@@ -1,14 +1,11 @@
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QFrame,
     QLabel,
-    QSizePolicy,
     QVBoxLayout,
     QHBoxLayout,
     QProgressBar,
 )
-from utils import debug
 
 # =============================================================================
 class GradientGauge(QFrame):
@@ -30,17 +27,30 @@ class GradientGauge(QFrame):
     def __init__(
         self,
         zones: list[float],
+        inverted: bool = False,
         decimals: int = 1,
     ):
         super().__init__()
 
         if not zones:
-            raise ValueError("zones ne peut pas être vide")
+            raise ValueError("GradientGauge : zones ne peut pas être vide")
+
+        if len(zones) != 5:
+            raise ValueError(
+                "GradientGauge : zones doit contenir exactement 5 points."
+            )
+
+        if len(set(zones)) != 5:
+            raise ValueError(
+                "GradientGauge : les 5 points de zones doivent être différents."
+            )
 
         self.zones = sorted(zones)
-        
-        self.minimum = self.zones[0]
-        self.maximum = self.zones[-1]
+
+        self.minimum = min(self.zones)
+        self.maximum = max(self.zones)
+
+        self.inverted = inverted
 
         self.decimals = decimals
 
@@ -70,12 +80,16 @@ class GradientGauge(QFrame):
 
         layout.addLayout(labels)
 
-        self.min_label.setText(
-            self._format_value(self.minimum)
-        )
-        self.max_label.setText(
-            self._format_value(self.maximum)
-        )
+        # Commented out because we chose inverted to only switch colors.
+        # If we vant the inverted=True to flip the bar values as well
+        # then we need to swap the Texts for min & Max.
+        #if not self.inverted:
+        self.min_label.setText(self._format_value(self.minimum))
+        self.max_label.setText(self._format_value(self.maximum))
+        #else:
+        #    self.min_label.setText(self._format_value(self.maximum))
+        #   self.max_label.setText(self._format_value(self.minimum))
+            
 
         self.set_value(self.minimum)
 
@@ -91,6 +105,11 @@ class GradientGauge(QFrame):
             (value - self.minimum)
             / (self.maximum - self.minimum)
         )
+
+        # Commented out because we will only flip the colors when inverted is True.
+        # If we want to flip the bar, then do:
+        #if self.inverted:
+        #    ratio = 1.0 - ratio
 
         self.progress.setValue(
             int(ratio * 1000)
@@ -137,35 +156,47 @@ class GradientGauge(QFrame):
 
         """
 
-        # si valeur sou le seuil retourne la 1er valeurs
-        if value <= self.zones[0]:
-            return self.ZONES_COLOR[0]
+        # Commented out because we will only flip the colors when inverted is True.
+        # If we want to flip the bar values, then do:
+        #if self.inverted:
+        #    value = self.maximum + self.minimum - value
 
-        # sinon calcule le gradient en fonction d'où la valeur se trouve
-        # (dans quelle zone et quelles sont les 2 couleurs extrémum de cette zone)
-        for (v1, c1, v2, c2) in zip(
+        # si valeur sous le seuil retourne la 1er couleur
+        if value <= self.minimum:
+            return self.ZONES_COLOR[0] if not self.inverted else self.ZONES_COLOR[-1]
+
+        # sinon, si on est dans une des zones, calcule le gradient en fonction d'où la
+        # valeur se trouve sur la barre (ie. dans quelle zone et quelles sont les deux
+        # couleurs bornes de cette zone)
+        for idx, (v1, v2) in enumerate(zip(
             self.zones,
-            self.ZONES_COLOR,
             self.zones[1:],
-            self.ZONES_COLOR[1:]
-        ):
-            # cherche la zone
+        )):
+
+            # pour éviter div by 0, mais le "raise" dans __init__ doit éviter que cela n'arrive.
+            if v1 == v2:
+                raise ValueError ("GradientGauge : Deux valeurs identiques dans la définition de zones dans gui.py")
+
+            idx_color1 = idx if not self.inverted else len(self.ZONES_COLOR) - 1 - idx
+            idx_color2 = idx_color1 + 1 if not self.inverted else idx_color1 - 1
+
+            # cherche la zone et renvoie la couleur
             if value <= v2:
-                ratio = (
-                    (value - v1)
-                    / (v2 - v1)
-                )
+                ratio = ( (value - v1) / (v2 - v1) )
                 # retourne la couleur
                 return self._interpolate_color(
-                    c1,
-                    c2,
+                    self.ZONES_COLOR[idx_color1],
+                    self.ZONES_COLOR[idx_color2],
                     ratio,
                 )
 
-        #sinon retourne la dernière colour dans la list
-        return self.ZONES_COLOR[-1]
+        # sinon on est hors zone (et au dessus) alors retourne la dernière
+        # couleur dans la liste.
+        return self.ZONES_COLOR[-1] if not self.inverted else self.ZONES_COLOR[0]
 
     # -------------------------------------------------------------------------
+    # Trouve la couleur intermédiaire entre color1 et color2
+    # en fonction du ratio.
     @staticmethod
     def _interpolate_color(
         color1: str,

@@ -45,32 +45,6 @@ class ReplayQ1S(ReplaySource):
         self.rower.reset()
 
     # ------------------------------------------------------------------
-    # Abstracted in parent class
-    def start(self) -> None:
-
-        if self._running:
-            return
-
-        self._running = True
-
-        self._thread = threading.Thread(
-            target=self._run,
-            daemon=True,
-        )
-
-        self._thread.start()
-
-    # ------------------------------------------------------------------
-    # Abstracted in parent class
-    def stop(self) -> None:
-
-        self._running = False
-
-        if self._thread is not None:
-            self._thread.join(timeout=5)
-            self._thread = None
-
-    # ------------------------------------------------------------------
     def _raw_event_from_row(self, row: dict[str, str]) -> dict:
 
         return {
