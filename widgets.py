@@ -124,11 +124,19 @@ class SplitListWidget(QFrame):
         # True tant que l'utilisateur n'a pas repris le contrôle
         # de la scrollbar.
         self._follow_tail = True
+        self._split_labels = list()
+        self._split_columns = list()
 
         # QTimer
         self._scroll_timer = QTimer(self)
         self._scroll_timer.setSingleShot(True)
         self._scroll_timer.timeout.connect(self._scroll_to_tail)
+
+        self._last_label = None
+
+        # List Font
+        self._list_font = QFont("Segoe UI", 12)
+        self._list_font.setBold(True)
 
         # ---------------------------------------------------------------------
         # Titre
@@ -234,104 +242,149 @@ class SplitListWidget(QFrame):
     # -------------------------------------------------------------------------
     def set_splits(self, splits: list[list[float]]) -> None:
 
-        # Supprime l'ancien contenu
-        while self.content_layout.count():
+        new_count = len(splits)
+        old_count = len(self._split_labels)
 
-            item = self.content_layout.takeAt(0)
+        # ------------------------------------------------------------------
+        # Liste vide : reset
+        # ------------------------------------------------------------------
 
-            widget = item.widget()
+        if new_count == 0:
 
-            if widget is not None:
-                widget.deleteLater()
+            while self.content_layout.count():
 
-        # Fonts
-        font = QFont("Segoe UI", 12)
-        font.setBold(True)
+                item = self.content_layout.takeAt(0)
+                widget = item.widget()
 
-        # Si liste vide
-        if not splits:
+                if widget is not None:
+                    widget.deleteLater()
+
+            self._split_labels.clear()
+            self._split_columns.clear()
+            self._last_label = None
+
             label = QLabel("--")
+            label.setFont(self._list_font)
 
-            label.setFont(font)
-
-            self.content_layout.addWidget(label)
+            self.content_layout.addWidget(
+                label,
+                alignment=Qt.AlignLeft | Qt.AlignTop,
+            )
 
             return
 
-        # ---------------------------------------------------------------------
-        # Préparation du texte de chaque split
-        # ---------------------------------------------------------------------
-        lines = []
+        # ------------------------------------------------------------------
+        # Première liste après un reset :
+        # supprimer le label "--"
+        # ------------------------------------------------------------------
 
-        for index, (distance, elapsed) in enumerate(
-            splits,
-            start=1,
-        ):
-            pace = calc_full_split(
-                dist= distance,
-                time= elapsed,
-            )
+        if old_count == 0:
 
-            suffix = " ← en cours" if index == len(splits) else ""
+            while self.content_layout.count():
 
-            lines.append(
-                f"{index:>2}.  "
-                f"{distance:>5.0f} m  "
-                f"{format_pace(pace)}"
-                f"{suffix}"
-            )
+                item = self.content_layout.takeAt(0)
+                widget = item.widget()
 
-        # ---------------------------------------------------------------------
-        # Création des colonnes de 6 lignes
-        # ---------------------------------------------------------------------
+                if widget is not None:
+                    widget.deleteLater()
 
-        for start in range(
-            0,
-            len(lines),
-            self.ROWS_PER_COLUMN,
-        ):
+        # ------------------------------------------------------------------
+        # Créer uniquement les labels/colonnes manquants
+        # ------------------------------------------------------------------
 
-            column = QWidget()
+        while len(self._split_labels) < new_count:
 
-            column_layout = QVBoxLayout(column)
-            column_layout.setContentsMargins(0, 0, 0, 0)
-            column_layout.setSpacing(0)
-            column_layout.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+            index = len(self._split_labels)
+            column_index = index // self.ROWS_PER_COLUMN
 
-            label = QLabel(
-                "\n".join(
-                    lines[start:start + self.ROWS_PER_COLUMN]
+            if column_index == len(self._split_columns):
+
+                column = QWidget()
+
+                column_layout = QVBoxLayout(column)
+                column_layout.setContentsMargins(0, 0, 0, 0)
+                column_layout.setSpacing(0)
+                column_layout.setAlignment(
+                    Qt.AlignLeft | Qt.AlignTop
                 )
-            )
 
-            label.setFont(font)
+                self.content_layout.addWidget(
+                    column,
+                    alignment=Qt.AlignLeft | Qt.AlignTop,
+                )
+
+                self._split_columns.append(column)
+
+            else:
+
+                column = self._split_columns[column_index]
+                column_layout = column.layout()
+
+            label = QLabel()
+            label.setFont(self._list_font)
             label.setWordWrap(False)
             label.setSizePolicy(
                 QSizePolicy.Fixed,
                 QSizePolicy.Fixed,
             )
-            label.adjustSize()
 
             column_layout.addWidget(
                 label,
                 alignment=Qt.AlignLeft | Qt.AlignTop,
             )
 
-            self.content_layout.addWidget(
-                column,
-                alignment=Qt.AlignLeft | Qt.AlignTop,
+            self._split_labels.append(label)
+
+        # ------------------------------------------------------------------
+        # Mise à jour :
+        # - seulement le dernier si la liste n'a pas grandi
+        # - ancien dernier + nouveaux si elle a grandi
+        # ------------------------------------------------------------------
+
+        first_index = (
+            0
+            if old_count == 0
+            else old_count - 1
+        )
+
+        for index in range(first_index, new_count):
+
+            distance, elapsed = splits[index]
+
+            pace = calc_full_split(
+                dist=distance,
+                time=elapsed,
+            )
+
+            suffix = (
+                " ← en cours"
+                if index == new_count - 1
+                else ""
+            )
+
+            self._split_labels[index].setText(
+                f"{index + 1:>2}.  "
+                f"{distance:>5.0f} m  "
+                f"{format_pace(pace)}"
+                f"{suffix}"
             )
 
         # ------------------------------------------------------------------
-        # Suivre automatiquement la fin
+        # Suivi automatique
         # ------------------------------------------------------------------
+
+        self._last_label = self._split_labels[-1]
 
         if self._follow_tail:
             self._scroll_timer.start(0)
 
     # ----------------------------------------------------------------------
     def _scroll_to_tail(self):
-        """Positionne la vue complètement à droite."""
-        if self._follow_tail:
-            scrollbar = self.scroll.horizontalScrollBar()
-            scrollbar.setValue(scrollbar.maximum())
+        """Positionne la vue sur le dernier split."""
+
+        if self._follow_tail and self._last_label is not None:
+            self.scroll.ensureWidgetVisible(
+                self._last_label,
+                xmargin=10,
+                ymargin=0,
+            )
