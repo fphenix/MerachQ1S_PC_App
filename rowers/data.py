@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 # =============================================================================
 @dataclass(slots=True)
@@ -28,6 +28,10 @@ class RowerData:
     split_inst: float = 0.0                 # time inst per 500m
     split_avg: float = 0.0                  # time average per 500m
 
+    splits: list[list[float]] = field(
+        default_factory=list
+    )
+
     calories_rate: float = 0.0              # calories inst (kcal/s)
     calories: float = 0.0                   # calories total (kcal)
     calories_hour: float = 0.0              # calories (kcal) per hour
@@ -39,7 +43,7 @@ class RowerData:
     # -------------------------------------------------------------------------
     # Valeurs brutes reçues du rameur.
     # Ces valeurs ne doivent jamais être modifiées par les calculateurs.
-    raw_elapsed_time: float = 0.0           # Rower session time
+    raw_elapsed_time: float = 0.0           # Rower session time (note: uint16 en seconde avec une précision de 1 sec)
     raw_distance: float = 0.0               # Rower distance in meters
 
     raw_stroke_count: int = 0               # Rower Number of strokes

@@ -6,6 +6,8 @@ WINDOW_TITLE = "Rower PM Monitor"
 WINDOW_WIDTH = 1200 # pixels
 WINDOW_HEIGHT = 700 # pixels
 
+SPLIT_LENGTH = 500.0 # meters
+
 # ----------------------------------------------------------------------
 # Logger
 # ----------------------------------------------------------------------
@@ -49,7 +51,8 @@ USE_REPLAY = False
 # * un .csv
 # * un .zip ayant un (et un seul) .csv à l'intérieur
 REPLAY_FILE = (
-    "logs/session_20260824_172641.zip" # Choose Log to replay (csv ou zip)
+    #"logs/session_20260824_172641.zip" # Choose Log to replay (csv ou zip)
+    "logs/session_20260826_173104.zip"
 )
 
-REPLAY_SPEED = 50.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.
+REPLAY_SPEED = 40.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.

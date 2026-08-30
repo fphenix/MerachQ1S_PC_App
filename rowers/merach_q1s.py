@@ -159,6 +159,7 @@ class MerachRower(RowerClient):
 
         rowerdata.split_inst = data["split_inst"]
         rowerdata.split_avg = data["split_avg"]
+        rowerdata.splits = data["splits"]
 
         rowerdata.calories_rate = data["calories_rate"]
         rowerdata.calories = data["calories"]

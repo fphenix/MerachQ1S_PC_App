@@ -36,6 +36,7 @@ from calc import (
     calc_power_avg,
     calc_cadence_from_strokes,
     calc_split500,
+    calc_full_split,
     calc_dist,
     calc_dist_per_stroke,
     calc_dist_per_stroke_avg,
@@ -44,6 +45,8 @@ from calc import (
     calc_work_per_stroke,
 )
 from collections import deque
+
+from constants import SPLIT_LENGTH
 
 # -------------------------------------------------------------------------
 class MerachQ1SCalc:
@@ -72,6 +75,8 @@ class MerachQ1SCalc:
         self.dist_per_stroke_avg = 0.0
 
         self.last_strokes = 0
+
+        self.splits = list()
 
     # -------------------------------------------------------------------------
     def process(self, data: dict, delta_elapsed: float) -> dict:
@@ -121,6 +126,12 @@ class MerachQ1SCalc:
 
         split = calc_split500(speed)
         split_avg = calc_split500(speed_avg)
+
+        self.splits = self.q1s_update_splits_list(
+            self.splits,
+            distance=self.distance,
+            elapsed_time=elapsed_time,
+        )
 
         #
         # Calories inst: recalculé à partir de power
@@ -204,6 +215,7 @@ class MerachQ1SCalc:
 
         data["split_inst"] = split
         data["split_avg"] = split_avg
+        data["splits"] = self.splits
 
         data["calories_rate"] = calories_rate
         data["calories"] = self.calories
@@ -338,3 +350,69 @@ class MerachQ1SCalc:
     @staticmethod
     def q1s_calc_cadence_window(stroke_count: int, delta_t:float) -> float:
         return calc_cadence_from_strokes(stroke_count, delta_t)
+
+    # --------------------------------------------------------
+    # Splits List
+    # --------------------------------------------------------
+    @staticmethod
+    def q1s_update_splits_list(
+        splits_list: list[list[float]],
+        distance: float,
+        elapsed_time: float,
+    ) -> list[list[float]]:
+
+        completed_splits = [
+            split
+            for split in splits_list
+            if split[0] >= SPLIT_LENGTH
+        ]
+
+        completed_distance = (
+            len(completed_splits) * SPLIT_LENGTH
+        )
+        completed_time = sum(
+            split[1]
+            for split in completed_splits
+        )
+
+        current_distance = calc_delta(distance, completed_distance)
+        current_time = calc_delta(elapsed_time, completed_time)
+
+        if current_distance <= 0.0:
+            return splits_list
+
+        # Création du premier split courant.
+        if not splits_list or splits_list[-1][0] >= SPLIT_LENGTH:
+            splits_list.append(
+                [current_distance, current_time]
+            )
+        else:
+            # Seul le split courant est modifié.
+            splits_list[-1][0] = current_distance
+            splits_list[-1][1] = current_time
+
+        # Un paquet peut exceptionnellement franchir
+        # plusieurs fois SPLIT_LENGTH.
+        while current_distance >= SPLIT_LENGTH:
+
+            segment_time = calc_full_split(
+                dist= current_distance,
+                time= current_time,
+            )
+
+            # Le split courant devient définitif.
+            splits_list[-1][0] = SPLIT_LENGTH
+            splits_list[-1][1] = segment_time
+
+            current_distance = calc_delta(current_distance, SPLIT_LENGTH)
+            current_time = calc_delta(current_time, segment_time)
+
+            if current_distance <= 0.0:
+                break
+
+            # Nouveau split courant.
+            splits_list.append(
+                [current_distance, current_time]
+            )
+
+        return splits_list

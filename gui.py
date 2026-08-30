@@ -11,6 +11,8 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QWidget,
     QPushButton,
+    QCheckBox,
+    QVBoxLayout,
 )
 
 from constants import (
@@ -23,7 +25,7 @@ from utils import (
     format_time,
 )
 
-from widgets import MetricWidget
+from widgets import MetricWidget, SplitListWidget
 from progbar_widget import GradientGauge
 
 
@@ -56,10 +58,10 @@ class MainWindow(QMainWindow):
 
         grid.addWidget(
             self.connectionWidget,
-            0,
-            0,
-            1,
-            3,
+            0, # row
+            0, # column
+            1, # rowSpan
+            3, # columnSpan
         )
 
         #
@@ -121,6 +123,26 @@ class MainWindow(QMainWindow):
             ),
         )
 
+        self.splitListWidget = SplitListWidget()
+
+        self.splitModeCheck = QCheckBox(
+            "Afficher les splits"
+        )
+
+        self.splitModeCheck.toggled.connect(
+            self.toggle_split_mode
+        )
+
+        splitContainer = QWidget()
+        splitLayout = QVBoxLayout(splitContainer)
+        splitLayout.setContentsMargins(0, 0, 0, 0)
+        splitLayout.setSpacing(4)
+
+        splitLayout.addWidget(self.splitWidget)
+        splitLayout.addWidget(self.splitListWidget)
+
+        self.splitListWidget.setVisible(False)
+
         self.caloriesWidget = MetricWidget(
             title= "Calories",
             unit= "kcal/s  /  kcal",
@@ -130,25 +152,29 @@ class MainWindow(QMainWindow):
         # Ligne 1
         #
 
-        grid.addWidget(self.timeWidget,       1, 0)
-        grid.addWidget(self.distanceWidget,   1, 1)
-        grid.addWidget(self.speedWidget,      1, 2)
+        grid.addWidget(self.timeWidget,       1, 0) # row, column
+        grid.addWidget(self.distanceWidget,   1, 1) # row, column
+        grid.addWidget(self.speedWidget,      1, 2) # row, column
 
         #
         # Ligne 2
         #
 
-        grid.addWidget(self.strokeWidget,     2, 0)
-        grid.addWidget(self.distStrokeWidget, 2, 1)
-        grid.addWidget(self.powerWidget,      2, 2)
+        grid.addWidget(self.strokeWidget,     2, 0) # row, column
+        grid.addWidget(self.distStrokeWidget, 2, 1) # row, column
+        grid.addWidget(self.powerWidget,      2, 2) # row, column
 
         #
         # Ligne 3
+        # Note: splitWidget and the container for SplitList is on the some
+        # cell of the grid and we will display on or the other by clicking
+        # the splitModeCheck button
         #
 
-        grid.addWidget(self.cadenceWidget,    3, 0)
-        grid.addWidget(self.splitWidget,      3, 1)
-        grid.addWidget(self.caloriesWidget,   3, 2)
+        grid.addWidget(self.cadenceWidget,     3, 0) # row, column
+        grid.addWidget(self.splitWidget,       3, 1) # row, column
+        grid.addWidget(splitContainer,         3, 1) # row, column
+        grid.addWidget(self.caloriesWidget,    3, 2) # row, column
 
         #
         # Ligne 4 : Bouton Reset
@@ -162,13 +188,8 @@ class MainWindow(QMainWindow):
             self.new_session
         )
 
-        grid.addWidget(
-            self.resetButton,
-            4,
-            0,
-            1,
-            3,
-        )
+        grid.addWidget(self.resetButton,     4, 0) # row, column
+        grid.addWidget(self.splitModeCheck,  4, 1) # row, column
 
         #
         # Rafraîchissement
@@ -179,6 +200,11 @@ class MainWindow(QMainWindow):
         self.timer.start(GUI_REFRESH_MS)
 
         self.refresh()
+
+    # -------------------------------------------------------------------------
+    def toggle_split_mode(self, checked: bool):
+        self.splitWidget.setVisible(not checked)
+        self.splitListWidget.setVisible(checked)
 
 
     # -------------------------------------------------------------------------
@@ -287,6 +313,10 @@ class MainWindow(QMainWindow):
         self.splitWidget.setValue(
             textvalue= f"{format_pace(rowerdata.split_inst)} / {format_pace(rowerdata.split_avg)}",
             gaugevalue= rowerdata.split_inst
+        )
+
+        self.splitListWidget.set_splits(
+            rowerdata.splits
         )
 
         #

@@ -31,30 +31,28 @@ class RowState:
 
         self.logger = None
 
+        self._session_rebase_pending = False
+
     # -------------------------------------------------------------------------
     def reset_session(self):
         """
         Remet à zéro les données de séance sans arrêter le rameur.
-        La connexion et les compteurs raw de la machine sont conservés
-        via les offsets de session.
+        La prochaine trame reçue devient la nouvelle référence des
+        compteurs raw de la machine.
         """
 
         with self._lock:
             connection = self.curr_rowerdata.connection
 
-            self._elapsed_offset = self.curr_rowerdata.raw_elapsed_time
-            self._stroke_offset = self.curr_rowerdata.raw_stroke_count
+            self._elapsed_offset = 0.0
+            self._stroke_offset = 0
 
             self._last_time = None
+            self._session_rebase_pending = True
 
             self.curr_rowerdata = RowerData(
                 connection=connection,
             )
-
-    # -------------------------------------------------------------------------
-    def initialize_replay(self, elapsed, delta_elapsed):
-
-        self._last_time = calc_delta(elapsed, delta_elapsed)
 
 
     # -------------------------------------------------------------------------
@@ -74,6 +72,13 @@ class RowState:
     def update(self, new_rowerdata: RowerData):
 
         with self._lock:
+
+            if self._session_rebase_pending:
+                self._elapsed_offset = new_rowerdata.raw_elapsed_time
+                self._stroke_offset = new_rowerdata.raw_stroke_count
+
+                self._last_time = None
+                self._session_rebase_pending = False
 
             #
             # Temps écoulé

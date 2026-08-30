@@ -1,6 +1,8 @@
 from collections import deque
 from statistics import mean, stdev
 
+from constants import SPLIT_LENGTH
+
 # -----------------------------------------------
 # Universal calc functions
 # -----------------------------------------------
@@ -57,7 +59,18 @@ def calc_split(dist:float, speed: float) -> float:
 # Works for split instantaneous (pace) or split average (using respectively
 # speed instantaneous or speed average)
 def calc_split500(speed: float) -> float:
-    return calc_split(500.0, speed)
+    return calc_split(SPLIT_LENGTH, speed)
+
+# -----------------------------------------------------------------------------
+# Split (s/split_length_m) = (temps (s) / distance (m)) * split_length (m)
+# Par exemple pour des splits de 500m ou ramené à 500m:
+# Split (s/500m) = (temps / distance) * 500
+# Si distance = split_length alors split = temps
+# Mais si par exemple distance = 250m alors 
+# split = temps / 250 * 500 soit split = 2 * temps
+# ce qui est bien le temps ramené à 500m
+def calc_full_split(dist: float, time: float) -> float:
+    return calc_metric_avg(time, dist) * SPLIT_LENGTH
 
 # -----------------------------------------------------------------------------
 # distance (m) = time * speed
