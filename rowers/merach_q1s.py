@@ -51,7 +51,6 @@ class MerachRower(RowerClient):
         self._running = False
 
         self._rower = None
- 
         
         self.reset()
 

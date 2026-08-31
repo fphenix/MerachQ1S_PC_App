@@ -251,6 +251,8 @@ class SplitListWidget(QFrame):
 
         if new_count == 0:
 
+            self._follow_tail = True
+
             while self.content_layout.count():
 
                 item = self.content_layout.takeAt(0)

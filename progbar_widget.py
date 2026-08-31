@@ -173,10 +173,6 @@ class GradientGauge(QFrame):
             self.zones[1:],
         )):
 
-            # pour éviter div by 0, mais le "raise" dans __init__ doit éviter que cela n'arrive.
-            if v1 == v2:
-                raise ValueError ("GradientGauge : Deux valeurs identiques dans la définition de zones dans gui.py")
-
             idx_color1 = idx if not self.inverted else len(self.ZONES_COLOR) - 1 - idx
             idx_color2 = idx_color1 + 1 if not self.inverted else idx_color1 - 1
 

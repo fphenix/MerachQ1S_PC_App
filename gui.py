@@ -28,6 +28,7 @@ from utils import (
 from widgets import MetricWidget, SplitListWidget
 from progbar_widget import GradientGauge
 
+from constants import USE_REPLAY
 
 # =============================================================================
 class MainWindow(QMainWindow):
@@ -172,7 +173,6 @@ class MainWindow(QMainWindow):
         #
 
         grid.addWidget(self.cadenceWidget,     3, 0) # row, column
-        grid.addWidget(self.splitWidget,       3, 1) # row, column
         grid.addWidget(splitContainer,         3, 1) # row, column
         grid.addWidget(self.caloriesWidget,    3, 2) # row, column
 
@@ -219,9 +219,16 @@ class MainWindow(QMainWindow):
 
             self.state.set_logger(logger)
 
+        # Remise à zéro de l'état de la nouvelle session.
         self.state.reset_session()
 
-        self.state.rower.reset()
+        if USE_REPLAY:
+            # En Replay: Stoppe le thread, remet le modèle à zéro,
+            # puis recommence le fichier depuis le début.
+            self.state.source.restart()
+        else:
+            # Mode rameur réel. ou Replay
+            self.state.rower.reset()
 
         self.refresh()
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 import threading
 
@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Iterator
 
 # =============================================================================
-class ReplaySource:
+class ReplaySource(ABC):
 
     ALLOWED_REPLAY_EXT = ["csv", "zip"]
 
@@ -58,6 +58,22 @@ class ReplaySource:
         if self._thread is not None:
             self._thread.join(timeout=5.0)
             self._thread = None
+
+    # -------------------------------------------------------------------------
+    # Abstract
+    @abstractmethod
+    def reset(self) -> None:
+        raise NotImplementedError
+
+    # -------------------------------------------------------------------------
+    def restart(self) -> None:
+        """
+        Arrête le replay courant, réinitialise la source et
+        recommence la lecture depuis le début.
+        """
+        self.stop()
+        self.reset()
+        self.start()
 
     # ------------------------------------------------------------------
     def iter_rows(self) -> Iterator[dict[str, str]]:

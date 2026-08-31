@@ -1,4 +1,4 @@
-VERSION = 3.5
+VERSION = 3.6
 
 GUI_REFRESH_MS = 100 # miliseconds
 
@@ -32,11 +32,11 @@ LOGGER_FORMAT = LOGGER_FORMAT_ZIP
 # ----------------------------------------------------------------------
 # Source de Données (Bluetooth vs. Replay Log)
 # On peut relancer une séance rameur en "rejouant" un log.
-# Cela permet de valider une modification au script sans avoir se
-# connecter au rameur pour faire un test. Il suffit de rejouer un
-# ancien log pour simuler le BT d'une séance de rameur et valider
-# le nouveau code.
-# Dans ce cas USE_REPKAY est "True" et le nom du log est dans
+# Cela permet de valider une modification au script sans avoir à
+# se connecter au rameur pour faire un test. Il suffit de rejouer
+# un ancien log pour simuler le BT d'une séance de rameur et
+# valider le nouveau code.
+# Dans ce cas USE_REPLAY est "True" et le nom du log est dans
 # REPLAY_FILE (on peut utiliser un csv ou un csv zippé).
 # Pour passer en mode normal (c-à-d Data venant du Q1S
 # via BlueTooth), mettre USE_REPLAY à "False".
@@ -55,4 +55,4 @@ REPLAY_FILE = (
     "logs/session_20260826_173104.zip"
 )
 
-REPLAY_SPEED = 40.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.
+REPLAY_SPEED = 100.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.

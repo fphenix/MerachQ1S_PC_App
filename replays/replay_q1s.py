@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import time
 
+from state import RowState
 from rowers.merach_q1s import MerachRower
 from replays.replay_source import ReplaySource
 
@@ -26,18 +27,21 @@ class ReplayQ1S(ReplaySource):
     def __init__(
         self,
         filename: str,
-        state,
+        state: RowState,
+        rower: MerachRower,
         speed: float = 1.0,
     ) -> None:
 
         super().__init__(filename, speed)
 
+        # RowState reference
         self.state = state
 
         # Le vrai modèle Q1S est utilisé pendant le replay.
-        self.rower = MerachRower(state)
+        self.rower = rower
 
     # ------------------------------------------------------------------
+    # Abstracted in parent class
     def reset(self) -> None:
         """Réinitialise le modèle Q1S sans arrêter le thread de replay."""
 

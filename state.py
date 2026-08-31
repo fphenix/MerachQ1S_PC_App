@@ -18,6 +18,7 @@ class RowState:
 
         self._lock = Lock()
 
+        self.source = None
         self.rower = None
 
         self.curr_rowerdata = RowerData()
