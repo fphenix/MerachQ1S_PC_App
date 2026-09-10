@@ -1,6 +1,6 @@
 from pathlib import Path
 
-VERSION = 4.0
+VERSION = 4.1
 
 GUI_REFRESH_MS = 100 # miliseconds
 FPS = 50
