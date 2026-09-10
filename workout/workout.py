@@ -17,3 +17,4 @@ class Workout:
         self.title = "Workout"
         self.field = "Field"
         self.steps.clear()
+        self.filename = None

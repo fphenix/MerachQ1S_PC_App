@@ -18,9 +18,11 @@ from PySide6.QtWidgets import (
 )
 from ui.progbar_widget import GradientGauge
 
+from setup.settings import Settings
 from setup.constants import (
     TITLE_FONT,
     MAIN_FONT,
+    DEFAULT_SPLIT_LENGTH,
 )
 from setup.utils import format_pace, format_time
 from engine.calc import calc_full_split
@@ -118,11 +120,21 @@ class SplitListWidget(QFrame):
 
     ROWS_PER_COLUMN = 6
 
-    def __init__(self, title: str = "Splits"):
+    def __init__(
+        self,
+        title: str = "Splits",
+        settings: Settings | None = None,
+    ):
         super().__init__()
 
         self.setFrameShape(QFrame.Box)
         self.setLineWidth(2)
+
+        self.split_length = (
+            settings.split_length
+            if settings is not None
+            else DEFAULT_SPLIT_LENGTH
+        )
 
         # True tant que l'utilisateur n'a pas repris le contrôle
         # de la scrollbar.
@@ -453,6 +465,7 @@ class SplitListWidget(QFrame):
             pace = calc_full_split(
                 dist=distance,
                 time=elapsed,
+                split_length=self.split_length,
             )
 
             suffix = (

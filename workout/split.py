@@ -17,7 +17,9 @@ class WorkoutSplit:
 # =============================================================================
 class WorkoutSplitCalculator:
 
-    def __init__(self):
+    def __init__(self, settings):
+
+        self.settings = settings
 
         self.workout = None
 
@@ -214,6 +216,7 @@ class WorkoutSplitCalculator:
             split.pace = calc_full_split(
                 dist=split.distance,
                 time=split.elapsed,
+                split_length= self.settings.split_length,
             )
 
         else:

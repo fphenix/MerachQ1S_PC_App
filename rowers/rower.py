@@ -9,16 +9,18 @@ from .data import RowerData
 class RowerClient(ABC):
 
     # -------------------------------------------------------------------------
-    def __init__(self, address: str, state):
+    def __init__(self, address: str, state, settings):
         
         self.address = address
         self.state = state
+
+        self.settings = settings
 
     # -------------------------------------------------------------------------
     def process(
         self,
         rowerdata: RowerData,
-        delta_elapsed: float
+        delta_elapsed: float,
     ) -> RowerData:
         
         return rowerdata

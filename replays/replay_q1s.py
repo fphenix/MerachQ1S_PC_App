@@ -12,10 +12,14 @@ Il injecte des données raw dans le même pipeline que le Bluetooth :
 from __future__ import annotations
 
 import time
+import traceback
 
 from engine.state import RowState
 from rowers.merach_q1s import MerachRower
 from replays.replay_source import ReplaySource
+from setup.settings import Settings
+
+from setup.utils import echoerr
 
 # =============================================================================
 class ReplayQ1S(ReplaySource):
@@ -112,8 +116,9 @@ class ReplayQ1S(ReplaySource):
 
         except Exception as exc:
             self._running = False
-
-            raise Exception(f"Replay Q1S : {exc}")
+            echoerr("Replay Q1S interrompu :", exc)
+            traceback.print_exc()
+            #raise Exception(f"Replay Q1S : {exc}")
 
         finally:
             self._running = False

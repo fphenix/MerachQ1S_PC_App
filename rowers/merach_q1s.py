@@ -39,11 +39,13 @@ class MerachRower(RowerClient):
     NAME = "Merach Q1S"
 
     # -------------------------------------------------------------------------
-    def __init__(self, state):
+    def __init__(self, state, settings):
 
-        super().__init__(self.MERACH_Q1S_ADDRESS, state)
+        super().__init__(self.MERACH_Q1S_ADDRESS, state, settings)
 
-        self.calculator = MerachQ1SCalc()
+        self.settings = settings
+
+        self.calculator = MerachQ1SCalc(settings= self.settings)
 
         self._last_data = {}
         
@@ -124,7 +126,7 @@ class MerachRower(RowerClient):
     def process(
         self,
         rowerdata: RowerData,
-        delta_elapsed: float
+        delta_elapsed: float,
     ) -> RowerData:
 
         # Valeurs brutes du Q1S réutilisées pour recalculer toutes
@@ -138,8 +140,8 @@ class MerachRower(RowerClient):
         # On passe ces données au calculateur qui va produire les
         # autres métriques
         data = self.calculator.process(
-            data,
-            delta_elapsed
+            data= data,
+            delta_elapsed= delta_elapsed,
         )
 
         rowerdata.delta_strokes = data["delta_strokes"]

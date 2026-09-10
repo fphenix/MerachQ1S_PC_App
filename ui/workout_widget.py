@@ -14,8 +14,8 @@ from PySide6.QtWidgets import (
     QFrame,
 )
 
+from setup.settings import Settings
 from setup.constants import (
-    DELAY_SECONDS,
     FPS,
     BAR_HEIGHT,
     LIST_FONT_SIZE,
@@ -41,11 +41,14 @@ class WorkoutWidget(QFrame):
 
     def __init__(
         self,
+        settings: Settings,
         metronome_bar: QProgressBar,
         parent=None,
     ):
         super().__init__(parent)
 
+        self.settings = settings
+        
         self.metronome_bar = metronome_bar
 
         self.setStyleSheet(
@@ -393,14 +396,13 @@ class WorkoutWidget(QFrame):
         self.workout_elapsed = 0.0
 
         self.countdown_remaining = (
-            DELAY_SECONDS
+            self.settings.delay_seconds
             if not replay_mode
             else 0.0
         )
 
-        self.total_remaining = self.total_time
-
         self.total_time = workout.total_seconds
+        self.total_remaining = self.total_time
 
         self.step_remaining = 0.0
         self.step_elapsed = 0.0
@@ -644,6 +646,7 @@ class WorkoutWidget(QFrame):
     def finish_workout(self):
 
         self.running = False
+        self.started = False
         self.timer.stop()
 
         self.metronome_bar.setValue(

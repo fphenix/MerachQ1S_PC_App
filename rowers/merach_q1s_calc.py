@@ -47,13 +47,13 @@ from engine.calc import (
     calc_work_per_stroke,
 )
 
-from setup.constants import SPLIT_LENGTH
-
 # -------------------------------------------------------------------------
 class MerachQ1SCalc:
 
     # -------------------------------------------------------------------------
-    def __init__(self):
+    def __init__(self, settings):
+
+        self.settings = settings
 
         self.stroke_times = deque(maxlen=CADENCE_WINDOW)
         self.cadence_history = deque(maxlen=CADENCE_SMOOTHING)
@@ -80,7 +80,11 @@ class MerachQ1SCalc:
         self.splits = list()
 
     # -------------------------------------------------------------------------
-    def process(self, data: dict, delta_elapsed: float) -> dict:
+    def process(
+        self,
+        data: dict,
+        delta_elapsed: float,
+    ) -> dict:
 
         elapsed_time = float(data.get("elapsed_time", 0.0))
 
@@ -125,13 +129,14 @@ class MerachQ1SCalc:
         # Split Average : recalculé à partir de speed_avg
         #
 
-        split = calc_split500(speed)
-        split_avg = calc_split500(speed_avg)
+        split = calc_split500(speed, self.settings.split_length)
+        split_avg = calc_split500(speed_avg, self.settings.split_length)
 
         self.splits = self.q1s_update_splits_list(
             self.splits,
             distance=self.distance,
             elapsed_time=elapsed_time,
+            split_length=self.settings.split_length,
         )
 
         #
@@ -360,16 +365,17 @@ class MerachQ1SCalc:
         splits_list: list[list[float]],
         distance: float,
         elapsed_time: float,
+        split_length: float,
     ) -> list[list[float]]:
 
         completed_splits = [
             split
             for split in splits_list
-            if split[0] >= SPLIT_LENGTH
+            if split[0] >= split_length
         ]
 
         completed_distance = (
-            len(completed_splits) * SPLIT_LENGTH
+            len(completed_splits) * split_length
         )
         completed_time = sum(
             split[1]
@@ -383,7 +389,7 @@ class MerachQ1SCalc:
             return splits_list
 
         # Création du premier split courant.
-        if not splits_list or splits_list[-1][0] >= SPLIT_LENGTH:
+        if not splits_list or splits_list[-1][0] >= split_length:
             splits_list.append(
                 [current_distance, current_time]
             )
@@ -394,18 +400,19 @@ class MerachQ1SCalc:
 
         # Un paquet peut exceptionnellement franchir
         # plusieurs fois SPLIT_LENGTH.
-        while current_distance >= SPLIT_LENGTH:
+        while current_distance >= split_length:
 
             segment_time = calc_full_split(
                 dist= current_distance,
                 time= current_time,
+                split_length= split_length,
             )
 
             # Le split courant devient définitif.
-            splits_list[-1][0] = SPLIT_LENGTH
+            splits_list[-1][0] = split_length
             splits_list[-1][1] = segment_time
 
-            current_distance = calc_delta(current_distance, SPLIT_LENGTH)
+            current_distance = calc_delta(current_distance, split_length)
             current_time = calc_delta(current_time, segment_time)
 
             if current_distance <= 0.0:

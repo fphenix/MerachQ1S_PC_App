@@ -1,17 +1,26 @@
+from pathlib import Path
+
 VERSION = 4.0
 
 GUI_REFRESH_MS = 100 # miliseconds
+FPS = 50
 
 WINDOW_TITLE = "Rower PM Monitor"
 WINDOW_WIDTH = 1100 # pixels
 WINDOW_HEIGHT = 700 # pixels
 
-SPLIT_LENGTH = 500.0 # meters
+SETTINGS_FILE = (
+    Path(__file__).resolve().parent.parent
+    / "config" / "settings.json"
+)
+
+DEFAULT_SPLIT_LENGTH  = 500.0 # meters
+MIN_SPLIT_LENGTH = 100
+MAX_SPLIT_LENGTH = 2000
+SPLIT_LENGTH_STEP = 100
 
 MAIN_FONT = "Consolas"
 TITLE_FONT = "Segoe UI"
-
-from pathlib import Path
 
 LOGS_DIR = (
       Path(__file__).resolve().parent.parent
@@ -20,6 +29,14 @@ LOGS_DIR = (
 WORKOUTS_DIR = (
     Path(__file__).resolve().parent.parent
     / "workouts"
+)
+
+DEFAULT_SPLIT_MODE = "normal"
+
+SPLIT_MODES = (
+    "normal",
+    "500m",
+    "workout",
 )
 
 # ----------------------------------------------------------------------
@@ -66,11 +83,11 @@ USE_REPLAY_WORKOUT = False
 # * un .csv
 # * un .zip ayant un (et un seul) .csv à l'intérieur
 REPLAY_FILE = (
-    #f"{LOGS_DIR}/session_20260824_172641.zip" # Choose Log to replay (csv ou zip)
-    f"{LOGS_DIR}/session_20260908_102813.zip"
+    #f"{LOGS_DIR}/session_20260908_102813.zip" # Choose Log to replay (csv ou zip)
+    f"{LOGS_DIR}/session_20260910_160830.zip"
 )
 REPLAY_WORKOUT_FILE = (
-    f"{WORKOUTS_DIR}/ex17.wo"
+    f"{WORKOUTS_DIR}/ex06.wo"
 )
 
 REPLAY_SPEED = 100.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.
@@ -79,8 +96,10 @@ REPLAY_SPEED = 100.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rap
 # Workout
 # ----------------------------------------------------------------------
 
-DELAY_SECONDS = 15
-FPS = 50
+DEFAULT_DELAY_SECONDS  = 15
+MIN_DELAY_SECONDS = 0
+MAX_DELAY_SECONDS = 60
+DELAY_SECONDS_STEP = 5
 
 WORKOUT_WIDTH = 720 # pixels
 

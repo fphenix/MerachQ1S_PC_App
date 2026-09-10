@@ -1,10 +1,11 @@
 WORKOUT Ex1 : Ramp Up
 FIELD Cardio, endurance, technique
-6	20	E
-5	22	N
+6	20	R
+5	22	E
 4	24	N
-3	26	N
-2	28	F
-1	30	F
+3	26	F
+2	28	M
+1	30	M
 # Optional:
-4	28	F
+4	24	N
+

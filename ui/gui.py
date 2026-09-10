@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QFileDialog,
     QMessageBox,
+    QDialog,
 )
 
 from setup.constants import (
@@ -28,7 +29,9 @@ from setup.constants import (
     WINDOW_HEIGHT,
     WORKOUT_WIDTH,
     METRONOME_MARGIN,
-    USE_REPLAY,
+    SPLIT_MODES,
+    USE_REPLAY, USE_REPLAY_WORKOUT,
+    REPLAY_WORKOUT_FILE,
     LOGS_DIR, WORKOUTS_DIR,
     ANALYZER_WIDTH, ANALYZER_HEIGHT,
 )
@@ -42,20 +45,23 @@ from ui.status_widget import StatusWidget
 from ui.widgets import MetricWidget, SplitListWidget
 from ui.progbar_widget import GradientGauge
 from ui.workout_widget import WorkoutWidget
+from ui.settings_dialog import SettingsDialog
+from ui.plot_wo import WorkoutPlotWindow
 
 from workout.split import WorkoutSplitCalculator
 from analyzer.analyzer import AnalyzerWindow
-from ui.plot_wo import WorkoutPlotWindow
+from setup.settings import save_settings
 
 # =============================================================================
 class MainWindow(QMainWindow):
 
     # -------------------------------------------------------------------------
-    def __init__(self, state):
+    def __init__(self, state, settings):
 
         super().__init__()
 
         self.state = state
+        self.settings = settings
 
         self.setWindowTitle(f"{WINDOW_TITLE} : {self.state.rower.NAME}")
 
@@ -168,7 +174,9 @@ class MainWindow(QMainWindow):
             ),
         )
 
-        self.splitListWidget = SplitListWidget()
+        self.splitListWidget = SplitListWidget(
+            settings= self.settings,
+        )
 
         # Split selector : radiobutton
 
@@ -288,6 +296,7 @@ class MainWindow(QMainWindow):
         self.workout_bar = QProgressBar()
 
         self.workoutWidget = WorkoutWidget(
+            settings= self.settings,
             metronome_bar=self.workout_bar,
         )
 
@@ -317,7 +326,9 @@ class MainWindow(QMainWindow):
             1,
         )
 
-        self.workoutSplitCalculator = WorkoutSplitCalculator()
+        self.workoutSplitCalculator = WorkoutSplitCalculator(
+            self.settings
+        )
 
         #
         # Workout : Metronome
@@ -344,7 +355,6 @@ class MainWindow(QMainWindow):
 
         metronome_layout.addSpacing(METRONOME_MARGIN)
 
-
         main_layout.addLayout(
             metronome_layout
         )
@@ -354,6 +364,8 @@ class MainWindow(QMainWindow):
         #
         # Rafraîchissement
         #
+
+        self._apply_split_mode_preference()
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.refresh)
@@ -396,26 +408,56 @@ class MainWindow(QMainWindow):
                 )
 
     # -------------------------------------------------------------------------
-    def new_session(self):
+    def new_session(self) -> None:
 
         logger = self.state.logger
 
         if logger is not None:
             logger.flush()
             logger.stop()
-            logger.start()
 
-            self.state.set_logger(logger)
+        # --------------------------------------------------------------
+        # Réinitialisation / préparation du Workout
+        # --------------------------------------------------------------
 
-        # Remise à zéro de l'état de la nouvelle session.
+        if USE_REPLAY and USE_REPLAY_WORKOUT:
+
+            # On repart du même workout que celui configuré
+            # pour le replay.
+            self.close_workout()
+
+            self.load_workout_file(
+                filename=REPLAY_WORKOUT_FILE,
+                replay_mode=True,
+            )
+
+        else:
+
+            # En mode réel, un nouveau workout doit être choisi.
+            self.close_workout()
+
+        # --------------------------------------------------------------
+        # Nouvelle session Q1S
+        # --------------------------------------------------------------
+
         self.state.reset_session()
 
+        # --------------------------------------------------------------
+        # Nouveau logger
+        # Le workout éventuel est déjà défini à ce stade.
+        # --------------------------------------------------------------
+
+        if logger is not None:
+            logger.start()
+            self.state.set_logger(logger)
+
+        # --------------------------------------------------------------
+        # Nouvelle source
+        # --------------------------------------------------------------
+
         if USE_REPLAY:
-            # En Replay: Stoppe le thread, remet le modèle à zéro,
-            # puis recommence le fichier depuis le début.
             self.state.source.restart()
         else:
-            # Mode rameur réel. ou Replay
             self.state.rower.reset()
 
         self.refresh()
@@ -592,6 +634,28 @@ class MainWindow(QMainWindow):
             self.open_plot_wo
         )
 
+        #
+        # Réglages >
+        #   Paramètres...
+        #
+
+        settings_menu = self.menuBar().addMenu(
+            "Réglages"
+        )
+
+        settings_action = settings_menu.addAction(
+            "Paramètres..."
+        )
+
+        settings_action.triggered.connect(
+            self.open_settings
+        )
+
+        #Desactive le Réglage des Paramètres en Replay"
+        settings_action.setEnabled(
+            not USE_REPLAY
+        )
+
     # -------------------------------------------------------------------------
     def open_workout(self):
 
@@ -628,6 +692,8 @@ class MainWindow(QMainWindow):
 
         self.workoutWidget.setVisible(True)
         self.workout_bar.setVisible(True)
+
+        self._apply_split_mode_preference()
 
         return True
 
@@ -701,3 +767,77 @@ class MainWindow(QMainWindow):
                 window.close()
 
         event.accept()
+
+    # -------------------------------------------------------------------------
+    def close_workout(self) -> None:
+
+        self.workoutWidget.timer.stop()
+
+        self.workoutWidget.setVisible(False)
+        self.workout_bar.setVisible(False)
+
+        self.workoutSplitCalculator.reset()
+
+        self.splitModeWorkout.setChecked(False)
+        self.splitModeWorkout.setEnabled(False)
+
+        logger = self.state.logger
+
+        if logger is not None:
+            logger.set_workout_file(None)
+
+    # -------------------------------------------------------------------------
+    def open_settings(self):
+
+        # On évite de modifier SPLIT_LENGTH en plein milieu
+        # d'une session active.
+        rowerdata = self.state.snapshot().rowerdata
+
+        if rowerdata.elapsed_time > 0.0:
+            QMessageBox.information(
+                self,
+                "Paramètres",
+                "Les paramètres peuvent être modifiés "
+                "entre deux séances.",
+            )
+            return
+
+        dialog = SettingsDialog(
+            self.settings,
+            self,
+        )
+
+        if dialog.exec() != QDialog.Accepted:
+            return
+
+        dialog.apply_to(
+            self.settings
+        )
+
+        save_settings(
+            self.settings
+        )
+
+    # -------------------------------------------------------------------------
+    def _apply_split_mode_preference(self) -> None:
+
+        mode = self.settings.split_mode
+
+        # Si le choix par défaut de l'utilisateur est "Workout"
+        # alors on force à "Normal" si aucun Workout n'est chargé
+        # mais on applique Split Mode = "Workout" si un .wo est chargé.
+        # Note: Si un .wo est chargé, alors workoutWidget est visible.
+        if (
+            mode == "workout"
+            and not self.workoutWidget.isVisible()
+        ):
+            mode = "normal"
+
+        mode_index = SPLIT_MODES.index(mode)
+
+        button = self.splitModeGroup.button(mode_index)
+
+        if button is not None:
+            button.setChecked(True)
+
+        self.set_split_mode(mode_index)

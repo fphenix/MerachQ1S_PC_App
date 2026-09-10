@@ -22,6 +22,7 @@ import asyncio
 
 from PySide6.QtWidgets import QApplication
 
+from setup.settings import Settings, load_settings
 from setup.constants import (
     WINDOW_TITLE,
     WINDOW_WIDTH, WINDOW_HEIGHT,
@@ -48,6 +49,8 @@ from bluetooth.manager import BluetoothManager
 # -----------------------------------------------------------------------------
 def main():
 
+    settings: Settings = load_settings()
+
     if not USE_REPLAY:
         bluetooth_manager = BluetoothManager()
 
@@ -71,6 +74,7 @@ def main():
 
     rower = MerachRower(
         state= state,
+        settings= settings,
     )
 
     #
@@ -80,10 +84,10 @@ def main():
     if USE_REPLAY:
 
         source = ReplayQ1S(
-            filename=REPLAY_FILE,
-            state=state,
-            rower=rower,
-            speed=REPLAY_SPEED,
+            filename= REPLAY_FILE,
+            state= state,
+            rower= rower,
+            speed= REPLAY_SPEED,
         )
 
     else:
@@ -109,7 +113,7 @@ def main():
     # Interface graphique
     #
 
-    window = MainWindow(state)
+    window = MainWindow(state, settings)
 
     window.resize(
         WINDOW_WIDTH,
