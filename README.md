@@ -14,7 +14,7 @@ Dependencies : PySide6, Bleak (& pyftms)
 You need to use a BlueTooth Scanner in order to get the ROWER_ADDRESS for your machine and update constants.py accordingly.
 => Use BlueTooth_Scanner.py (see the bluetooth/ directory) to get your device address.
 
-Note: If you Bluetooth card is disabled, the App will automatically turn it On, then restore its disabled state on exit.
+Note: If your Bluetooth card is disabled, the App will automatically turn it On, then restore its disabled state on exit.
 
 ---
 
