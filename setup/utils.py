@@ -9,7 +9,7 @@ from setup.constants import (
 # -----------------------------------------------------------------------------
 def load_workout(filename):
 
-    workout = Workout()
+    workout = Workout(filename)
 
     with open(
         filename,

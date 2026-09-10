@@ -30,6 +30,7 @@ class CsvLogger:
         self.filename = None
         self.log_format = LOGGER_FORMAT
         self.writer = None
+        self.workout_file = None
 
         self.packet = 0
 
@@ -98,7 +99,14 @@ class CsvLogger:
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         ])
 
-        self.writer.writerow([])
+        #
+        # Workout associé à la séance
+        #
+
+        self.writer.writerow([
+            "Workout",
+            self.workout_file or "None Loaded",
+        ])
 
         #
         # Entête des colonnes
@@ -122,7 +130,6 @@ class CsvLogger:
 
         self.last_flush_time = time.monotonic()
 
-
     # -------------------------------------------------------------------------
     def periodic_flush(self):
         """
@@ -134,7 +141,6 @@ class CsvLogger:
         if calc_delta(now, self.last_flush_time) >= LOGGER_FLUSH_PERIOD:
             self.flush()
 
-
     # -------------------------------------------------------------------------
     def stroke_detected(self):
         """
@@ -142,7 +148,6 @@ class CsvLogger:
         """
 
         self.last_stroke_time = time.monotonic()
-
 
     # -------------------------------------------------------------------------
     def check_end_session(self):
@@ -166,7 +171,6 @@ class CsvLogger:
 
             self.last_stroke_time = now
 
-
     # -------------------------------------------------------------------------
     def log(self, record: LogRecord):
 
@@ -181,7 +185,6 @@ class CsvLogger:
         #
 
         self.periodic_flush()
-
 
     # -------------------------------------------------------------------------
     def next_packet(self):
@@ -198,7 +201,6 @@ class CsvLogger:
         self.last_pc_time = now
 
         return self.packet, now, delta
-
 
     # -------------------------------------------------------------------------
     def stop(self):
@@ -248,4 +250,39 @@ class CsvLogger:
 
         self.filename = None
         self._has_data = False
-                
+
+    # -------------------------------------------------------------------------
+    def set_workout_file(
+        self,
+        filename: str | None,
+    ) -> None:
+
+        if filename is None:
+            self.workout_file = None
+
+        else:
+            path = Path(filename).resolve()
+            cwd = Path.cwd().resolve()
+
+            try:
+                self.workout_file = str(
+                    path.relative_to(cwd)
+                ).replace("\\", "/")
+
+            except ValueError:
+                self.workout_file = str(path)
+
+        # Rien à réécrire si le fichier n'est pas ouvert
+        # ou si des données ont déjà été enregistrées.
+        if self._file is None or self._has_data:
+            return
+
+        # Le logger vient juste de créer son fichier :
+        # on peut refaire proprement l'en-tête.
+        self._file.seek(0)
+        self._file.truncate()
+
+        self.writer = csv.writer(self._file)
+
+        self.header()
+        self.flush()

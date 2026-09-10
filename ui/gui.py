@@ -595,11 +595,10 @@ class MainWindow(QMainWindow):
     # -------------------------------------------------------------------------
     def open_workout(self):
 
-        if self.load_workout_file(
+        self.load_workout_file(
             filename=None,
             replay_mode=False,
-        ):
-            return
+        )
 
     # -------------------------------------------------------------------------
     def load_workout_file(
@@ -608,41 +607,27 @@ class MainWindow(QMainWindow):
         replay_mode: bool = False,
     ) -> bool:
 
-        if filename is None:
-
-            return_value = (
-                self.workoutWidget.open_setup(
-                    replay_mode=replay_mode,
-                )
-            )
-
-        else:
-
-            return_value = (
-                self.workoutWidget.open_setup(
-                    filename=filename,
-                    replay_mode=replay_mode,
-                )
-            )
-
-        if not return_value:
+        if not self.workoutWidget.open_setup(
+            filename=filename,
+            replay_mode=replay_mode,
+        ):
             return False
+
+        logger = self.state.logger
+
+        if logger is not None:
+            logger.set_workout_file(
+                self.workoutWidget.workout.filename
+            )
 
         self.workoutSplitCalculator.reset(
             self.workoutWidget.workout
         )
 
-        self.splitModeWorkout.setEnabled(
-            True
-        )
+        self.splitModeWorkout.setEnabled(True)
 
-        self.workoutWidget.setVisible(
-            True
-        )
-
-        self.workout_bar.setVisible(
-            True
-        )
+        self.workoutWidget.setVisible(True)
+        self.workout_bar.setVisible(True)
 
         return True
 
@@ -661,7 +646,6 @@ class MainWindow(QMainWindow):
 
         self.analyzer_window = AnalyzerWindow(
             filename,
-            parent=self,
         )
 
         self.analyzer_window.resize(
@@ -689,7 +673,6 @@ class MainWindow(QMainWindow):
             self.plot_workout_window = (
                 WorkoutPlotWindow(
                     filename,
-                    parent=self,
                 )
             )
 
@@ -702,3 +685,19 @@ class MainWindow(QMainWindow):
                 "Erreur",
                 f"Impossible de charger le workout.\n\n{exc}",
             )
+
+    # -------------------------------------------------------------------------
+    def closeEvent(self, event):
+        # Arrête le moteur principal.
+        if self.state.source is not None:
+            self.state.source.stop()
+
+        # Ferme les fenêtres outils.
+        for window in (
+            getattr(self, "analyzer_window", None),
+            getattr(self, "plot_workout_window", None),
+        ):
+            if window is not None:
+                window.close()
+
+        event.accept()

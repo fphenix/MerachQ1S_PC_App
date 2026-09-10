@@ -1,9 +1,10 @@
 class Workout:
 
-    def __init__(self):
+    def __init__(self, filename: str | None = None):
         self.title = "Workout"
         self.field = "Field"
         self.steps = []
+        self.filename = filename
 
     @property
     def total_seconds(self):
