@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import time
 
-from state import RowState
+from engine.state import RowState
 from rowers.merach_q1s import MerachRower
 from replays.replay_source import ReplaySource
 

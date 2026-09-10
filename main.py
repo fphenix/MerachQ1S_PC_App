@@ -22,15 +22,16 @@ import asyncio
 
 from PySide6.QtWidgets import QApplication
 
-from constants import (
+from setup.constants import (
     WINDOW_TITLE,
     WINDOW_WIDTH, WINDOW_HEIGHT,
     REPLAY_FILE, REPLAY_SPEED, USE_REPLAY,
+    USE_REPLAY_WORKOUT, REPLAY_WORKOUT_FILE,
 )
-from utils import echo
+from setup.utils import echo
 
-from state import RowState
-from gui import MainWindow
+from engine.state import RowState
+from ui.gui import MainWindow
 
 from rowers.merach_q1s import MerachRower
 #from rowers.concept2 import Concept2Rower
@@ -38,11 +39,11 @@ from rowers.merach_q1s import MerachRower
 from replays.replay_q1s import ReplayQ1S
 #from replays.replay_c2 import ReplayC2
 
-from logger import CsvLogger
+from logger.logger import CsvLogger
 
 # BluetoothManager permet (sur PC Win11) de s'assurer que la carte BT est
 # activé (ou l'active si besoin) et de remettre son état initial en quittant
-from bluetooth_manager import BluetoothManager
+from bluetooth.manager import BluetoothManager
 
 # -----------------------------------------------------------------------------
 def main():
@@ -105,21 +106,35 @@ def main():
     state.set_logger(logger)
 
     #
-    # Start the Rower Client
-    #
-
-    source.start()
- 
-    #
     # Interface graphique
     #
 
     window = MainWindow(state)
 
-    window.resize(WINDOW_WIDTH, WINDOW_HEIGHT)
+    window.resize(
+        WINDOW_WIDTH,
+        WINDOW_HEIGHT,
+    )
+
+    if USE_REPLAY and USE_REPLAY_WORKOUT:
+
+        if not window.load_workout_file(
+            filename=REPLAY_WORKOUT_FILE,
+            replay_mode=True,
+        ):
+            raise RuntimeError(
+                "Impossible de charger le workout Replay : "
+                f"{REPLAY_WORKOUT_FILE}"
+            )
 
     window.show()
 
+    #
+    # Start the Rower Client
+    #
+
+    source.start()
+ 
     #
     # Boucle Qt
     #

@@ -21,7 +21,7 @@ from .rower import RowerClient
 from .merach_q1s_calc import MerachQ1SCalc
 
 from .data import RowerData
-from utils import echo, echoerr
+from setup.utils import echo, echoerr
 
 # =============================================================================
 class MerachRower(RowerClient):

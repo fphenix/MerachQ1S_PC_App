@@ -29,7 +29,9 @@ CALORIE_OFFSET = 300.0
 CALORIES_CALIB = 1.1639
 CALORIES_PER_WATT = 3.4
 
-from calc import (
+from collections import deque
+
+from engine.calc import (
     calc_delta,
     calc_average,
     calc_speed_avg,
@@ -44,9 +46,8 @@ from calc import (
     calc_work,
     calc_work_per_stroke,
 )
-from collections import deque
 
-from constants import SPLIT_LENGTH
+from setup.constants import SPLIT_LENGTH
 
 # -------------------------------------------------------------------------
 class MerachQ1SCalc:
