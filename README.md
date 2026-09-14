@@ -5,6 +5,8 @@ It connects (via BlueTooth which must be available on your PC!) to the rower and
 
 In Version 4.0, the Workout Widget (allowing to upload a .wo workout file that displays the phases of the chosen workout and showing a metronome pulsating at the current cadence (spm) expected by the current phase of the workout), as well as the log Analyzer and the .wo file Visualizer, all have been added. These updates make an all-in-one app for the Merach Q1S rower.
 
+In Version 4.3, the Workout Editor (Create or Edit) has been added.
+
 Dependencies : PySide6, Bleak (& pyftms)
 
 * pip install PySide6
