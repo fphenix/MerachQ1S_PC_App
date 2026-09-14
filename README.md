@@ -20,7 +20,7 @@ Note: If your Bluetooth card is disabled, the App will automatically turn it On,
 
 ---
 
-Note and Disclaimers: The motivation for this project is poor metrics on the rower's LCD screen and the desire to use a PC "App" rather than a smartphone one.
+Note and Disclaimers: The motivation for this project are the poor metrics on the rower's LCD screen and the desire to use a PC "App" rather than a smartphone one.
 It became obvious, for instance, that the "Distance" in meters displayed on the Q1S screen simply is "5 * number_of_strokes" and the Calories in kcal roughly is "0.1428 * number_of_strokes".
 Therefore the displayed values are pretty much useless and are not real by any stretch of the imagination.
 It is not known if the Power figures transmitted via BlueTooth can be trusted or how they are calculated/measured, but - with the time and stroke count - that's the only metrics that we have available.
