@@ -15,10 +15,8 @@ from setup.constants import (
     INTENSITY_COLORS,
     PLOTWO_WIDTH, PLOTWO_HEIGHT,
 )
-from setup.utils import (
-    load_workout,
-)
 
+from setup.utils import load_workout
 
 # =============================================================================
 class WorkoutPlotWidget(FigureCanvas):
@@ -30,6 +28,7 @@ class WorkoutPlotWidget(FigureCanvas):
     Y_MIN = 14
     Y_MAX = 40
 
+    # ------------------------------------------------------------------
     def __init__(
         self,
         parent=None,
@@ -173,15 +172,10 @@ class WorkoutPlotWidget(FigureCanvas):
 
         for step in workout.steps:
 
-            duration = (
-                step.duration_minutes
-            )
+            duration_minutes = step.duration_seconds / 60.0
 
             x0 = current_time
-            x1 = (
-                current_time
-                + duration
-            )
+            x1 = current_time + duration_minutes
 
             color = INTENSITY_COLORS.get(
                 step.intensity,

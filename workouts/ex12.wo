@@ -1,7 +1,7 @@
-WORKOUT Ex12
-FIELD Technique, Puissance
-5	20	F
-5	24	N
-5	26	F
-5	24	N
-5	20	F
+WORKOUT: Ex12
+FIELD: Technique, Puissance
+300	20	F
+300	24	N
+300	26	F
+300	24	N
+300	20	F

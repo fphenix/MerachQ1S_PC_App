@@ -1,8 +1,8 @@
 from pathlib import Path
 
-VERSION = 4.1
+VERSION = 4.3
 
-GUI_REFRESH_MS = 100 # miliseconds
+GUI_REFRESH_MS = 100 # milliseconds
 FPS = 50
 
 WINDOW_TITLE = "Rower PM Monitor"
@@ -84,10 +84,12 @@ USE_REPLAY_WORKOUT = False
 # * un .zip ayant un (et un seul) .csv à l'intérieur
 REPLAY_FILE = (
     #f"{LOGS_DIR}/session_20260908_102813.zip" # Choose Log to replay (csv ou zip)
-    f"{LOGS_DIR}/session_20260910_160830.zip"
+    #f"{LOGS_DIR}/session_20260910_160830.zip"
+    #f"{LOGS_DIR}/session_20260911_162917.zip"
+    f"{LOGS_DIR}/session_20260914_174048.zip"
 )
 REPLAY_WORKOUT_FILE = (
-    f"{WORKOUTS_DIR}/ex06.wo"
+    f"{WORKOUTS_DIR}/Row20_Day10.wo"
 )
 
 REPLAY_SPEED = 100.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.
@@ -101,11 +103,16 @@ MIN_DELAY_SECONDS = 0
 MAX_DELAY_SECONDS = 60
 DELAY_SECONDS_STEP = 5
 
-WORKOUT_WIDTH = 720 # pixels
+WORKOUT_WIDTH  = 720 # pixels
+WORKOUT_HEIGHT = WINDOW_HEIGHT # pixels
+
+WORKOUT_EDIT_WIDTH  = 1100
+WORKOUT_EDIT_HEIGHT =  800
 
 TITLE_FONT_SIZE = 24
 BIG_FONT_SIZE = 22
 LIST_FONT_SIZE = 14
+INFO_FONT_SIZE = 18
 
 LIST_WIDTH = 220
 BAR_HEIGHT = 28
@@ -119,6 +126,13 @@ BAR_BORDER = "#666666"
 BAR_COLOR = "#00CC44"
 TEXT_COLOR = "white"
 LISTTEXT_COLOR = TEXT_COLOR
+
+WO_KEYWORD:dict[str, str] = {
+    "Comment" : "#",
+    "Title"   : "WORKOUT:",
+    "Field"   : "FIELD:",
+    "Info"    : "INFO:",
+}
 
 PART_DICT = {
     "O": "OPTIONEL",
@@ -143,6 +157,18 @@ INTENSITY_COLORS = {
     "N": "#00AA00",
     "F": "#DD2222",
     "M": "#BB44DD",
+}
+
+DURATION_UNITS = {
+    "sec": 1,
+    "min": 60,
+    "h": 3600,
+}
+
+DURATION_RANGES = {
+    "sec": (1, 3600),
+    "min": (0.01, 120),
+    "h": (0.01, 2),
 }
 
 # ----------------------------------------------------------------------

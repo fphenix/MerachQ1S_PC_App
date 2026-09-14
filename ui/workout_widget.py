@@ -14,6 +14,11 @@ from PySide6.QtWidgets import (
     QFrame,
 )
 
+from setup.utils import (
+    load_workout,
+    format_time,
+    format_duration,
+)
 from setup.settings import Settings
 from setup.constants import (
     FPS,
@@ -29,12 +34,12 @@ from setup.constants import (
     TEXT_COLOR, LISTTEXT_COLOR,
     TITLE_FONT_SIZE,
     BIG_FONT_SIZE,
+    INFO_FONT_SIZE,
     MAIN_FONT,
     WORKOUTS_DIR,
 )
 
 from workout.workout import Workout
-from setup.utils import load_workout, format_time
 
 # =============================================================================
 class WorkoutWidget(QFrame):
@@ -87,6 +92,45 @@ class WorkoutWidget(QFrame):
         )
 
     # ------------------------------------------------------------------
+    def reset(self) -> None:
+
+        self.timer.stop()
+
+        self.workout = Workout()
+
+        self.current_step = 0
+
+        self.countdown_active = False
+        self.running = False
+        self.replay_mode = False
+
+        self.countdown_remaining = 0.0
+        self.total_remaining = 0.0
+        self.total_time = 0.0
+        self.step_remaining = 0.0
+        self.step_elapsed = 0.0
+
+        self.started = False
+        self.workout_elapsed = 0.0
+
+        self.beat_phase = 0.0
+        self.last_elapsed = 0.0
+        self.last_tick = time.perf_counter()
+
+        self.step_list.clear()
+
+        self.metronome_bar.setValue(0)
+
+        self.title_label.setText("Workout")
+        self.field_label.setText("Field")
+        self.state_label.setText("Aucun workout chargé")
+        self.total_label.setText("Temps total : 00:00")
+        self.exercise_label.setText("Exercice : --")
+        self.rate_label.setText("Cadence : -- CPM")
+        self.intensity_label.setText("Intensité : --")
+        self.info_label.setText("")
+
+    # ------------------------------------------------------------------
     def _create_ui(self):
 
         self.setFrameShape(QFrame.Box)
@@ -109,7 +153,7 @@ class WorkoutWidget(QFrame):
 
         layout = QVBoxLayout()
 
-        layout.setSpacing(12)
+        layout.setSpacing(8)
         layout.setContentsMargins(
             10,
             5,
@@ -150,6 +194,11 @@ class WorkoutWidget(QFrame):
             "Intensité : --"
         )
 
+        self.info_label = QLabel(
+            "Intensité : --"
+        )
+        self.info_label.setWordWrap(True)
+
         self.title_label.setAlignment(
             Qt.AlignCenter
         )
@@ -184,6 +233,7 @@ class WorkoutWidget(QFrame):
             self.exercise_label,
             self.rate_label,
             self.intensity_label,
+            self.info_label,
         ):
 
             label.setAlignment(
@@ -202,13 +252,14 @@ class WorkoutWidget(QFrame):
                 else LIST_BACKGROUND
             )
 
+            font = BIG_FONT_SIZE if label is not self.info_label else INFO_FONT_SIZE
+
             label.setStyleSheet(
                 f"""
                 QLabel {{
                     {color}
                     background-color: {bgcolor};
-                    font: bold {BIG_FONT_SIZE}px
-                    {MAIN_FONT};
+                    font: bold {font}px {MAIN_FONT};
                 }}
                 """
             )
@@ -239,6 +290,10 @@ class WorkoutWidget(QFrame):
 
         layout.addWidget(
             self.intensity_label
+        )
+
+        layout.addWidget(
+            self.info_label
         )
 
         #
@@ -377,9 +432,11 @@ class WorkoutWidget(QFrame):
             start=1,
         ):
 
+            formatted_duration = format_duration(step.duration_seconds)
+
             self.step_list.addItem(
                 f"{i:2d}. "
-                f"{step.duration_seconds:>3}s   "
+                f"{formatted_duration}   "
                 f"{step.cpm:>3} CPM   "
                 f"{step.intensity_text}"
             )
@@ -434,6 +491,8 @@ class WorkoutWidget(QFrame):
         self.intensity_label.setText(
             "Intensité : --"
         )
+
+        self.info_label.clear()
 
         self.last_tick = time.perf_counter()
 
@@ -542,6 +601,7 @@ class WorkoutWidget(QFrame):
         self.beat_phase = 0.0
 
         self.running = True
+        self.started = True
 
         self.metronome_bar.setValue(0)
 
@@ -642,6 +702,13 @@ class WorkoutWidget(QFrame):
             palette
         )
 
+        if step.info:
+            self.info_label.setText(
+                step.info
+            )
+        else:
+            self.info_label.clear()
+
     # ------------------------------------------------------------------
     def finish_workout(self):
 
@@ -660,6 +727,7 @@ class WorkoutWidget(QFrame):
         self.exercise_label.setText("")
         self.rate_label.setText("")
         self.intensity_label.setText("")
+        self.info_label.clear()
 
     # ------------------------------------------------------------------
     def set_replay_mode(

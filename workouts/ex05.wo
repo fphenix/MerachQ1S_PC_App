@@ -1,7 +1,7 @@
-WORKOUT Ex5 : Ramp Up
-FIELD Cardio
-5	18	F
-5	20	F
-5	22	N
-5	24	N
-5	26	N
+WORKOUT: Ex05 : Ramp Up
+FIELD: Cardio
+300	18	F
+300	20	F
+300	22	N
+300	24	N
+300	26	N

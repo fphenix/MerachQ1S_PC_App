@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import Iterator
 
 import threading
 
@@ -9,7 +10,6 @@ import csv
 import zipfile
 
 from pathlib import Path
-from typing import Iterator
 
 # =============================================================================
 class ReplaySource(ABC):

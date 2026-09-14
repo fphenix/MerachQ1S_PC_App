@@ -17,11 +17,11 @@ import time
 from bleak import BleakScanner
 from pyftms.client.machines.rower import Rower
 
-from .rower import RowerClient
-from .merach_q1s_calc import MerachQ1SCalc
-
-from .data import RowerData
 from setup.utils import echo, echoerr
+
+from rowers.rower import RowerClient
+from rowers.merach_q1s_calc import MerachQ1SCalc
+from rowers.data import RowerData
 
 # =============================================================================
 class MerachRower(RowerClient):
@@ -47,7 +47,7 @@ class MerachRower(RowerClient):
 
         self.calculator = MerachQ1SCalc(settings= self.settings)
 
-        self._last_data = {}
+        self._last_data: dict = {}
         
         self._thread = None
         self._running = False
@@ -101,7 +101,6 @@ class MerachRower(RowerClient):
         )
 
         self._thread.start()
-
 
     # -------------------------------------------------------------------------
     # Abstracted in parent class
@@ -181,7 +180,6 @@ class MerachRower(RowerClient):
 
         except Exception as ex:
             echo("FTMS :", ex)
-
 
     # -------------------------------------------------------------------------
     async def _run(self):

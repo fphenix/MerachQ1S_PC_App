@@ -22,7 +22,8 @@ import asyncio
 
 from PySide6.QtWidgets import QApplication
 
-from setup.settings import Settings, load_settings
+from setup.settings import Settings
+from setup.settings_utils import load_settings
 from setup.constants import (
     WINDOW_TITLE,
     WINDOW_WIDTH, WINDOW_HEIGHT,
@@ -96,6 +97,7 @@ def main():
 
     # Model rameur intégrant éventuellement un calculateur
     state.rower = rower
+
     # Source des données d'entrée (BT ou Replay)
     state.source = source
 

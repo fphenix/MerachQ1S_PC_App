@@ -1,18 +1,6 @@
-# workout/split.py
-
-from dataclasses import dataclass
-
 from engine.calc import calc_full_split
 
-
-# =============================================================================
-@dataclass
-class WorkoutSplit:
-
-    elapsed: float = 0.0
-    distance: float = 0.0
-    pace: float = 0.0
-
+from workout.split_data import WorkoutSplit
 
 # =============================================================================
 class WorkoutSplitCalculator:

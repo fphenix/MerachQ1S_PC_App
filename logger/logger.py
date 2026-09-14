@@ -6,22 +6,22 @@ import zipfile
 import os
 import time
 
-from engine.calc import calc_delta
-
-from logger.logrecord import LogRecord
+from setup.utils import echo
 from setup.constants import (
     VERSION,
     LOGGER_FLUSH_PERIOD,
     LOGGER_END_SESSION_TIMEOUT,
-    LOGGER_FORMAT,
+    LOGGER_FORMAT, LOGS_DIR,
     USE_REPLAY, REPLAY_FILE,
 )
-from setup.utils import echo
+
+from engine.calc import calc_delta
+
+from logger.logrecord import LogRecord
 
 # =============================================================================
 class CsvLogger:
 
-    # -------------------------------------------------------------------------
     def __init__(self):
 
         self.rower_name = "Unknown Rower"
@@ -48,14 +48,15 @@ class CsvLogger:
 
         self.packet = 0
         self.last_pc_time = None
+        self._has_data = False
 
-        Path("logs").mkdir(exist_ok=True)
+        Path(LOGS_DIR).mkdir(exist_ok=True)
 
         logbasename = "replay" if USE_REPLAY else "session"
 
         self.filename = Path(
             datetime.now().strftime(
-                f"logs/{logbasename}_%Y%m%d_%H%M%S.csv"
+                f"{LOGS_DIR}/{logbasename}_%Y%m%d_%H%M%S.csv"
             )
         )
 

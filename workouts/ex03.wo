@@ -1,11 +1,11 @@
-WORKOUT Ex3 : Ladder Up&Down
-FIELD Cardio
-1	18	M
-2	20	F
-3	22	F
-4	24	F
-5	26	F
-4	24	F
-3	22	F
-2	20	F
-1	18	M
+WORKOUT: Ex03 : Ladder Up&Down
+FIELD: Cardio
+60	18	M
+120	20	F
+180	22	F
+240	24	F
+300	26	F
+240	24	F
+180	22	F
+120	20	F
+60	18	M

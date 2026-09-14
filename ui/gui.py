@@ -22,12 +22,17 @@ from PySide6.QtWidgets import (
     QDialog,
 )
 
+from setup.utils import (
+    format_pace,
+    format_time,
+    load_workout,
+)
+from setup.settings_utils import save_settings
 from setup.constants import (
     GUI_REFRESH_MS,
     WINDOW_TITLE,
-    WINDOW_WIDTH,
-    WINDOW_HEIGHT,
-    WORKOUT_WIDTH,
+    WINDOW_WIDTH, WINDOW_HEIGHT,
+    WORKOUT_WIDTH, WORKOUT_HEIGHT,
     METRONOME_MARGIN,
     SPLIT_MODES,
     USE_REPLAY, USE_REPLAY_WORKOUT,
@@ -36,26 +41,21 @@ from setup.constants import (
     ANALYZER_WIDTH, ANALYZER_HEIGHT,
 )
 
-from setup.utils import (
-    format_pace,
-    format_time,
-)
-
 from ui.status_widget import StatusWidget
-from ui.widgets import MetricWidget, SplitListWidget
+from ui.widgets import MetricWidget
+from ui.split_widget import SplitListWidget
 from ui.progbar_widget import GradientGauge
 from ui.workout_widget import WorkoutWidget
 from ui.settings_dialog import SettingsDialog
+from ui.workout_editor import WorkoutEditorDialog
 from ui.plot_wo import WorkoutPlotWindow
 
 from workout.split import WorkoutSplitCalculator
 from analyzer.analyzer import AnalyzerWindow
-from setup.settings import save_settings
 
 # =============================================================================
 class MainWindow(QMainWindow):
 
-    # -------------------------------------------------------------------------
     def __init__(self, state, settings):
 
         super().__init__()
@@ -63,6 +63,24 @@ class MainWindow(QMainWindow):
         self.state = state
         self.settings = settings
 
+        self._workout_editor_paused = False
+
+        self._create_ui()
+
+        #
+        # Rafraîchissement
+        #
+
+        self._apply_split_mode_preference()
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.refresh)
+        self.timer.start(GUI_REFRESH_MS)
+
+        self.refresh()
+
+    # ------------------------------------------------------------------
+    def _create_ui(self):
         self.setWindowTitle(f"{WINDOW_TITLE} : {self.state.rower.NAME}")
 
         self.create_menu()
@@ -305,7 +323,7 @@ class MainWindow(QMainWindow):
         )
 
         self.workoutWidget.setMaximumWidth(
-            700
+            WORKOUT_HEIGHT
         )
 
         self.workoutWidget.setSizePolicy(
@@ -314,10 +332,6 @@ class MainWindow(QMainWindow):
         )
 
         self.workoutWidget.setVisible(
-            False
-        )
-
-        self.workout_bar.setVisible(
             False
         )
 
@@ -334,18 +348,28 @@ class MainWindow(QMainWindow):
         # Workout : Metronome
         #
 
-        metronome_layout = QHBoxLayout()
+        self.metronome_container = QWidget()
 
-        metronome_layout.addSpacing(METRONOME_MARGIN)
+        metronome_layout = QHBoxLayout(
+            self.metronome_container
+        )
 
-        metronome_label = QLabel("CPM")
+        metronome_layout.setContentsMargins(
+            0, 0, 0, 0
+        )
 
-        metronome_label.setAlignment(
+        metronome_layout.addSpacing(
+            METRONOME_MARGIN
+        )
+
+        self.metronome_label = QLabel("CPM")
+
+        self.metronome_label.setAlignment(
             Qt.AlignRight | Qt.AlignVCenter
         )
 
         metronome_layout.addWidget(
-            metronome_label
+            self.metronome_label
         )
 
         metronome_layout.addWidget(
@@ -353,25 +377,86 @@ class MainWindow(QMainWindow):
             1,
         )
 
-        metronome_layout.addSpacing(METRONOME_MARGIN)
-
-        main_layout.addLayout(
-            metronome_layout
+        metronome_layout.addSpacing(
+            METRONOME_MARGIN
         )
 
-        self.workout_bar.setVisible(False)
+        main_layout.addWidget(
+            self.metronome_container
+        )
+
+        self.metronome_container.setVisible(False)
+
+    # -------------------------------------------------------------------------
+    def create_menu(self):
 
         #
-        # Rafraîchissement
+        # Workout >
+        #   Ouvrir un .wo
+        #   Créer un .wo
+        #   Editer un .wo
         #
 
-        self._apply_split_mode_preference()
+        workout_menu = self.menuBar().addMenu(
+            "Workout"
+        )
 
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.refresh)
-        self.timer.start(GUI_REFRESH_MS)
+        open_workout_action = workout_menu.addAction("Ouvrir...")
+        open_workout_action.triggered.connect(self.open_workout_file)
 
-        self.refresh()
+        create_workout_action = workout_menu.addAction("Créer...")
+        create_workout_action.triggered.connect(self.create_workout)
+
+        edit_workout_action = workout_menu.addAction("Éditer...")
+        edit_workout_action.triggered.connect(self.edit_workout)
+
+        #
+        # Tools >
+        #   Analyser un log
+        #   Visualiser un .wo
+        #
+
+        tools_menu = self.menuBar().addMenu(
+            "Outils"
+        )
+
+        analyzer_action = tools_menu.addAction(
+            "Analyser un log..."
+        )
+
+        analyzer_action.triggered.connect(
+            self.open_analyzer
+        )
+
+        plot_wo_action = tools_menu.addAction(
+            "Visualiser un .wo..."
+        )
+
+        plot_wo_action.triggered.connect(
+            self.open_plot_wo
+        )
+
+        #
+        # Réglages >
+        #   Paramètres...
+        #
+
+        settings_menu = self.menuBar().addMenu(
+            "Réglages"
+        )
+
+        settings_action = settings_menu.addAction(
+            "Paramètres..."
+        )
+
+        settings_action.triggered.connect(
+            self.open_settings
+        )
+
+        #Desactive le Réglage des Paramètres en Replay"
+        settings_action.setEnabled(
+            not USE_REPLAY
+        )
 
     # -------------------------------------------------------------------------
     def set_split_mode(
@@ -417,48 +502,55 @@ class MainWindow(QMainWindow):
             logger.stop()
 
         # --------------------------------------------------------------
-        # Réinitialisation / préparation du Workout
+        # Ferme le workout courant.
         # --------------------------------------------------------------
 
-        if USE_REPLAY and USE_REPLAY_WORKOUT:
-
-            # On repart du même workout que celui configuré
-            # pour le replay.
-            self.close_workout()
-
-            self.load_workout_file(
-                filename=REPLAY_WORKOUT_FILE,
-                replay_mode=True,
-            )
-
-        else:
-
-            # En mode réel, un nouveau workout doit être choisi.
-            self.close_workout()
+        self.close_workout()
 
         # --------------------------------------------------------------
-        # Nouvelle session Q1S
-        # --------------------------------------------------------------
-
-        self.state.reset_session()
-
-        # --------------------------------------------------------------
-        # Nouveau logger
-        # Le workout éventuel est déjà défini à ce stade.
-        # --------------------------------------------------------------
-
-        if logger is not None:
-            logger.start()
-            self.state.set_logger(logger)
-
-        # --------------------------------------------------------------
-        # Nouvelle source
+        # Mode Replay
         # --------------------------------------------------------------
 
         if USE_REPLAY:
+
+            if USE_REPLAY_WORKOUT:
+
+                self.load_workout_file(
+                    filename=REPLAY_WORKOUT_FILE,
+                    replay_mode=True,
+                )
+
+            self.state.reset_session()
+
+            if logger is not None:
+                logger.start()
+                self.state.set_logger(logger)
+
             self.state.source.restart()
+
+        # --------------------------------------------------------------
+        # Mode réel
+        # --------------------------------------------------------------
+
         else:
+
+            QMessageBox.information(
+                self,
+                "Nouvelle séance",
+                "Réinitialisez le rameur maintenant, "
+                "puis cliquez sur OK pour commencer la nouvelle séance.",
+            )
+
+            # Reset du modèle/calculateur local.
             self.state.rower.reset()
+
+            # La prochaine trame Bluetooth devient
+            # la nouvelle référence de séance.
+            self.state.reset_session()
+
+            if logger is not None:
+                logger.start()
+                self.state.set_logger(logger)
 
         self.refresh()
 
@@ -474,9 +566,10 @@ class MainWindow(QMainWindow):
         # Bluetooth
         #
 
-        self.connectionWidget.set_status(
-            rowerdata.connection
-        )
+        if self._workout_editor_paused:
+            self.connectionWidget.set_status("Pause")
+        else:
+            self.connectionWidget.set_status(rowerdata.connection)
 
         #
         # Temps
@@ -589,75 +682,59 @@ class MainWindow(QMainWindow):
         )
 
     # -------------------------------------------------------------------------
-    def create_menu(self):
+    def _edit_workout_dialog(self, workout=None):
+        # Pas d'édition pendant une séance.
+        if self.workoutWidget.started:
+            QMessageBox.warning(
+                self,
+                "Workout",
+                "Impossible de créer ou modifier un Workout "
+                "pendant une séance.",
+            )
+            return
 
-        #
-        # File >
-        #   Ouvrir un .wo
-        #
+        source = self.state.source
 
-        file_menu = self.menuBar().addMenu(
-            "Fichier"
-        )
+        self._workout_editor_paused = True
 
-        workout_action = file_menu.addAction(
-            "Ouvrir un workout..."
-        )
+        if source is not None:
+            source.stop()
 
-        workout_action.triggered.connect(
-            self.open_workout
-        )
+        try:
+            dialog = WorkoutEditorDialog(
+                workout=workout,
+                parent=self,
+            )
+            dialog.exec()
 
-        #
-        # Tools >
-        #   Analyser un log
-        #   Visualiser un .wo
-        #
+        finally:
+            self._workout_editor_paused = False
 
-        tools_menu = self.menuBar().addMenu(
-            "Outils"
-        )
-
-        analyzer_action = tools_menu.addAction(
-            "Analyser un log..."
-        )
-
-        analyzer_action.triggered.connect(
-            self.open_analyzer
-        )
-
-        plot_wo_action = tools_menu.addAction(
-            "Visualiser un .wo..."
-        )
-
-        plot_wo_action.triggered.connect(
-            self.open_plot_wo
-        )
-
-        #
-        # Réglages >
-        #   Paramètres...
-        #
-
-        settings_menu = self.menuBar().addMenu(
-            "Réglages"
-        )
-
-        settings_action = settings_menu.addAction(
-            "Paramètres..."
-        )
-
-        settings_action.triggered.connect(
-            self.open_settings
-        )
-
-        #Desactive le Réglage des Paramètres en Replay"
-        settings_action.setEnabled(
-            not USE_REPLAY
-        )
+            if source is not None:
+                source.start()
 
     # -------------------------------------------------------------------------
-    def open_workout(self):
+    def create_workout(self):
+        self._edit_workout_dialog()
+
+    # -------------------------------------------------------------------------
+    def edit_workout(self):
+        filename, _ = QFileDialog.getOpenFileName(
+            self,
+            "Éditer un workout",
+            str(WORKOUTS_DIR),
+            "Workout (*.wo)",
+        )
+
+        if not filename:
+            return
+
+        workout = load_workout(filename)
+
+        self._edit_workout_dialog(workout)
+
+    # -------------------------------------------------------------------------
+    def open_workout_file(self):
 
         self.load_workout_file(
             filename=None,
@@ -691,7 +768,7 @@ class MainWindow(QMainWindow):
         self.splitModeWorkout.setEnabled(True)
 
         self.workoutWidget.setVisible(True)
-        self.workout_bar.setVisible(True)
+        self.metronome_container.setVisible(True)
 
         self._apply_split_mode_preference()
 
@@ -771,12 +848,12 @@ class MainWindow(QMainWindow):
     # -------------------------------------------------------------------------
     def close_workout(self) -> None:
 
-        self.workoutWidget.timer.stop()
-
-        self.workoutWidget.setVisible(False)
-        self.workout_bar.setVisible(False)
+        self.workoutWidget.reset()
 
         self.workoutSplitCalculator.reset()
+
+        self.workoutWidget.setVisible(False)
+        self.metronome_container.setVisible(False)
 
         self.splitModeWorkout.setChecked(False)
         self.splitModeWorkout.setEnabled(False)
@@ -785,6 +862,13 @@ class MainWindow(QMainWindow):
 
         if logger is not None:
             logger.set_workout_file(None)
+
+        self._apply_split_mode_preference()
+
+        self.centralWidget().adjustSize()
+        self.resize(
+            self.sizeHint()
+        )
 
     # -------------------------------------------------------------------------
     def open_settings(self):

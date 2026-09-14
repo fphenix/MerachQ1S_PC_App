@@ -11,11 +11,12 @@ from setup.constants import USE_REPLAY
 class StatusWidget(QWidget):
 
     COLORS = {
-        "Connecté": "#3CB043",
+        "Connecté":     "#3CB043",
         "Recherche...": "#F5B041",
-        "Déconnecté": "#D64541",
-        "Arrêt": "#808080",
-        "Replay": "#AA00CC",
+        "Déconnecté":   "#D64541",
+        "Pause":        "#8B4E08",
+        "Arrêt":        "#5A05B7",
+        "Replay":       "#AA00CC",
     }
 
     # -------------------------------------------------------------------------
@@ -23,22 +24,28 @@ class StatusWidget(QWidget):
         
         super().__init__()
 
-        self.bt_led = QLabel("●")
-        self.bt_led.setAlignment(Qt.AlignCenter)
-        self.title = QLabel(title)
+        self.title = title
 
-        self.led = QLabel("●")
-        self.led.setAlignment(Qt.AlignCenter)
+        self._create_ui()
 
-        self.text = QLabel("---")
+    # ------------------------------------------------------------------
+    def _create_ui(self):
+        self.bt_led_label = QLabel("●")
+        self.bt_led_label.setAlignment(Qt.AlignCenter)
+        self.title_label = QLabel(self.title)
+
+        self.led_label = QLabel("●")
+        self.led_label.setAlignment(Qt.AlignCenter)
+
+        self.text_label = QLabel("---")
 
         layout = QHBoxLayout(self)
 
-        layout.addWidget(self.bt_led)
-        layout.addWidget(self.title)
+        layout.addWidget(self.bt_led_label)
+        layout.addWidget(self.title_label)
         layout.addStretch()
-        layout.addWidget(self.led)
-        layout.addWidget(self.text)
+        layout.addWidget(self.led_label)
+        layout.addWidget(self.text_label)
 
         self.bt_status()
         self.set_status("Recherche...")
@@ -52,22 +59,7 @@ class StatusWidget(QWidget):
         else:
             color = self.COLORS["Connecté"]
 
-        self.bt_led.setStyleSheet(
-            f"""
-            QLabel {{
-                color: {color};
-                font-size:22px;
-                font-weight:bold;
-            }}
-                """
-        )
-
-    # -------------------------------------------------------------------------
-    def set_status(self, status):
-
-        color = self.COLORS.get(status, "#808080")
-
-        self.led.setStyleSheet(
+        self.bt_led_label.setStyleSheet(
             f"""
             QLabel {{
                 color: {color};
@@ -77,4 +69,19 @@ class StatusWidget(QWidget):
             """
         )
 
-        self.text.setText(status)
+    # -------------------------------------------------------------------------
+    def set_status(self, status):
+
+        color = self.COLORS.get(status, "#808080")
+
+        self.led_label.setStyleSheet(
+            f"""
+            QLabel {{
+                color: {color};
+                font-size:22px;
+                font-weight:bold;
+            }}
+            """
+        )
+
+        self.text_label.setText(status)

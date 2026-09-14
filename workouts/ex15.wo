@@ -1,23 +1,23 @@
-WORKOUT Ex15 : Fat Loss
-FIELD Fat Loss, Puissance
-2	20	N
-1	22	F
-1	18	R
-1	24	F
-1	18	R
-1	26	F
-1	18	R
-1	28	M
-1	18	R
-1	30	M
-2	20	N
-1	22	F
-1	18	R
-1	24	F
-1	18	R
-1	26	F
-1	18	R
-1	28	M
-1	18	R
-1	30	M
-2	20	N
+WORKOUT: Ex15 : Fat Loss
+FIELD: Fat Loss, Puissance
+120	20	N
+60	22	F
+60	18	R
+60	24	F
+60	18	R
+60	26	F
+60	18	R
+60	28	M
+60	18	R
+60	30	M
+120	20	N
+60	22	F
+60	18	R
+60	24	F
+60	18	R
+60	26	F
+60	18	R
+60	28	M
+60	18	R
+60	30	M
+120	20	N

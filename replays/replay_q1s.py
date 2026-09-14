@@ -14,12 +14,11 @@ from __future__ import annotations
 import time
 import traceback
 
+from setup.utils import echoerr
+
 from engine.state import RowState
 from rowers.merach_q1s import MerachRower
 from replays.replay_source import ReplaySource
-from setup.settings import Settings
-
-from setup.utils import echoerr
 
 # =============================================================================
 class ReplayQ1S(ReplaySource):

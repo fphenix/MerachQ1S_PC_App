@@ -1,11 +1,12 @@
 class Workout:
 
     def __init__(self, filename: str | None = None):
-        self.title = "Workout"
-        self.field = "Field"
-        self.steps = []
-        self.filename = filename
+        self.title: str = "Placeholder Workout"
+        self.field: str = "Placeholder Field"
+        self.steps: list = []
+        self.filename: str = filename
 
+    # -------------------------------------------------------------------------
     @property
     def total_seconds(self):
         return sum(
@@ -13,8 +14,9 @@ class Workout:
             for step in self.steps
         )
 
+    # -------------------------------------------------------------------------
     def clear(self):
-        self.title = "Workout"
-        self.field = "Field"
+        self.title = "Placeholder Workout"
+        self.field = "Placeholder Field"
         self.steps.clear()
         self.filename = None

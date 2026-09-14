@@ -1,18 +1,18 @@
-WORKOUT Ex13 : Endurance
-FIELD Endurance
-4	24	N
-1	24	F
-4	24	N
-1	24	F
-4	24	N
-1	24	F
-4	24	N
-1	24	F
-4	24	N
-1	24	F
-4	24	N
-1	24	F
-4	24	N
-1	24	F
-4	24	N
-1	24	F
+WORKOUT: Ex13 : Endurance
+FIELD: Endurance
+240	24	N
+60	24	F
+240	24	N
+60	24	F
+240	24	N
+60	24	F
+240	24	N
+60	24	F
+240	24	N
+60	24	F
+240	24	N
+60	24	F
+240	24	N
+60	24	F
+240	24	N
+60	24	F

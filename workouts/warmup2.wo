@@ -1,6 +1,6 @@
-WORKOUT WarmUp 2
-FIELD Warmup
-1	18	F A
-1	18	F AC
-2	18	F
-1	20	F
+WORKOUT: WarmUp 2
+FIELD: Warmup
+60	18	F A
+60	18	F AC
+120	18	F
+60	20	F

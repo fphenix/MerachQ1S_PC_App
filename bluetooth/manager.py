@@ -1,4 +1,5 @@
 from winrt.windows.devices.radios import Radio, RadioKind, RadioState
+
 from setup.utils import echo
 
 # =============================================================================
@@ -9,7 +10,6 @@ from setup.utils import echo
 # =============================================================================
 class BluetoothManager:
 
-    # -------------------------------------------------------------------------
     def __init__(self):
 
         self.initial_state = None

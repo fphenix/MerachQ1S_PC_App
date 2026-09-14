@@ -1,19 +1,17 @@
 from threading import Lock
 from copy import deepcopy
 
-from logger.logger import CsvLogger
-from logger.logrecord import LogRecord
+from engine.snapshot import Snapshot
+from engine.calc import calc_delta
 
 from rowers.data import RowerData
 
-from engine.snapshot import Snapshot
-
-from engine.calc import calc_delta
+from logger.logger import CsvLogger
+from logger.logrecord import LogRecord
 
 # =============================================================================
 class RowState:
 
-    # -------------------------------------------------------------------------
     def __init__(self):
 
         self._lock = Lock()
@@ -55,19 +53,16 @@ class RowState:
                 connection=connection,
             )
 
-
     # -------------------------------------------------------------------------
     def set_connection(self, status: str):
 
         with self._lock:
             self.curr_rowerdata.connection = status
 
-
     # -------------------------------------------------------------------------
     def set_logger(self, logger: CsvLogger):
 
         self.logger = logger
-
 
     # -------------------------------------------------------------------------
     def update(self, new_rowerdata: RowerData):

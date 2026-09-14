@@ -1,15 +1,21 @@
-from workout.workout import Workout
-from workout.step import WorkoutStep
-
 from setup.constants import (
     INTENSITY_DICT,
     PART_DICT,
+    WO_KEYWORD,
 )
+
+from workout.workout import Workout
+from workout.step import WorkoutStep
 
 # -----------------------------------------------------------------------------
 def load_workout(filename):
 
     workout = Workout(filename)
+
+    title: str | None = None
+    field: str | None = None
+    pending_info: str | None = None
+    pending_comment: str | None = None
 
     with open(
         filename,
@@ -27,45 +33,123 @@ def load_workout(filename):
             if not line:
                 continue
 
-            if line.startswith("#"):
+            #
+            # Commentaires "#"
+            #
+
+            if line.startswith(WO_KEYWORD["Comment"]):
+
+                new_comment = line.lstrip(WO_KEYWORD["Comment"]).strip()
+
+                if not new_comment:
+                    print(
+                        f"Warning line {lineno}: "
+                        "Enmpty comments are ignored."
+                    )
+                    
+                    continue
+
+                if pending_comment is not None:
+                    print(
+                        f"Warning line {lineno}: "
+                        "consecutive comments merged."
+                    )
+
+                    pending_comment = (
+                        f"{pending_comment} ; {new_comment}"
+                    )
+
+                else:
+                    pending_comment = new_comment
+
                 continue
+
+            #
+            # Information Etape : "INFO:"
+            #
 
             upper = line.upper()
 
-            if upper.startswith("WORKOUT"):
+            if upper.startswith(WO_KEYWORD["Info"]):
+                new_info = line[len(WO_KEYWORD["Info"]):].strip()
 
-                title = line[len("WORKOUT"):].strip()
+                if not new_info:
+                    print(
+                        f"Warning line {lineno}: "
+                        "Enmpty INFO: are ignored."
+                    )
+
+                    continue
+
+                if pending_info is not None:
+                    print(
+                        f"Warning line {lineno}: "
+                        "consecutive INFO: lines merged."
+                    )
+
+                    pending_info = (
+                        f"{pending_info} ; {new_info}"
+                    )
+
+                else:
+                    pending_info = new_info
+
+                continue
+
+            #
+            # Workout Titre : "WORKOUT:"
+            #
+
+            if upper.startswith(WO_KEYWORD["Title"]):
+                if title is not None:
+                    raise ValueError(
+                        f"Line {lineno}: Keyword {WO_KEYWORD["Title"]} must be unique in a .wo file"
+                    )
+
+                title = line[len(WO_KEYWORD["Title"]):].strip()
 
                 workout.title = (
                     title
                     if title
-                    else "Workout"
+                    else "Placeholder Workout"
                 )
 
                 continue
 
-            if upper.startswith("FIELD"):
+            #
+            # Field : "FIELD:"
+            #
 
-                field = line[len("FIELD"):].strip()
+            if upper.startswith(WO_KEYWORD["Field"]):
+                if field is not None:
+                    raise ValueError(
+                        f"Line {lineno}: Keyword {WO_KEYWORD["Field"]} must be unique in a .wo file"
+                    )
+
+                field = line[len(WO_KEYWORD["Field"]):].strip()
 
                 workout.field = (
                     field
                     if field
-                    else "Field"
+                    else "Placeholder Field"
                 )
 
                 continue
+
+            #
+            # Data : time spm intensity <part>
+            #
 
             parts = line.split()
 
             if len(parts) not in (3, 4):
                 raise ValueError(
                     f"Line {lineno}: expected "
-                    "'minutes cpm intensity <part>'"
+                    "'seconds cpm intensity <part>'"
                 )
 
             try:
-                minutes = float(parts[0])
+                duration_seconds = float(parts[0])
                 cpm = int(parts[1])
                 intensity = str(parts[2])
                 part = (
@@ -77,13 +161,13 @@ def load_workout(filename):
             except ValueError:
                 raise ValueError(
                     f"Line {lineno}: invalid data type; "
-                    "must be: int_or_float int character"
+                    "must be: int_or_float int char <char_or_str>"
                 )
 
-            if minutes <= 0.0 or minutes > 120.0:
+            if duration_seconds <= 0.0 or duration_seconds > 7200.0:
                 raise ValueError(
                     f"Line {lineno}: duration must be "
-                    "> 0 and <= 120"
+                    "> 0 and <= 7200"
                 )
 
             if cpm <= 0 or cpm > 50:
@@ -106,12 +190,29 @@ def load_workout(filename):
 
             workout.steps.append(
                 WorkoutStep(
-                    minutes,
-                    cpm,
-                    intensity,
-                    part,
+                    duration_seconds= duration_seconds,
+                    cpm= cpm,
+                    intensity= intensity,
+                    part= part,
+                    info= pending_info,
+                    comment= pending_comment,
                 )
             )
+
+            pending_info = None
+            pending_comment = None
+
+    if pending_info is not None:
+        print(
+            "Warning: INFO: at end of file "
+            "is not associated with a workout step."
+        )
+
+    if pending_comment is not None:
+        print(
+            "Warning: comment at end of file "
+            "is not associated with a workout step."
+        )
 
     if not workout.steps:
         raise ValueError(
@@ -179,3 +280,16 @@ def format_time(seconds: float) -> str:
     secondes = total % 60
 
     return f"{hours}:{minutes:02}:{secondes:02}"
+
+# -----------------------------------------------------------------------------
+def format_duration(duration_seconds: float) -> str:
+    """Format a duration as MM:SS or HH:MM:SS."""
+
+    seconds = int(duration_seconds)
+    hours, remainder = divmod(seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    if hours:
+        return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+
+    return f"{minutes:02d}:{seconds:02d}"

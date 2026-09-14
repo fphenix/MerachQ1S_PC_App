@@ -1,6 +1,8 @@
-WORKOUT Test
-FIELD Test
-0.1 34 M
-0.1 14 E
-0.1 25 N
-0.7 20 F
+WORKOUT: Test
+FIELD: Test
+# Un commentaire, attaché en général à l'étape suivante
+6 34 M
+6 14 E
+6 25 N
+INFO: Ceci est une consigne ou info sur l'étape suivante
+42 20 F

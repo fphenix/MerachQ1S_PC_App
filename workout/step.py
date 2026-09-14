@@ -10,17 +10,12 @@ from setup.constants import (
 @dataclass
 class WorkoutStep:
 
-    duration_minutes: float
+    duration_seconds: float
     cpm: int
     intensity: str
     part: str | None
-
-    # -------------------------------------------------------------------------
-    @property
-    def duration_seconds(self):
-        return int(
-            self.duration_minutes * 60.0
-        )
+    info: str | None
+    comment: str | None
 
     # -------------------------------------------------------------------------
     @property

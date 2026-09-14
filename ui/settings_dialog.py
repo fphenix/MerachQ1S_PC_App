@@ -29,6 +29,12 @@ class SettingsDialog(QDialog):
 
         super().__init__(parent)
 
+        self.settings = settings
+
+        self._create_ui()
+
+    # ------------------------------------------------------------------
+    def _create_ui(self):
         self.setWindowTitle("Paramètres")
 
         self.delay_spinbox = QSpinBox()
@@ -41,7 +47,7 @@ class SettingsDialog(QDialog):
         )
         self.delay_spinbox.setSuffix(" s")
         self.delay_spinbox.setValue(
-            settings.delay_seconds
+            self.settings.delay_seconds
         )
 
         self.split_length_spinbox = QSpinBox()
@@ -54,7 +60,7 @@ class SettingsDialog(QDialog):
         )
         self.split_length_spinbox.setSuffix(" m")
         self.split_length_spinbox.setValue(
-            int(settings.split_length)
+            int(self.settings.split_length)
         )
 
         self.split_mode_combo = QComboBox()
@@ -75,14 +81,13 @@ class SettingsDialog(QDialog):
         )
 
         index = self.split_mode_combo.findData(
-            settings.split_mode
+            self.settings.split_mode
         )
 
         if index >= 0:
             self.split_mode_combo.setCurrentIndex(index)
         else:
             self.split_mode_combo.setCurrentIndex(0)
-            settings.split_mode = "normal"
 
         form = QFormLayout(self)
 

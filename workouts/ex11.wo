@@ -1,9 +1,9 @@
-WORKOUT Ex11 : Square Wave
-FIELD Puissance, Cardio
-4	22	F
-3	24	N
-4	22	F
-3	24	N
-4	22	F
-3	24	N
+WORKOUT: Ex11 : Square Wave
+FIELD: Puissance, Cardio
+240	22	F
+180	24	N
+240	22	F
+180	24	N
+240	22	F
+180	24	N
 

@@ -50,7 +50,6 @@ from engine.calc import (
 # -------------------------------------------------------------------------
 class MerachQ1SCalc:
 
-    # -------------------------------------------------------------------------
     def __init__(self, settings):
 
         self.settings = settings
@@ -77,7 +76,7 @@ class MerachQ1SCalc:
 
         self.last_strokes = 0
 
-        self.splits = list()
+        self.splits: list = []
 
     # -------------------------------------------------------------------------
     def process(

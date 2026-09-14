@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
 )
 
 from setup.utils import format_time
+
 from engine.calc import calc_stats
 
 # =============================================================================
@@ -47,7 +48,7 @@ class AnalyzerWindow(QMainWindow):
 
         self.expanded_plot = None
 
-        self.ax = []
+        self.ax: list = []
         self.line_calc = None
         self.line_avg = None
         self.line_rower = None
@@ -284,8 +285,8 @@ class AnalyzerWindow(QMainWindow):
             [0.82, 0.80, 0.16, 0.12]
         )
 
-        labels = []
-        states = []
+        labels: list = []
+        states: list = []
 
         if self.line_rower is not None:
             labels.append("Rower Instant")

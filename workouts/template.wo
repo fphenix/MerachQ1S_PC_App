@@ -1,10 +1,10 @@
-WORKOUT My Title for the workout
-FIELD The type of exercise, for example Cardio, Fat Burner, Endurance, etc.
-# minutes_(float)  spm_(int)  intensity_(char)
-5 20 N
-5 22 N
-5 24 F
-5 26 F
-5 28 M
-#Short recovery (Optional)
-0.5 18 M
+WORKOUT: My Title for the workout
+FIELD: The type of exercise, for example Cardio, Fat Burner, Endurance, etc.
+# secondes_(float)  spm_(int)  intensity_(char)   optional_part_(str)
+300 20 N
+300 22 N
+300 24 F
+300 26 F
+300 28 M
+INFO: Short recovery (Optional)
+30 18 M

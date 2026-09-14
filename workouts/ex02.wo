@@ -1,12 +1,12 @@
-WORKOUT Ex2 : Ramp Down
-FIELD Endurance, Muscles
-5	26	N
-1	16	R
-5	24	N
-1	16	R
-5	22	F
-1	16	R
-5	20	F
-1	16	R
-5	18	F
-1	16	R
+WORKOUT: Ex02 : Ramp Down
+FIELD: Endurance, Muscles
+300	26	N
+60	16	R
+300	24	N
+60	16	R
+300	22	F
+60	16	R
+300	20	F
+60	16	R
+300	18	F
+60	16	R

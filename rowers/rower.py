@@ -3,12 +3,11 @@
 # être définies dans la class qui hérite de RowerClient
 from abc import ABC, abstractmethod
 
-from .data import RowerData
+from rowers.data import RowerData
 
 # =============================================================================
 class RowerClient(ABC):
 
-    # -------------------------------------------------------------------------
     def __init__(self, address: str, state, settings):
         
         self.address = address

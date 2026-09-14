@@ -24,6 +24,7 @@ class GradientGauge(QFrame):
         "#e53935",
     ]
 
+    # ------------------------------------------------------------------
     def __init__(
         self,
         zones: list[float],
@@ -54,6 +55,12 @@ class GradientGauge(QFrame):
 
         self.decimals = decimals
 
+        self._create_ui()
+
+        self.set_value(self.minimum)
+
+    # ------------------------------------------------------------------
+    def _create_ui(self):
         self.progress = QProgressBar()
         self.progress.setRange(0, 1000)
         self.progress.setTextVisible(False)
@@ -87,12 +94,9 @@ class GradientGauge(QFrame):
         self.min_label.setText(self._format_value(self.minimum))
         self.max_label.setText(self._format_value(self.maximum))
         #else:
-        #    self.min_label.setText(self._format_value(self.maximum))
+        #   self.min_label.setText(self._format_value(self.maximum))
         #   self.max_label.setText(self._format_value(self.minimum))
             
-
-        self.set_value(self.minimum)
-
     # -------------------------------------------------------------------------
     def set_value(self, value: float) -> None:
 
