@@ -1,0 +1,531 @@
+{
+    "ANALYZER_TITLE": {
+        "fr": "Analyseur",
+        "en": "Analyzer"
+    },
+    "AVG": {
+        "fr": "moy",
+        "en": "avg"
+    },
+    "BODY_PART": {
+        "fr": "Partie",
+        "en": "Part"
+    },
+    "BT_CARD_OFF": {
+        "fr": "Carte Bluetooth Désactivée",
+        "en": "Bluetooth card turned OFF"
+    },
+    "BT_CARD_ON": {
+        "fr": "Carte Bluetooth Activée",
+        "en": "Bluetooth card turned ON"
+    },
+    "CADENCE": {
+        "fr": "Cadence",
+        "en": "Cadence"
+    },
+    "CALORIES": {
+        "fr": "Calories",
+        "en": "Calories"
+    },
+    "CNX_CONNECTED": {
+        "fr": "Connecté",
+        "en": "Connected"
+    },
+    "CNX_DISCONNECTED": {
+        "fr": "Déconnecté",
+        "en": "Disconnected"
+    },
+    "CNX_PAUSE": {
+        "fr": "En Pause",
+        "en": "Paused"
+    },
+    "CNX_REPLAY": {
+        "fr": "Replay",
+        "en": "Replay"
+    },
+    "CNX_SEEKING": {
+        "fr": "Recherche...",
+        "en": "Seeking..."
+    },
+    "CNX_STOPPED": {
+        "fr": "Arrêt",
+        "en": "Stopped"
+    },
+    "COMMENT": {
+        "fr": "Commentaire",
+        "en": "Comment"
+    },
+    "DISTANCE": {
+        "fr": "Distance",
+        "en": "Distance"
+    },
+    "DPS": {
+        "fr": "Dist/Coup",
+        "en": "Dist/Stroke"
+    },
+    "DPS_AVG": {
+        "fr": "Dist/Coup moy (m/coup)",
+        "en": "Dist/Stroke avg (m/stroke)"
+    },
+    "DURATION": {
+        "fr": "Durée",
+        "en": "Duration"
+    },
+    "ERR_BT_NO_VALID_STATE": {
+        "fr": "n'est pas un état valide de la carte Bluetooth pour basculer.",
+        "en": "is not a valid Bluetooth card state to switch from."
+    },
+    "ERR_BT_NOT_FOUND": {
+        "fr": "Bluetooth non trouvé",
+        "en": "Bluetooth not found"
+    },
+    "ERR_INVWO_BADCHAR_TITLE": {
+        "fr": "Workout invalide: Le Titre contient un caractère interdit pour un nom de fichier.",
+        "en": "Invalid Workout: The Title contains a forbidden character for a file name."
+    },
+    "ERR_INVWO_EMPTY_FIELD": {
+        "fr": "Workout invalide: Le champ d'application ne peut pas être vide.",
+        "en": "Invalid Workout: The Field cannot be empty."
+    },
+    "ERR_INVWO_EMPTY_TITLE": {
+        "fr": "Workout invalide: Le Titre ne peut pas être vide.",
+        "en": "Invalid Workout: The Title cannot be empty."
+    },
+    "ERR_LOAD_WORKOUT": {
+        "fr": "Impossible de charger le workout",
+        "en": "Could not load the selected workout"
+    },
+    "ERR_LOGFILE_NOT_FOUND": {
+        "fr": "Fichier log introuvable",
+        "en": "Log file not found"
+    },
+    "ERR_PBAR_5PTS_DIFF": {
+        "fr": "GradientGauge : les 5 points de zones doivent être différents.",
+        "en": "GradientGauge : zones 5 points must be different."
+    },
+    "ERR_PBAR_5PTS_ZONE": {
+        "fr": "GradientGauge : zones doit contenir exactement 5 points.",
+        "en": "GradientGauge : zones must contain exactly 5 points."
+    },
+    "ERR_PBAR_EMPTY_ZONE": {
+        "fr": "GradientGauge : zones ne peut pas être vide",
+        "en": "GradientGauge : zones cannot be empty"
+    },
+    "ERR_REPLAY_STOPPED": {
+        "fr": "Replay interrompu",
+        "en": "Replay stopped"
+    },
+    "ERR_REPLAY_UNSUPP_LOG": {
+        "fr": "Format de replay non supporté",
+        "en": "Unsupported Replay Log file format"
+    },
+    "ERR_REPLAY_WORKOUT": {
+        "fr": "Impossible de charger le workout Replay",
+        "en": "Could not load the selected Replay workout"
+    },
+    "ERR_UNKNOWN_LOG_FORMAT": {
+        "fr": "Format de Log inconnu",
+        "en": "Unknown Log format"
+    },
+    "ERR_WO_CANT_CREATE": {
+        "fr": "Impossible de créer le Workout",
+        "en": "Cannot Create the Workout"
+    },
+    "ERR_WO_CANT_CREATE2": {
+        "fr": "Impossible de créer le fichier",
+        "en": "Cannot Create the file"
+    },
+    "ERR_WO_CANT_SAVE": {
+        "fr": "Impossible d'enregistrer le Workout",
+        "en": "Cannot Save the Workout"
+    },
+    "ERR_WO_FILE_EXISTS": {
+        "fr": "Le fichier Workout existe déjà",
+        "en": "Workout file already exists"
+    },
+    "ERR_WO_FILE_EXISTS2": {
+        "fr": "Le fichier existe déjà",
+        "en": "File already exists"
+    },
+    "ERR_WRONG_LOG_FORMAT": {
+        "fr": "Format de log non supporté",
+        "en": "Log file format not supported"
+    },
+    "ERR_ZIP_NO_FILE": {
+        "fr": "Le Zip doit contenir un fichier csv",
+        "en": "The Zip file must contain a csv file"
+    },
+    "ERR_ZIP_ONLY_1_FILE": {
+        "fr": "Le Zip doit contenir un seul fichier",
+        "en": "The Zip file must contain only one log"
+    },
+    "ERROR": {
+        "fr": "Erreur",
+        "en": "Error"
+    },
+    "FIELD": {
+        "fr": "Catégorie",
+        "en": "Field"
+    },
+    "FTMS_LOST_CNX": {
+        "fr": "Connexion perdue.",
+        "en": "Lost connection."
+    },
+    "FTMS_NEXT_TRY": {
+        "fr": "Nouvelle tentative dans 2 secondes...",
+        "en": "Will try again in 2 seconds..."
+    },
+    "FTMS_READING": {
+        "fr": "Lecture...",
+        "en": "Reading..."
+    },
+    "FTMS_THREAD_ENDED": {
+        "fr": "Thread terminé.",
+        "en": "Thread ended"
+    },
+    "INFORMATION": {
+        "fr": "Information",
+        "en": "Information"
+    },
+    "INTENSITY": {
+        "fr": "Intensité",
+        "en": "Intensity"
+    },
+    "LANGUAGE_RESTART_REQUIRED": {
+        "comment": "# We need to inverse the languages for the Message Box here.",
+        "fr": "In order for the new language settings to take effect, please restart the software.",
+        "en": "Pour que la langue prenne effet, veuillez relancer le logiciel."
+    },
+    "LOG_FILE_EXT": {
+        "fr": "Logs (*.csv *.zip);;Tous les fichiers (*)",
+        "en": "Logs (*.csv *.zip);;All files (*)"
+    },
+    "LOG_FILE_SELECT": {
+        "fr": "Choisir un Log",
+        "en": "Select a log"
+    },
+    "MENU_SETTINGS": {
+        "fr": "Réglages",
+        "en": "Settings"
+    },
+    "MENU_TOOLS": {
+        "fr": "Outils",
+        "en": "Tools"
+    },
+    "MENU_TOOLS_ANALYZER": {
+        "fr": "Analyser un log...",
+        "en": "Analyze a log..."
+    },
+    "MENU_TOOLS_PLOT": {
+        "fr": "Visualiser un .wo...",
+        "en": "Plot a .wo..."
+    },
+    "MENU_WORKOUT": {
+        "fr": "Exercice",
+        "en": "Workout"
+    },
+    "MENU_WORKOUT_CREATE": {
+        "fr": "Créer...",
+        "en": "Create..."
+    },
+    "MENU_WORKOUT_EDIT": {
+        "fr": "Éditer...",
+        "en": "Edit..."
+    },
+    "MENU_WORKOUT_OPEN": {
+        "fr": "Ouvrir...",
+        "en": "Open..."
+    },
+    "MINUTE_UNIT": {
+        "fr": "min",
+        "en": "min"
+    },
+    "MINUTE_UNIT_FULL": {
+        "fr": "minutes",
+        "en": "minutes"
+    },
+    "MSG_RESET_ROWER": {
+        "fr": "Réinitialisez le rameur maintenant, puis cliquez sur OK pour commencer la nouvelle séance.",
+        "en": "Reset your Rower machine now, then click on OK to start a new session."
+    },
+    "NEW_SESSION": {
+        "fr": "Nouvelle séance",
+        "en": "New session"
+    },
+    "PLOT_AVERAGE": {
+        "fr": "Moyen",
+        "en": "Average"
+    },
+    "PLOT_POWER_RECAL": {
+        "fr": "Recalibré",
+        "en": "Recalibrated"
+    },
+    "PLOT_SPM_UNIT": {
+        "fr": "cpm",
+        "en": "spm"
+    },
+    "PLOT_TITLE": {
+        "fr": "Visualisateur de Workout",
+        "en": "Workout Viewer"
+    },
+    "PLOT_X_AXIS_TIME": {
+        "fr": "Temps (s)",
+        "en": "Time (s)"
+    },
+    "POWER": {
+        "fr": "Puissance",
+        "en": "Power"
+    },
+    "REPLAY_LOADED_LOG": {
+        "fr": "Mode Replay : le fichier chargé est",
+        "en": "Replay Mode : loaded file is"
+    },
+    "ROWER_SEEKING": {
+        "fr": "Recherche du rameur...",
+        "en": "Seeking a rower..."
+    },
+    "SETTINGS": {
+        "fr": "Paramètres",
+        "en": "Settings"
+    },
+    "SETTINGS_DELAY": {
+        "fr": "Délai avant le workout",
+        "en": "Delay before Workout"
+    },
+    "SETTINGS_LANG": {
+        "fr": "Langage de l'interface",
+        "en": "Language of the UI"
+    },
+    "SETTINGS_SPLIT_LEN": {
+        "fr": "Longueur des splits",
+        "en": "Split length"
+    },
+    "SETTINGS_SPLIT_MODE": {
+        "fr": "Mode Split par défaut",
+        "en": "Default Split Mode"
+    },
+    "SPEED": {
+        "fr": "Vitesse",
+        "en": "Speed"
+    },
+    "SPLIT": {
+        "fr": "Allure",
+        "en": "Split"
+    },
+    "SPLIT_CALC": {
+        "fr": "Allure calculée",
+        "en": "Split calculated"
+    },
+    "SPLIT_CURRENT": {
+        "fr": " ← en cours",
+        "en": " ← current"
+    },
+    "SPLIT_MODE_TITLE": {
+        "fr": "Mode Split",
+        "en": "Split Mode"
+    },
+    "SPLIT_RAW_AVG": {
+        "fr": "Allure brute moy.",
+        "en": "Split Raw average"
+    },
+    "SPLIT_RAW_INST": {
+        "fr": "Allure brute Inst.",
+        "en": "Split Raw Inst."
+    },
+    "SPM_UNIT": {
+        "fr": "CPM",
+        "en": "SPM"
+    },
+    "STATS_AVG_CADENCE": {
+        "fr": "Cad. moy  ",
+        "en": "Cad. avg  "
+    },
+    "STATS_AVG_POWER": {
+        "fr": "Puiss. moy",
+        "en": "Power avg "
+    },
+    "STATS_AVG_SPEED": {
+        "fr": "Vit. moy  ",
+        "en": "Speed avg "
+    },
+    "STATS_CALORIES": {
+        "fr": "Calories  ",
+        "en": "Calories  "
+    },
+    "STATS_DISTANCE": {
+        "fr": "Distance  ",
+        "en": "Distance  "
+    },
+    "STATS_DURATION": {
+        "fr": "Durée     ",
+        "en": "Duration  "
+    },
+    "STATS_STROKES": {
+        "fr": "Coups     ",
+        "en": "Strokes   "
+    },
+    "STATS_WORK": {
+        "fr": "Travail   ",
+        "en": "Work      "
+    },
+    "STROKE": {
+        "fr": "Coup",
+        "en": "Stroke"
+    },
+    "TIME": {
+        "fr": "Temps",
+        "en": "Time"
+    },
+    "TOTAL_TIME": {
+        "fr": "Temps total",
+        "en": "Total Time"
+    },
+    "TOTAL_TIME_OF": {
+        "fr": " sur ",
+        "en": " of "
+    },
+    "UNKNOWN_ROWER": {
+        "fr": "Rameur inconnu",
+        "en": "Unknown Rower"
+    },
+    "WARN_CANT_EDIT_WO": {
+        "fr": "Impossible de créer ou modifier un Workout pendant une séance.",
+        "en": "You cannot create or edit a Workout during a session."
+    },
+    "WARN_EMPTY_LOG": {
+        "fr": "Log ignoré car il aurait été vide.",
+        "en": "Log ignored because it would have been empty."
+    },
+    "WARN_NO_SETTINGS": {
+        "fr": "Les Paramètres ne peuvent pas être modifiés pendant une séance.",
+        "en": "Settings cannot be modified during a session."
+    },
+    "WARNING": {
+        "fr": "Avertissement",
+        "en": "Warning "
+    },
+    "WINDOW_TITLE": {
+        "fr": "Moniteur Rameur",
+        "en": "Rower Monitor"
+    },
+    "WO_CREATE_NEW": {
+        "fr": "Nouveau Workout",
+        "en": "New Workout"
+    },
+    "WO_CREATE_TITLE": {
+        "fr": "Créer un Workout",
+        "en": "Create a Workout"
+    },
+    "WO_EDIT_TITLE": {
+        "fr": "Editer un Workout",
+        "en": "Edit a Workout"
+    },
+    "WO_FILE_CONSEC_CMT": {
+        "fr": "Les commentaires consécutifs seront fusionnés.",
+        "en": "Consecutive comments will be merged."
+    },
+    "WO_FILE_CONSEC_INFO": {
+        "fr": "Les INFO consécutives seront fusionnées.",
+        "en": "Consecutive INFO will be merged."
+    },
+    "WO_FILE_EMPTY": {
+        "fr": "Le fichier Workout n'a pas de donnée.",
+        "en": "Workout file contains no data."
+    },
+    "WO_FILE_EMPTY_CMT": {
+        "fr": "Les commentaires vides sont ignorés",
+        "en": "Empty comments are ignored."
+    },
+    "WO_FILE_EMPTY_INFO": {
+        "fr": "Les INFO vides sont ignorées",
+        "en": "Empty INFO are ignored."
+    },
+    "WO_FILE_EOF_CMT": {
+        "fr": "Un commentaire à la fin du fichier n'est pas associé avec une étape.",
+        "en": "A comment at end-of-file is not associated with a workout step."
+    },
+    "WO_FILE_EOF_INFO": {
+        "fr": "INFO à la fin du fichier n'est pas associé avec une étape.",
+        "en": "INFO at end-of-file is not associated with a workout step."
+    },
+    "WO_FILE_ERROR_LINE": {
+        "fr": "Erreur ligne ",
+        "en": "Error line "
+    },
+    "WO_FILE_EXP_DATA_TYPE": {
+        "fr": "Type de donnée invalide; attendu: 'int_or_float int char <char_or_str>'",
+        "en": "Invalid data type; must be: 'int_or_float int char <char_or_str>'"
+    },
+    "WO_FILE_EXP_DURATION": {
+        "fr": "La durée doit être entre 0 et 720 secondes",
+        "en": "duration must be between 0 and 720 s"
+    },
+    "WO_FILE_EXP_INTENSITY": {
+        "fr": "Intensité doit être l'un de R, E, N, F ou M",
+        "en": "Intensity must be one of R, E, N, F or M"
+    },
+    "WO_FILE_EXP_PART": {
+        "fr": "<partie> doit être l'un de",
+        "en": "<part> (optional) must be one of"
+    },
+    "WO_FILE_EXP_SPM": {
+        "fr": "CPM doit être entre 0 et 50",
+        "en": "SPM must be between 0 and 50"
+    },
+    "WO_FILE_EXPECTED_DATA": {
+        "fr": "format attendu : 'secondes cpm intensité <partie>'",
+        "en": "expected format : 'seconds spm intensity <part>'"
+    },
+    "WO_FILE_KEYWORD": {
+        "fr": "Mot-clé",
+        "en": "Keyword"
+    },
+    "WO_FILE_KW_UNIQUE": {
+        "fr": "doit être unique dans un fichier .wo",
+        "en": "must be unique in a .wo file"
+    },
+    "WO_FILE_WARNING_LINE": {
+        "fr": "Avertissement ligne ",
+        "en": "Warning line "
+    },
+    "WORKOUT": {
+        "fr": "Exercice",
+        "en": "Workout"
+    },
+    "WORKOUT_COMPLETE": {
+        "fr": "Workout terminé",
+        "en": "Workout complete"
+    },
+    "WORKOUT_FILE_EXT": {
+        "fr": "Workout (*.wo);;Tous les fichiers (*)",
+        "en": "Workout (*.wo);;All files (*)"
+    },
+    "WORKOUT_FILE_SELECT": {
+        "fr": "Choisir un workout",
+        "en": "Select a workout"
+    },
+    "WORKOUT_NAME": {
+        "fr": "Nom du Workout",
+        "en": "Workout Name"
+    },
+    "WORKOUT_NONE_LOADED": {
+        "fr": "Choisir un workout",
+        "en": "Select a workout"
+    },
+    "WORKOUT_PREPARING": {
+        "fr": "Préparation...",
+        "en": "Preparing..."
+    },
+    "WORKOUT_RUNNING": {
+        "fr": "Workout en cours",
+        "en": "Workout running"
+    },
+    "WORKOUT_STARTS_IN": {
+        "fr": "Démarrage dans",
+        "en": "Starts in"
+    },
+    "TEMPLATE": {
+        "fr": "Fr Template",
+        "en": "En Template"
+    }
+}
