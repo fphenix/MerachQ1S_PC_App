@@ -1,3 +1,4 @@
+from typing import Any
 from io import BytesIO
 from pathlib import Path
 import zipfile
@@ -22,7 +23,14 @@ from PySide6.QtWidgets import (
     QPlainTextEdit,
 )
 
+from setup.lang import get_text
 from setup.utils import format_time
+from setup.constants import (
+    MAIN_FONT,
+    ANALYZER_STATS_FONT_SIZE,
+    ANALYZER_STATS_MIN_WIDTH,
+    ANALYZER_STATS_MAX_WIDTH,
+)
 
 from engine.calc import calc_stats
 
@@ -33,13 +41,14 @@ class AnalyzerWindow(QMainWindow):
         self,
         filename: str | Path,
         parent=None,
-    ):
+    ) -> None:
+
         super().__init__(parent)
 
         self.filename = Path(filename)
 
         self.setWindowTitle(
-            f"Analyzer - {self.filename.name}"
+            f"{get_text("ANALYZER_TITLE")} - {self.filename.name}"
         )
 
         self.df = self.load_log(
@@ -89,10 +98,10 @@ class AnalyzerWindow(QMainWindow):
         self.stats_widget = QPlainTextEdit()
         self.stats_widget.setReadOnly(True)
         self.stats_widget.setFont(
-            QFont("Consolas", 11)
+            QFont(MAIN_FONT, ANALYZER_STATS_FONT_SIZE)
         )
-        self.stats_widget.setMinimumWidth(260)
-        self.stats_widget.setMaximumWidth(320)
+        self.stats_widget.setMinimumWidth(ANALYZER_STATS_MIN_WIDTH)
+        self.stats_widget.setMaximumWidth(ANALYZER_STATS_MAX_WIDTH)
 
         main_layout.addWidget(
             self.stats_widget,
@@ -134,7 +143,7 @@ class AnalyzerWindow(QMainWindow):
 
         if not path.exists():
             raise FileNotFoundError(
-                f"Fichier de log introuvable : {path}"
+                f"{get_text("ERR_LOGFILE_NOT_FOUND")} : {path}"
             )
 
         suffix = path.suffix.lower()
@@ -164,8 +173,7 @@ class AnalyzerWindow(QMainWindow):
 
                 if len(csv_files) != 1:
                     raise ValueError(
-                        f"{path.name} doit contenir "
-                        "exactement un fichier CSV."
+                        f"{path.name} {get_text("ERR_ZIP_ONLY_1_FILE")}"
                     )
 
                 csv_data = archive.read(
@@ -178,57 +186,54 @@ class AnalyzerWindow(QMainWindow):
             )
 
         raise ValueError(
-            f"Format de log non supporté : {suffix}"
+            f"{get_text("ERR_WRONG_LOG_FORMAT")} : {suffix}"
         )
 
     # -------------------------------------------------------------------------
-    def create_plot_definitions(self):
+    def create_plot_definitions(self) -> list[dict[str, Any]]:
 
         t = self.df["Elapsed"]
 
         return [
             {
                 "id": 0,
-                "title": ["Power", "Average"],
+                "title": [f"{get_text("POWER")} ({get_text("PLOT_POWER_RECAL")})", get_text('PLOT_AVERAGE')],
                 "x": t,
-                "y": [
-                    "Power_Recalibrated",
-                    "Power_Avg",
-                ],
-                "xlabel": "Temps (s)",
+                "y": ["Power_Recalibrated", "Power_Avg"],
+                "xlabel": get_text("PLOT_X_AXIS_TIME"),
                 "ylabel": "W",
             },
             {
                 "id": 1,
-                "title": ["Speed", "Average", "DPSavg (m/coup)"],
+                "title": [get_text("SPEED"), get_text('PLOT_AVERAGE'), get_text("DPS_AVG")],
                 "x": t,
                 "y": ["Speed", "Speed_Avg", "Dist_Per_Stroke_Avg"],
-                "xlabel": "Temps (s)",
+                "xlabel": get_text("PLOT_X_AXIS_TIME"),
                 "ylabel": "m/s",
             },
             {
                 "id": 2,
-                "title": ["Cadence", "Average"],
+                "title": [get_text("CADENCE"), get_text('PLOT_AVERAGE')],
                 "x": t,
                 "y": ["Cadence", "Cadence_Avg"],
-                "xlabel": "Temps (s)",
-                "ylabel": "spm",
+                "xlabel": get_text("PLOT_X_AXIS_TIME"),
+                "ylabel": get_text("PLOT_SPM_UNIT"),
             },
             {
                 "id": 3,
-                "title": ["Distance"],
+                "title": [get_text('DISTANCE')],
                 "x": t,
                 "y": ["Distance"],
-                "xlabel": "Temps (s)",
+                "xlabel": get_text("PLOT_X_AXIS_TIME"),
                 "ylabel": "m",
             },
             {
                 "id": 4,
                 "title": [
-                    "Split Calculated",
-                    "Average",
-                    "Raw Inst",
-                    "Raw Avg",
+                    get_text('SPLIT_CALC'),
+                    get_text('PLOT_AVERAGE'),
+                    get_text('SPLIT_RAW_INST'),
+                    get_text('SPLIT_RAW_AVG'),
                 ],
                 "x": t,
                 "y": [
@@ -237,7 +242,7 @@ class AnalyzerWindow(QMainWindow):
                     "Raw_Split_Instant",
                     "Raw_Split_Avg",
                 ],
-                "xlabel": "Temps (s)",
+                "xlabel": get_text("PLOT_X_AXIS_TIME"),
                 "ylabel": "s/500m",
                 "linewidth": [2, 2, 1, 1],
                 "linestyle": [
@@ -249,16 +254,16 @@ class AnalyzerWindow(QMainWindow):
             },
             {
                 "id": 5,
-                "title": ["Calories"],
+                "title": [get_text("CALORIES")],
                 "x": t,
                 "y": ["Calories"],
-                "xlabel": "Temps (s)",
+                "xlabel": get_text("PLOT_X_AXIS_TIME"),
                 "ylabel": "kcal",
             },
         ]
 
     # -------------------------------------------------------------------------
-    def toggle(self, label):
+    def toggle(self, label) -> None:
 
         if (
             label == "Rower Instant"
@@ -279,7 +284,7 @@ class AnalyzerWindow(QMainWindow):
         self.canvas.draw_idle()
 
     # -------------------------------------------------------------------------
-    def create_checkbuttons(self):
+    def create_checkbuttons(self) -> None:
 
         self.rax = self.figure.add_axes(
             [0.82, 0.80, 0.16, 0.12]
@@ -317,9 +322,9 @@ class AnalyzerWindow(QMainWindow):
             self.check = None
 
     # -------------------------------------------------------------------------
-    def draw_plot(self, plot, axis):
+    def draw_plot(self, plot, axis) -> list:
 
-        lines = []
+        lines: list = []
 
         title = plot["title"]
         x = plot["x"]
@@ -357,7 +362,7 @@ class AnalyzerWindow(QMainWindow):
         return lines
     
     # -------------------------------------------------------------------------
-    def draw_all_plots(self):
+    def draw_all_plots(self) -> None:
 
         self.figure.clear()
 
@@ -417,7 +422,7 @@ class AnalyzerWindow(QMainWindow):
         self.canvas.draw_idle()
 
     # -------------------------------------------------------------------------
-    def draw_single_plot(self, plot_id):
+    def draw_single_plot(self, plot_id) -> None:
 
         self.figure.clear()
 
@@ -464,7 +469,7 @@ class AnalyzerWindow(QMainWindow):
         self.canvas.draw_idle()
 
     # -------------------------------------------------------------------------
-    def plot_click(self, event):
+    def plot_click(self, event) -> None:
 
         if event.inaxes is None:
             return
@@ -493,14 +498,14 @@ class AnalyzerWindow(QMainWindow):
 
         lines = [
             "========== SESSION ==========",
-            f"Durée       : {format_time(df['Elapsed'].iloc[-1])}",
-            f"Distance    : {df['Distance'].iloc[-1]:.1f} m",
-            f"Coups       : {int(df['Stroke_Count'].iloc[-1])}",
-            f"Calories    : {df['Calories'].iloc[-1]:.1f} kcal",
-            f"Travail     : {df['Work_J'].iloc[-1] / 1000:.1f} kJ",
-            f"Puiss. moy. : {df['Power_Avg'].iloc[-1]:.1f} W",
-            f"Vit. moy.   : {df['Speed_Avg'].iloc[-1]:.2f} m/s",
-            f"Cad. moy.   : {df['Cadence_Avg'].iloc[-1]:.1f} spm",
+            f"{get_text("STATS_DURATION")} : {format_time(df['Elapsed'].iloc[-1])}",
+            f"{get_text("STATS_DISTANCE")} : {df['Distance'].iloc[-1]:.1f} m",
+            f"{get_text("STATS_STROKES")} : {int(df['Stroke_Count'].iloc[-1])}",
+            f"{get_text("STATS_CALORIES")} : {df['Calories'].iloc[-1]:.1f} kcal",
+            f"{get_text("STATS_WORK")} : {df['Work_J'].iloc[-1] / 1000:.1f} kJ",
+            f"{get_text("STATS_AVG_POWER")} : {df['Power_Avg'].iloc[-1]:.1f} W",
+            f"{get_text("STATS_AVG_SPEED")} : {df['Speed_Avg'].iloc[-1]:.2f} m/s",
+            f"{get_text("STATS_AVG_CADENCE")} : {df['Cadence_Avg'].iloc[-1]:.1f} spm",
             "=============================",
             "",
         ]
@@ -521,9 +526,9 @@ class AnalyzerWindow(QMainWindow):
         )
 
         for stats, title in (
-            (power_stats, "Power"),
-            (cadence_stats, "Cadence"),
-            (dps_stats, "Distance/Stroke"),
+            (power_stats, get_text("POWER")),
+            (cadence_stats, get_text("CADENCE")),
+            (dps_stats, f"{get_text("DISTANCE")}/{get_text("STROKE")}"),
         ):
 
             lines.extend([

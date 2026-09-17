@@ -1,5 +1,10 @@
-from winrt.windows.devices.radios import Radio, RadioKind, RadioState
+from winrt.windows.devices.radios import (
+    Radio,
+    RadioKind,
+    RadioState,
+)
 
+from setup.lang import get_text
 from setup.utils import echo
 
 # =============================================================================
@@ -10,13 +15,13 @@ from setup.utils import echo
 # =============================================================================
 class BluetoothManager:
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         self.initial_state = None
         self.radio = None
 
     # -------------------------------------------------------------------------
-    async def initialize(self):
+    async def initialize(self) -> None:
 
         # get button
         self.radio = await self.get_radiobtn_state()
@@ -29,7 +34,7 @@ class BluetoothManager:
             await self.turn_on()
 
     # -------------------------------------------------------------------------
-    async def get_radiobtn_state(self):
+    async def get_radiobtn_state(self) -> Radio:
 
         radios = await Radio.get_radios_async()
 
@@ -37,24 +42,24 @@ class BluetoothManager:
             if radio.kind == RadioKind.BLUETOOTH:
                 return radio
 
-        raise RuntimeError("Bluetooth non trouvé")
+        raise RuntimeError(get_text("ERR_BT_NOT_FOUND"))
 
     # -------------------------------------------------------------------------
-    async def turn_on(self):
+    async def turn_on(self) -> None:
 
         # Activation
         await self.radio.set_state_async(RadioState.ON)
-        echo("Bluetooth card turned ON")
+        echo(get_text("BT_CARD_ON"))
 
     # -------------------------------------------------------------------------
-    async def turn_off(self):
+    async def turn_off(self) -> None:
 
         # Désactivation
         await self.radio.set_state_async(RadioState.OFF)
-        echo("Bluetooth card turned OFF")
+        echo(get_text("BT_CARD_OFF"))
 
     # -------------------------------------------------------------------------
-    async def toggle(self):
+    async def toggle(self) -> None:
 
         state = self.radio.state
 
@@ -65,10 +70,10 @@ class BluetoothManager:
             await self.turn_on()
             
         else:
-            echo(f"BluetoothManager toggle() did not find a valid state to switch from; state = {state}")
+            echo(f"{state} {get_text("ERR_BT_NO_VALID_STATE")}")
 
     # -------------------------------------------------------------------------
-    async def restore(self):
+    async def restore(self) -> None:
         
         if self.radio is None or self.initial_state is None:
             return

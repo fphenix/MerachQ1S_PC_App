@@ -8,7 +8,7 @@ from rowers.data import RowerData
 # =============================================================================
 class RowerClient(ABC):
 
-    def __init__(self, address: str, state, settings):
+    def __init__(self, address: str, state, settings) -> None:
         
         self.address = address
         self.state = state
@@ -27,17 +27,17 @@ class RowerClient(ABC):
     # -------------------------------------------------------------------------
     # Abstract
     @abstractmethod
-    def start(self):
+    def start(self) -> None:
         pass
 
     # -------------------------------------------------------------------------
     # Abstract
     @abstractmethod
-    def stop(self):
+    def stop(self) -> None:
         pass
 
     # -------------------------------------------------------------------------
     # Abstract
     @abstractmethod
-    def reset(self):
+    def reset(self) -> None:
         pass

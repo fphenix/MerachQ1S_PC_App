@@ -16,6 +16,9 @@ from PySide6.QtWidgets import (
 from setup.constants import (
     TITLE_FONT,
     MAIN_FONT,
+    WIDGET_TITLE_FONT_SIZE,
+    WIDGET_VALUE_FONT_SIZE,
+    WIDGET_UNIT_FONT_SIZE,
 )
 
 from ui.progbar_widget import GradientGauge
@@ -42,7 +45,7 @@ class MetricWidget(QFrame):
             title: str,
             unit: str = "",
             gauge: GradientGauge | None = None,
-        ):
+        ) -> None:
 
         super().__init__()
 
@@ -55,7 +58,7 @@ class MetricWidget(QFrame):
         self._scroll_target_index = None
 
     # ------------------------------------------------------------------
-    def _create_ui(self):
+    def _create_ui(self) -> None:
 
         self.setFrameShape(QFrame.Box)
         self.setLineWidth(2)
@@ -74,13 +77,13 @@ class MetricWidget(QFrame):
         self.unit_label = QLabel(self.unit)
         self.unit_label.setAlignment(Qt.AlignCenter)
 
-        title_font = QFont(TITLE_FONT, 11)
+        title_font = QFont(TITLE_FONT, WIDGET_TITLE_FONT_SIZE)
         title_font.setBold(True)
 
-        value_font = QFont(MAIN_FONT, 28)
+        value_font = QFont(MAIN_FONT, WIDGET_VALUE_FONT_SIZE)
         value_font.setBold(True)
 
-        unit_font = QFont(TITLE_FONT, 10)
+        unit_font = QFont(TITLE_FONT, WIDGET_UNIT_FONT_SIZE)
 
         self.title_label.setFont(title_font)
         self.value_label.setFont(value_font)
@@ -100,7 +103,7 @@ class MetricWidget(QFrame):
             layout.addWidget(self.gauge)
 
     # -------------------------------------------------------------------------
-    def setValue(self, textvalue, gaugevalue: int|float|None = None):
+    def setValue(self, textvalue, gaugevalue: int|float|None = None) -> None:
 
         self.value_label.setText(str(textvalue))
 

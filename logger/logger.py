@@ -6,6 +6,7 @@ import zipfile
 import os
 import time
 
+from setup.lang import get_text
 from setup.utils import echo
 from setup.constants import (
     VERSION,
@@ -22,9 +23,9 @@ from logger.logrecord import LogRecord
 # =============================================================================
 class CsvLogger:
 
-    def __init__(self):
+    def __init__(self) -> None:
 
-        self.rower_name = "Unknown Rower"
+        self.rower_name = get_text("UNKNOWN_ROWER")
 
         self._file = None
         self.filename = None
@@ -39,12 +40,12 @@ class CsvLogger:
         self._has_data = False
 
     # -------------------------------------------------------------------------
-    def set_rower_name(self, name: str):
+    def set_rower_name(self, name: str) -> None:
 
         self.rower_name = name
 
     # -------------------------------------------------------------------------
-    def start(self):
+    def start(self) -> None:
 
         self.packet = 0
         self.last_pc_time = None
@@ -86,7 +87,7 @@ class CsvLogger:
         self.flush()
 
     # -------------------------------------------------------------------------
-    def header(self):
+    def header(self) -> None:
 
         #
         # Titre
@@ -118,7 +119,7 @@ class CsvLogger:
         )
 
     # -------------------------------------------------------------------------
-    def flush(self):
+    def flush(self) -> None:
         """
         Force l'écriture physique du fichier.
         """
@@ -132,7 +133,7 @@ class CsvLogger:
         self.last_flush_time = time.monotonic()
 
     # -------------------------------------------------------------------------
-    def periodic_flush(self):
+    def periodic_flush(self) -> None:
         """
         Flush périodique.
         """
@@ -143,7 +144,7 @@ class CsvLogger:
             self.flush()
 
     # -------------------------------------------------------------------------
-    def stroke_detected(self):
+    def stroke_detected(self) -> None:
         """
         Appelée lorsqu'un nouveau coup est détecté.
         """
@@ -151,15 +152,13 @@ class CsvLogger:
         self.last_stroke_time = time.monotonic()
 
     # -------------------------------------------------------------------------
-    def check_end_session(self):
+    def check_end_session(self) -> None:
         
         if self.writer is None:
             return
 
-        """
-        Si aucun coup n'a été détecté depuis un certain temps,
-        force un flush du fichier.
-        """
+        # Si aucun coup n'a été détecté depuis un certain temps,
+        # force un flush du fichier.
 
         now = time.monotonic()
 
@@ -173,7 +172,7 @@ class CsvLogger:
             self.last_stroke_time = now
 
     # -------------------------------------------------------------------------
-    def log(self, record: LogRecord):
+    def log(self, record: LogRecord) -> None:
 
         if self.writer is None:
             return
@@ -188,7 +187,7 @@ class CsvLogger:
         self.periodic_flush()
 
     # -------------------------------------------------------------------------
-    def next_packet(self):
+    def next_packet(self) -> tuple[int, float, float]:
 
         self.packet += 1
 
@@ -204,7 +203,7 @@ class CsvLogger:
         return self.packet, now, delta
 
     # -------------------------------------------------------------------------
-    def stop(self):
+    def stop(self) -> None:
 
         if self._file is None:
             return
@@ -218,7 +217,7 @@ class CsvLogger:
         # si fichier log vide, efface le
         if not self._has_data:
             self.filename.unlink() # unlink = remove
-            echo("Log ignoré car il aurait été vide.")
+            echo(get_text("WARN_EMPTY_LOG"))
 
         # si on veut zip, on compresse le csv et on l'efface
         elif self.log_format == "zip":
@@ -246,7 +245,7 @@ class CsvLogger:
         # si log_format n'est pas de la bonne forme, error
         else:
             raise ValueError(
-                f"Format de log inconnu : {self.log_format}"
+                f"{get_text("ERR_UNKNOWN_LOG_FORMAT")} : {self.log_format}"
             )
 
         self.filename = None

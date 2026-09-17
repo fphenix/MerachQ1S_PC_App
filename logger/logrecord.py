@@ -131,11 +131,11 @@ class LogRecord:
 
     # -------------------------------------------------------------------------
     @classmethod
-    def csv_header(cls):
+    def csv_header(cls) -> list:
 
         return [header for header, _ in CSV_FIELDS]
 
     # -------------------------------------------------------------------------
-    def csv_row(self):
+    def csv_row(self) -> list:
         
         return [getattr(self, field_name) for _, field_name in CSV_FIELDS]

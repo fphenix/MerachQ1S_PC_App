@@ -1,6 +1,6 @@
 import time
 
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QPalette
 from PySide6.QtWidgets import (
     QFileDialog,
@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QFrame,
 )
 
+from setup.lang import get_text
 from setup.utils import (
     load_workout,
     format_time,
@@ -44,12 +45,15 @@ from workout.workout import Workout
 # =============================================================================
 class WorkoutWidget(QFrame):
 
+    workout_started = Signal()
+
     def __init__(
         self,
         settings: Settings,
         metronome_bar: QProgressBar,
         parent=None,
-    ):
+    ) -> None:
+
         super().__init__(parent)
 
         self.settings = settings
@@ -121,17 +125,46 @@ class WorkoutWidget(QFrame):
 
         self.metronome_bar.setValue(0)
 
-        self.title_label.setText("Workout")
-        self.field_label.setText("Field")
-        self.state_label.setText("Aucun workout chargé")
-        self.total_label.setText("Temps total : 00:00")
-        self.exercise_label.setText("Exercice : --")
-        self.rate_label.setText("Cadence : -- CPM")
-        self.intensity_label.setText("Intensité : --")
+        self._default_label_text()
+
+        palette = self.intensity_label.palette()
+        palette.setColor(
+            QPalette.WindowText,
+            TEXT_COLOR,
+        )
+        self.intensity_label.setPalette(palette)
+
         self.info_label.setText("")
 
     # ------------------------------------------------------------------
-    def _create_ui(self):
+    def _default_label_text(self) -> None:
+
+        self.title_label.setText(get_text("WORKOUT"))
+
+        self.field_label.setText(get_text("FIELD"))
+
+        self.state_label.setText(get_text("WORKOUT_NONE_LOADED"))
+
+        self.total_label.setText(
+            f"{get_text("TOTAL_TIME")} : 00:00"
+        )
+
+        self.exercise_label.setText(
+            f"{get_text("WORKOUT")} : --"
+        )
+
+        self.rate_label.setText(
+            f"{get_text("CADENCE")} : -- {get_text("SPM_UNIT")}"
+        )
+
+        self.intensity_label.setText(
+            f"{get_text("INTENSITY")} : --"
+        )
+
+        self.info_label.setText("--")
+
+    # ------------------------------------------------------------------
+    def _create_ui(self) -> None:
 
         self.setFrameShape(QFrame.Box)
         self.setLineWidth(2)
@@ -166,37 +199,17 @@ class WorkoutWidget(QFrame):
             1,
         )
 
-        self.title_label = QLabel(
-            "Workout"
-        )
+        self.title_label = QLabel()
+        self.field_label = QLabel()
+        self.state_label = QLabel()
+        self.total_label = QLabel()
+        self.exercise_label = QLabel()
+        self.rate_label = QLabel()
+        self.intensity_label = QLabel()
+        self.info_label = QLabel()
 
-        self.field_label = QLabel(
-            "Field"
-        )
+        self._default_label_text()
 
-        self.state_label = QLabel(
-            "Aucun workout chargé"
-        )
-
-        self.total_label = QLabel(
-            "Temps total : 00:00"
-        )
-
-        self.exercise_label = QLabel(
-            "Exercice : --"
-        )
-
-        self.rate_label = QLabel(
-            "Cadence : -- CPM"
-        )
-
-        self.intensity_label = QLabel(
-            "Intensité : --"
-        )
-
-        self.info_label = QLabel(
-            "Intensité : --"
-        )
         self.info_label.setWordWrap(True)
 
         self.title_label.setAlignment(
@@ -252,7 +265,11 @@ class WorkoutWidget(QFrame):
                 else LIST_BACKGROUND
             )
 
-            font = BIG_FONT_SIZE if label is not self.info_label else INFO_FONT_SIZE
+            font = (
+                BIG_FONT_SIZE
+                if label is not self.info_label
+                else INFO_FONT_SIZE
+            )
 
             label.setStyleSheet(
                 f"""
@@ -348,7 +365,7 @@ class WorkoutWidget(QFrame):
         self._configure_metronome_bar()
 
     # ------------------------------------------------------------------
-    def _configure_metronome_bar(self):
+    def _configure_metronome_bar(self) -> None:
 
         bar = self.metronome_bar
 
@@ -399,9 +416,9 @@ class WorkoutWidget(QFrame):
 
             filename, _ = QFileDialog.getOpenFileName(
                 self,
-                "Choisir un workout",
+                get_text("WORKOUT_FILE_SELECT"),
                 str(default_dir),
-                "Workout (*.wo);;Tous les fichiers (*)",
+                get_text("WORKOUT_FILE_EXT"),
             )
 
             if not filename:
@@ -417,7 +434,7 @@ class WorkoutWidget(QFrame):
 
             QMessageBox.warning(
                 self,
-                "Erreur",
+                get_text("ERROR"),
                 str(exc),
             )
 
@@ -437,7 +454,7 @@ class WorkoutWidget(QFrame):
             self.step_list.addItem(
                 f"{i:2d}. "
                 f"{formatted_duration}   "
-                f"{step.cpm:>3} CPM   "
+                f"{step.spm:>3} {get_text("SPM_UNIT")}   "
                 f"{step.intensity_text}"
             )
 
@@ -471,25 +488,25 @@ class WorkoutWidget(QFrame):
         self.field_label.setText(workout.field)
 
         self.state_label.setText(
-            f"Démarrage dans "
+            f"{get_text("WORKOUT_STARTS_IN")} "
             f"{format_time(self.countdown_remaining)}"
         )
 
         self.total_label.setText(
-            f"Temps total : "
+            f"{get_text("TOTAL_TIME")} : "
             f"{format_time(self.total_remaining)}"
         )
 
         self.exercise_label.setText(
-            "Préparation..."
+            get_text("WORKOUT_PREPARING")
         )
 
         self.rate_label.setText(
-            "Cadence : -- CPM"
+            f"{get_text("CADENCE")} : -- {get_text("SPM_UNIT")}"
         )
 
         self.intensity_label.setText(
-            "Intensité : --"
+            f"{get_text("INTENSITY")} : --"
         )
 
         self.info_label.clear()
@@ -504,7 +521,7 @@ class WorkoutWidget(QFrame):
         return True
 
     # ------------------------------------------------------------------
-    def update_timer(self):
+    def update_timer(self) -> None:
 
         now = time.perf_counter()
 
@@ -538,8 +555,8 @@ class WorkoutWidget(QFrame):
             else:
 
                 self.state_label.setText(
-                    f"Démarrage dans "
-                    f"{format_time(self.countdown_remaining)}"
+                    f"{get_text("WORKOUT_STARTS_IN")}"
+                    f" {format_time(self.countdown_remaining)}"
                 )
 
             return
@@ -571,7 +588,7 @@ class WorkoutWidget(QFrame):
             self.update_labels()
 
     # ------------------------------------------------------------------
-    def start_step(self):
+    def start_step(self) -> None:
 
         if self.current_step >= len(
             self.workout.steps
@@ -603,16 +620,18 @@ class WorkoutWidget(QFrame):
         self.running = True
         self.started = True
 
+        self.workout_started.emit()
+
         self.metronome_bar.setValue(0)
 
         self.state_label.setText(
-            "Workout en cours"
+            get_text("WORKOUT_RUNNING")
         )
 
         self.update_labels()
 
     # ------------------------------------------------------------------
-    def next_step(self):
+    def next_step(self) -> None:
 
         self.current_step += 1
 
@@ -625,7 +644,7 @@ class WorkoutWidget(QFrame):
         self.start_step()
 
     # ------------------------------------------------------------------
-    def update_progress(self):
+    def update_progress(self) -> None:
 
         if not self.running:
             return
@@ -634,7 +653,7 @@ class WorkoutWidget(QFrame):
             self.current_step
         ]
 
-        cycle = 60.0 / step.cpm
+        cycle = 60.0 / step.spm
 
         self.beat_phase += (
             self.last_elapsed
@@ -652,7 +671,7 @@ class WorkoutWidget(QFrame):
         )
 
     # ------------------------------------------------------------------
-    def update_labels(self):
+    def update_labels(self) -> None:
 
         if not self.running:
             return
@@ -662,30 +681,31 @@ class WorkoutWidget(QFrame):
         ]
 
         self.total_label.setText(
-            "Temps total : "
+            f"{get_text("TOTAL_TIME")} : "
             + format_time(
                 self.total_remaining
             )
-            + " sur "
+            + get_text("TOTAL_TIME_OF")
             + format_time(
                 self.total_time
             )
         )
 
         self.exercise_label.setText(
-            f"Exercice "
+            f"{get_text("WORKOUT")} "
             f"{self.current_step + 1}/"
             f"{len(self.workout.steps)}  -  "
-            f"Temps : "
+            f"{get_text("TIME")} : "
             f"{format_time(self.step_remaining)}"
         )
 
         self.rate_label.setText(
-            f"Cadence : {step.cpm} CPM"
+            f"{get_text("CADENCE")} : "
+            f"{step.spm} {get_text("SPM_UNIT")}"
         )
 
         self.intensity_label.setText(
-            f"Intensité : "
+            f"{get_text("INTENSITY")} : "
             f"{step.intensity_text}"
         )
 
@@ -710,7 +730,7 @@ class WorkoutWidget(QFrame):
             self.info_label.clear()
 
     # ------------------------------------------------------------------
-    def finish_workout(self):
+    def finish_workout(self) -> None:
 
         self.running = False
         self.started = False
@@ -721,7 +741,7 @@ class WorkoutWidget(QFrame):
         )
 
         self.state_label.setText(
-            "Workout terminé !"
+            f"{get_text("WORKOUT_COMPLETE")} !"
         )
 
         self.exercise_label.setText("")
@@ -830,7 +850,7 @@ class WorkoutWidget(QFrame):
         if self.running:
 
             self.state_label.setText(
-                "Workout en cours"
+                get_text("WORKOUT_RUNNING")
             )
 
             self.update_labels()
@@ -838,7 +858,7 @@ class WorkoutWidget(QFrame):
         else:
 
             self.state_label.setText(
-                "Workout terminé"
+                get_text("WORKOUT_COMPLETE")
             )
 
     # ------------------------------------------------------------------

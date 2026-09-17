@@ -1,3 +1,4 @@
+from typing import Any
 from pathlib import Path
 
 from PySide6.QtCore import Qt
@@ -18,6 +19,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from setup.lang import get_text
 from setup.constants import (
     INTENSITY_DICT,
     PART_DICT,
@@ -33,18 +35,18 @@ from workout.workout import Workout
 class WorkoutStepEditor(QWidget):
     """Éditeur d'une ligne de Workout."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None) -> None:
         super().__init__(parent)
 
         self._create_ui()
 
     # -------------------------------------------------------------------------
-    def _create_ui(self):
+    def _create_ui(self) -> None:
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        layout.addWidget(QLabel("Durée"))
+        layout.addWidget(QLabel(get_text("DURATION")))
 
         self.duration_value = QDoubleSpinBox()
         self.duration_value.setDecimals(2)
@@ -53,7 +55,7 @@ class WorkoutStepEditor(QWidget):
 
         self.duration_unit = QComboBox()
         self.duration_unit.addItems(DURATION_UNITS.keys())
-        self.duration_unit.setCurrentText("min")
+        self.duration_unit.setCurrentText(get_text("MINUTE_UNIT"))
 
         self.duration_unit.currentTextChanged.connect(
             self.update_duration_range
@@ -64,15 +66,15 @@ class WorkoutStepEditor(QWidget):
         layout.addWidget(self.duration_value)
         layout.addWidget(self.duration_unit)
 
-        layout.addWidget(QLabel("CPM"))
+        layout.addWidget(QLabel(get_text("SPM_UNIT")))
 
-        self.cpm = QSpinBox()
-        self.cpm.setRange(10, 50)
-        self.cpm.setValue(20)
+        self.cpm_box = QSpinBox()
+        self.cpm_box.setRange(10, 50)
+        self.cpm_box.setValue(20)
 
-        layout.addWidget(self.cpm)
+        layout.addWidget(self.cpm_box)
 
-        layout.addWidget(QLabel("Intensité"))
+        layout.addWidget(QLabel(get_text("INTENSITY")))
 
         self.intensity = QComboBox()
         self.intensity.addItems(INTENSITY_DICT.keys())
@@ -80,7 +82,7 @@ class WorkoutStepEditor(QWidget):
 
         layout.addWidget(self.intensity)
 
-        layout.addWidget(QLabel("Partie"))
+        layout.addWidget(QLabel(get_text("BODY_PART")))
 
         self.part = QComboBox()
         self.part.addItem("")
@@ -89,10 +91,10 @@ class WorkoutStepEditor(QWidget):
         layout.addWidget(self.part)
 
         self.info_lineedit = QLineEdit()
-        self.info_lineedit.setPlaceholderText("Information")
+        self.info_lineedit.setPlaceholderText(get_text("INFORMATION"))
 
         self.comment_lineedit = QLineEdit()
-        self.comment_lineedit.setPlaceholderText("Commentaire")
+        self.comment_lineedit.setPlaceholderText(get_text("COMMENT"))
 
         layout.addWidget(self.info_lineedit, 1)
         layout.addWidget(self.comment_lineedit, 1)
@@ -107,7 +109,7 @@ class WorkoutStepEditor(QWidget):
         layout.addWidget(self.add_button)
 
     # -------------------------------------------------------------------------
-    def update_duration_range(self, unit: str | None = None):
+    def update_duration_range(self, unit: str | None = None) -> None:
         if unit is None:
             unit = self.duration_unit.currentText()
 
@@ -115,7 +117,7 @@ class WorkoutStepEditor(QWidget):
         self.duration_value.setRange(minimum, maximum)
 
     # -------------------------------------------------------------------------
-    def set_duration_seconds(self, duration_seconds: float):
+    def set_duration_seconds(self, duration_seconds: float) -> None:
         """Set the duration using the most natural unit."""
 
         if duration_seconds % 3600 == 0:
@@ -143,15 +145,16 @@ class WorkoutStepEditor(QWidget):
     def set_values(
         self,
         duration_seconds: float,
-        cpm: int,
+        spm: int,
         intensity: str,
         part: str | None = None,
         info: str | None = None,
         comment: str | None = None,
-    ):
+    ) -> None:
+
         self.set_duration_seconds(duration_seconds)
 
-        self.cpm.setValue(cpm)
+        self.cpm_box.setValue(spm)
 
         index = self.intensity.findText(intensity)
         if index >= 0:
@@ -177,10 +180,10 @@ class WorkoutStepEditor(QWidget):
         )
 
     # -------------------------------------------------------------------------
-    def get_values(self):
+    def get_values(self) -> dict[str, Any]:
         return {
             "duration_seconds": self.get_duration_seconds(),
-            "cpm": self.cpm.value(),
+            "spm": self.cpm_box.value(),
             "intensity": self.intensity.currentText(),
             "part": self.part.currentText() or None,
             "info": self.info_lineedit.text().strip(),
@@ -195,7 +198,8 @@ class WorkoutEditorDialog(QDialog):
         self,
         workout: Workout | None = None,
         parent=None,
-    ):
+    ) -> None:
+
         super().__init__(parent)
 
         self.workout = workout
@@ -210,16 +214,16 @@ class WorkoutEditorDialog(QDialog):
         self._create_ui()
 
         if workout is None:
-            self.setWindowTitle("Créer un Workout")
-            self.title_edit.setText("Nouveau Workout")
-            self.field_edit.setText("Field")
+            self.setWindowTitle(get_text("WO_CREATE_TITLE"))
+            self.title_edit.setText(get_text("WO_CREATE_NEW"))
+            self.field_edit.setText(get_text("FIELD"))
             self.add_step()
         else:
-            self.setWindowTitle("Éditer un Workout")
+            self.setWindowTitle(get_text("WO_EDIT_TITLE"))
             self.fetch_workout(workout)
 
     # -------------------------------------------------------------------------
-    def _create_ui(self):
+    def _create_ui(self) -> None:
         
         self.resize(WORKOUT_EDIT_WIDTH, WORKOUT_EDIT_HEIGHT)
 
@@ -228,13 +232,13 @@ class WorkoutEditorDialog(QDialog):
         form = QFormLayout()
 
         self.title_edit = QLineEdit()
-        self.title_edit.setPlaceholderText("Nom du Workout")
+        self.title_edit.setPlaceholderText(get_text("WORKOUT_NAME"))
 
         self.field_edit = QLineEdit()
-        self.field_edit.setPlaceholderText("Field")
+        self.field_edit.setPlaceholderText(get_text("FIELD"))
 
-        form.addRow("Titre :", self.title_edit)
-        form.addRow("Field :", self.field_edit)
+        form.addRow(f"{get_text("WORKOUT_NAME")} :", self.title_edit)
+        form.addRow(f"{get_text("FIELD")} :", self.field_edit)
 
         main_layout.addLayout(form)
 
@@ -261,7 +265,8 @@ class WorkoutEditorDialog(QDialog):
         main_layout.addWidget(buttons)
 
     # -------------------------------------------------------------------------
-    def add_step(self, after=None):
+    def add_step(self, after=None) -> WorkoutStepEditor:
+
         editor = WorkoutStepEditor()
 
         if after is None:
@@ -283,7 +288,8 @@ class WorkoutEditorDialog(QDialog):
         return editor
 
     # -------------------------------------------------------------------------
-    def remove_step(self, editor):
+    def remove_step(self, editor) -> None:
+
         # Toujours conserver au moins une étape.
         if len(self.step_editors) <= 1:
             return
@@ -292,7 +298,7 @@ class WorkoutEditorDialog(QDialog):
         editor.deleteLater()
 
     # -------------------------------------------------------------------------
-    def fetch_workout(self, workout: Workout):
+    def fetch_workout(self, workout: Workout) -> None:
 
         self.title_edit.setText(workout.title)
         self.field_edit.setText(workout.field)
@@ -302,7 +308,7 @@ class WorkoutEditorDialog(QDialog):
 
             editor.set_values(
                 duration_seconds= step.duration_seconds,
-                cpm= step.cpm,
+                spm= step.spm,
                 intensity= step.intensity,
                 part= step.part,
                 info= step.info,
@@ -336,7 +342,7 @@ class WorkoutEditorDialog(QDialog):
 
             line = (
                 f"{duration:g} "
-                f"{values['cpm']} "
+                f"{values['spm']} "
                 f"{values['intensity']}"
             )
 
@@ -368,8 +374,8 @@ class WorkoutEditorDialog(QDialog):
                 except OSError as exc:
                     QMessageBox.critical(
                         self,
-                        "Erreur",
-                        f"Impossible d'enregistrer le Workout :\n{exc}",
+                        get_text("ERROR"),
+                        f"{get_text("ERR_WO_CANT_SAVE")} :\n{exc}",
                     )
                     return False
 
@@ -381,8 +387,8 @@ class WorkoutEditorDialog(QDialog):
             if filename.exists():
                 QMessageBox.warning(
                     self,
-                    "Fichier existant",
-                    f"Le fichier existe déjà :\n{filename}",
+                    get_text("ERROR"),
+                    f"{get_text("ERR_WO_FILE_EXISTS")} :\n{filename}",
                 )
                 return False
 
@@ -391,8 +397,8 @@ class WorkoutEditorDialog(QDialog):
             except OSError as exc:
                 QMessageBox.critical(
                     self,
-                    "Erreur",
-                    f"Impossible de créer le Workout :\n{exc}",
+                    get_text("ERROR"),
+                    f"{get_text("ERR_WO_CANT_CREATE")} :\n{exc}",
                 )
                 return False
 
@@ -404,8 +410,8 @@ class WorkoutEditorDialog(QDialog):
         if filename.exists():
             QMessageBox.warning(
                 self,
-                "Fichier existant",
-                f"Le fichier existe déjà :\n{filename}",
+                get_text("ERROR"),
+                f"{get_text("ERR_WO_FILE_EXISTS2")} :\n{filename}",
             )
             return False
 
@@ -414,31 +420,31 @@ class WorkoutEditorDialog(QDialog):
         except OSError as exc:
             QMessageBox.critical(
                 self,
-                "Erreur",
-                f"Impossible de créer le Workout :\n{exc}",
+                get_text("ERROR"),
+                f"{get_text("ERR_WO_CANT_CREATE2")} :\n{exc}",
             )
             return False
 
         return True
 
     # -------------------------------------------------------------------------
-    def save(self):
+    def save(self) -> None:
         title = self.title_edit.text().strip()
         field = self.field_edit.text().strip()
 
         if not title:
             QMessageBox.warning(
                 self,
-                "Workout invalide",
-                "Le titre ne peut pas être vide.",
+                get_text("ERROR"),
+                get_text("ERR_INVWO_EMPTY_TITLE"),
             )
             return
 
         if not field:
             QMessageBox.warning(
                 self,
-                "Workout invalide",
-                "Le champ ne peut pas être vide.",
+                get_text("ERROR"),
+                get_text("ERR_INVWO_EMPTY_FIELD"),
             )
             return
 
@@ -447,8 +453,8 @@ class WorkoutEditorDialog(QDialog):
         if any(char in title for char in invalid_chars):
             QMessageBox.warning(
                 self,
-                "Workout invalide",
-                "Le titre contient un caractère interdit pour un nom de fichier.",
+                get_text("ERROR"),
+                get_text("ERR_INVWO_BADCHAR_TITLE"),
             )
             return
 
@@ -458,7 +464,7 @@ class WorkoutEditorDialog(QDialog):
         self.accept()
 
     # -------------------------------------------------------------------------
-    def workout_data(self):
+    def workout_data(self) -> dict[str, str]:
         return {
             "title": self.title_edit.text().strip(),
             "field": self.field_edit.text().strip(),

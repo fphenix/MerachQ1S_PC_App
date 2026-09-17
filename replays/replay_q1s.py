@@ -14,7 +14,10 @@ from __future__ import annotations
 import time
 import traceback
 
+from setup.lang import get_text
 from setup.utils import echoerr
+
+from setup.cnx_enum import CnxState
 
 from engine.state import RowState
 from rowers.merach_q1s import MerachRower
@@ -83,7 +86,7 @@ class ReplayQ1S(ReplaySource):
     def _run(self) -> None:
 
         try:
-            self.state.set_connection("Replay")
+            self.state.set_cnx_status(CnxState.REPLAY)
 
             first_row = True
 
@@ -115,15 +118,15 @@ class ReplayQ1S(ReplaySource):
 
         except Exception as exc:
             self._running = False
-            echoerr("Replay Q1S interrompu :", exc)
+            echoerr(f"Q1S {get_text("ERR_REPLAY_STOPPED")} : {exc}")
             traceback.print_exc()
-            #raise Exception(f"Replay Q1S : {exc}")
+            #raise Exception(f"Q1S {get_text("ERR_REPLAY_STOPPED")} : {exc}")
 
         finally:
             self._running = False
-            self.state.set_connection("Arrêt")
+            self.state.set_cnx_status(CnxState.STOP)
 
     # ------------------------------------------------------------------
     @property
-    def running(self) -> bool:
+    def is_running(self) -> bool:
         return self._running

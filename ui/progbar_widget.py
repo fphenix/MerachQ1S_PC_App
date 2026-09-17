@@ -7,6 +7,8 @@ from PySide6.QtWidgets import (
     QProgressBar,
 )
 
+from setup.lang import get_text
+
 # =============================================================================
 class GradientGauge(QFrame):
     """
@@ -30,21 +32,18 @@ class GradientGauge(QFrame):
         zones: list[float],
         inverted: bool = False,
         decimals: int = 1,
-    ):
+    ) -> None:
+
         super().__init__()
 
         if not zones:
-            raise ValueError("GradientGauge : zones ne peut pas être vide")
+            raise ValueError(get_text("ERR_PBAR_EMPTY_ZONE"))
 
         if len(zones) != 5:
-            raise ValueError(
-                "GradientGauge : zones doit contenir exactement 5 points."
-            )
+            raise ValueError(get_text("ERR_PBAR_5PTS_ZONE"))
 
         if len(set(zones)) != 5:
-            raise ValueError(
-                "GradientGauge : les 5 points de zones doivent être différents."
-            )
+            raise ValueError(get_text("ERR_PBAR_5PTS_DIFF"))
 
         self.zones = sorted(zones)
 
@@ -60,7 +59,8 @@ class GradientGauge(QFrame):
         self.set_value(self.minimum)
 
     # ------------------------------------------------------------------
-    def _create_ui(self):
+    def _create_ui(self) -> None:
+
         self.progress = QProgressBar()
         self.progress.setRange(0, 1000)
         self.progress.setTextVisible(False)

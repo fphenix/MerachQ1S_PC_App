@@ -17,7 +17,12 @@ import time
 from bleak import BleakScanner
 from pyftms.client.machines.rower import Rower
 
+from setup.lang import get_text
 from setup.utils import echo, echoerr
+
+from setup.cnx_enum import CnxState
+from setup.settings import Settings
+from engine.state import RowState
 
 from rowers.rower import RowerClient
 from rowers.merach_q1s_calc import MerachQ1SCalc
@@ -39,7 +44,7 @@ class MerachRower(RowerClient):
     NAME = "Merach Q1S"
 
     # -------------------------------------------------------------------------
-    def __init__(self, state, settings):
+    def __init__(self, state: RowState, settings: Settings) -> None:
 
         super().__init__(self.MERACH_Q1S_ADDRESS, state, settings)
 
@@ -88,7 +93,7 @@ class MerachRower(RowerClient):
 
     # -------------------------------------------------------------------------
     # Abstracted in parent class
-    def start(self):
+    def start(self) -> None:
 
         if self._running:
             return
@@ -104,16 +109,17 @@ class MerachRower(RowerClient):
 
     # -------------------------------------------------------------------------
     # Abstracted in parent class
-    def stop(self):
+    def stop(self) -> None:
 
         self._running = False
 
         if self._thread is not None:
             self._thread.join(timeout=5)
+            self._thread = None
 
     # -------------------------------------------------------------------------
     # Abstracted in parent class
-    def reset(self):
+    def reset(self) -> None:
        
         # Date de la dernière trame FTMS reçue.
         self._last_update = time.monotonic()
@@ -173,25 +179,25 @@ class MerachRower(RowerClient):
         return rowerdata
 
     # -------------------------------------------------------------------------
-    def _thread_main(self):
+    def _thread_main(self) -> None:
 
         try:
             asyncio.run(self._run())
 
         except Exception as ex:
-            echo("FTMS :", ex)
+            echoerr(f"FTMS : {ex}")
 
     # -------------------------------------------------------------------------
-    async def _run(self):
+    async def _run(self) -> None:
 
         while self._running:
 
-            self.state.set_connection("Recherche...")
+            self.state.set_cnx_status(CnxState.SEEKING)
             self._rower = None
 
             try:
 
-                echo("Recherche du rameur...")
+                echo(get_text("ROWER_SEEKING"))
 
                 device = await BleakScanner.find_device_by_address(
                     self.address,
@@ -203,7 +209,7 @@ class MerachRower(RowerClient):
                     await asyncio.sleep(2)
                     continue
 
-                echo(f"Connecté : {device.address}")
+                echo(f"{get_text("CNX_CONNECTED")} : {device.address}")
 
                 self._rower = Rower(
                     device,
@@ -212,14 +218,14 @@ class MerachRower(RowerClient):
 
                 await self._rower.connect()
 
-                self.state.set_connection("Connecté")
+                self.state.set_cnx_status(CnxState.CONNECTED)
 
                 #
                 # Première trame attendue.
                 #
                 self._last_update = time.monotonic()
 
-                echo("Lecture FTMS...")
+                echo(f"FTMS : {get_text("FTMS_READING")}")
 
                 while self._running:
 
@@ -231,9 +237,9 @@ class MerachRower(RowerClient):
 
                     if time.monotonic() - self._last_update > 5:
 
-                        echoerr("Connexion FTMS perdue.")
+                        echoerr(f"FTMS : {get_text("FTMS_LOST_CNX")}")
 
-                        self.state.set_connection("Déconnecté")
+                        self.state.set_cnx_status(CnxState.DISCONNECTED)
 
                         break
 
@@ -241,9 +247,9 @@ class MerachRower(RowerClient):
 
             except Exception as ex:
 
-                echoerr("FTMS :", ex)
+                echoerr(f"FTMS : {ex}")
 
-                self.state.set_connection("Déconnecté")
+                self.state.set_cnx_status(CnxState.DISCONNECTED)
 
             finally:
 
@@ -259,24 +265,15 @@ class MerachRower(RowerClient):
 
             if self._running:
 
-                self.state.set_connection("Recherche...")
+                self.state.set_cnx_status(CnxState.SEEKING)
 
-                echo("Nouvelle tentative dans 2 secondes...")
+                echo(f"FTMS : {get_text("FTMS_NEXT_TRY")}")
 
                 await asyncio.sleep(2)
 
-        self.state.set_connection("Arrêt")
+        self.state.set_cnx_status(CnxState.STOP)
 
-        echo("Thread FTMS terminé.")
-
-    # -------------------------------------------------------------------------
-    def _get_value(self, data, key, default=0):
-        
-        if key in data:
-            self._last_data[key] = data[key]
-            return data[key]
-
-        return self._last_data.get(key, default)
+        echo(f"FTMS : {get_text("FTMS_THREAD_ENDED")}")
 
     # -------------------------------------------------------------------------
     def _to_rower_data(self, data: dict) -> RowerData:
@@ -300,14 +297,14 @@ class MerachRower(RowerClient):
         return RowerData(**self._last_data)
 
     # -------------------------------------------------------------------------
-    def feed_raw_data(self, data: dict):
+    def feed_raw_data(self, data: dict) -> None:
         """Injecte une trame raw provenant du Bluetooth ou d'un Replay."""
 
         new_rowerdata = self._to_rower_data(data)
         self.state.update(new_rowerdata)
 
     # -------------------------------------------------------------------------
-    def _on_ftms_event(self, event):
+    def _on_ftms_event(self, event) -> None:
 
         #
         # Une trame vient d'être reçue.

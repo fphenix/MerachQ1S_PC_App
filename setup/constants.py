@@ -1,23 +1,40 @@
 from pathlib import Path
 
-VERSION = 4.3
+VERSION = 4.5
 
 GUI_REFRESH_MS = 100 # milliseconds
 FPS = 50
 
-WINDOW_TITLE = "Rower PM Monitor"
 WINDOW_WIDTH = 1100 # pixels
 WINDOW_HEIGHT = 700 # pixels
+WINDOW_TO_SCREEN_LEFT_MARGIN = 35 # pixels
 
 SETTINGS_FILE = (
     Path(__file__).resolve().parent.parent
     / "config" / "settings.json"
 )
 
+LANGUAGES = {
+    "fr": "Français",
+    "en": "English",
+}
+
+DEFAULT_LANGUAGE = "fr" # "Fr" or "En"
+
+LANG_FILE = (
+    Path(__file__).resolve().parent.parent
+    / "config" / "lang.json"
+)
+
+WIDGET_TITLE_FONT_SIZE = 11
+WIDGET_VALUE_FONT_SIZE = 28
+WIDGET_UNIT_FONT_SIZE  = 10
+SPLIT_LIST_FONT_SIZE   = 12
+
 DEFAULT_SPLIT_LENGTH  = 500.0 # meters
-MIN_SPLIT_LENGTH = 100
-MAX_SPLIT_LENGTH = 2000
-SPLIT_LENGTH_STEP = 100
+MIN_SPLIT_LENGTH = 100   # meters
+MAX_SPLIT_LENGTH = 2000  # meters
+SPLIT_LENGTH_STEP = 100  # meters
 
 MAIN_FONT = "Consolas"
 TITLE_FONT = "Segoe UI"
@@ -38,6 +55,16 @@ SPLIT_MODES = (
     "500m",
     "workout",
 )
+
+ALLOWED_REPLAY_EXT = ["csv", "zip"]
+
+# ----------------------------------------------------------------------
+# Analyzer
+# ----------------------------------------------------------------------
+
+ANALYZER_STATS_FONT_SIZE = 11
+ANALYZER_STATS_MIN_WIDTH = 260
+ANALYZER_STATS_MAX_WIDTH = 320
 
 # ----------------------------------------------------------------------
 # Logger
@@ -84,12 +111,10 @@ USE_REPLAY_WORKOUT = False
 # * un .zip ayant un (et un seul) .csv à l'intérieur
 REPLAY_FILE = (
     #f"{LOGS_DIR}/session_20260908_102813.zip" # Choose Log to replay (csv ou zip)
-    #f"{LOGS_DIR}/session_20260910_160830.zip"
-    #f"{LOGS_DIR}/session_20260911_162917.zip"
-    f"{LOGS_DIR}/session_20260914_174048.zip"
+    f"{LOGS_DIR}/session_20260915_180536.zip"
 )
 REPLAY_WORKOUT_FILE = (
-    f"{WORKOUTS_DIR}/Row20_Day10.wo"
+    f"{WORKOUTS_DIR}/Row20_Day02.wo"
 )
 
 REPLAY_SPEED = 100.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.
@@ -106,25 +131,26 @@ DELAY_SECONDS_STEP = 5
 WORKOUT_WIDTH  = 720 # pixels
 WORKOUT_HEIGHT = WINDOW_HEIGHT # pixels
 
-WORKOUT_EDIT_WIDTH  = 1100
-WORKOUT_EDIT_HEIGHT =  800
+WORKOUT_EDIT_WIDTH  = 1100  # pixels
+WORKOUT_EDIT_HEIGHT =  800  # pixels
 
 TITLE_FONT_SIZE = 24
-BIG_FONT_SIZE = 22
-LIST_FONT_SIZE = 14
-INFO_FONT_SIZE = 18
+BIG_FONT_SIZE   = 22
+LIST_FONT_SIZE  = 14
+INFO_FONT_SIZE  = 18
 
-LIST_WIDTH = 220
-BAR_HEIGHT = 28
-METRONOME_MARGIN = 100
+LIST_WIDTH = 220  # pixels
+BAR_HEIGHT = 28   # pixels
 
-WINDOW_BACKGROUND = "#303030"
-LIST_BACKGROUND = "#202020"
-BAR_BACKGROUND = "#202020"
+METRONOME_MARGIN = 100  # pixels
+
+WINDOW_BACKGROUND   = "#303030"
+LIST_BACKGROUND     = "#202020"
+BAR_BACKGROUND      = "#202020"
 MENU_SEL_BACKGROUND = "#505050"
-BAR_BORDER = "#666666"
-BAR_COLOR = "#00CC44"
-TEXT_COLOR = "white"
+BAR_BORDER          = "#666666"
+BAR_COLOR           = "#00CC44"
+TEXT_COLOR          = "white"
 LISTTEXT_COLOR = TEXT_COLOR
 
 WO_KEYWORD:dict[str, str] = {
@@ -160,7 +186,7 @@ INTENSITY_COLORS = {
 }
 
 DURATION_UNITS = {
-    "sec": 1,
+    "sec":  1,
     "min": 60,
     "h": 3600,
 }
@@ -168,7 +194,7 @@ DURATION_UNITS = {
 DURATION_RANGES = {
     "sec": (1, 3600),
     "min": (0.01, 120),
-    "h": (0.01, 2),
+    "h":   (0.01, 2),
 }
 
 # ----------------------------------------------------------------------

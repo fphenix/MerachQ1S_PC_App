@@ -1,10 +1,16 @@
 from dataclasses import dataclass, field
 
+from setup.cnx_enum import CnxState
+
+from setup.lang import get_text
+
 # =============================================================================
 @dataclass(slots=True)
 class RowerData:
 
-    connection: str = "Recherche..."
+    connection: int = field(
+        default_factory=lambda: CnxState.SEEKING
+    )
 
     delta_strokes: int = 0                  # nb of strokes between packets
     stroke_event: bool = False              # True of a stroke occured

@@ -10,6 +10,8 @@ C2 uses a proprietary BLE transfert over BT, not FTMS.
 from bleak import BleakClient
 
 from .rower import RowerClient
+
+from setup.lang import get_text
 from setup.utils import echo
 
 C2_BASE_UUID = "CE06XXXX-43E5-11E4-916C-0800200C9A66"
@@ -43,14 +45,14 @@ class Concept2Rower(RowerClient):
     EXTRA_STROKE_DATA_UUID = None
 
     # -------------------------------------------------------------------------
-    def __init__(self, address: str, state):
+    def __init__(self, address: str, state) -> None:
 
         super().__init__(address, state)
 
         self.reset()
 
     # -------------------------------------------------------------------------
-    def reset(self):
+    def reset(self) -> None:
 
         self._thread = None
         self._running = False
@@ -59,7 +61,7 @@ class Concept2Rower(RowerClient):
         self.force_curve = None
 
     # -------------------------------------------------------------------------
-    def start(self):
+    def start(self) -> None:
 
         if self._running:
             return
@@ -67,18 +69,18 @@ class Concept2Rower(RowerClient):
         self._running = True
 
     # -------------------------------------------------------------------------
-    def stop(self):
+    def stop(self) -> None:
 
         self._running = False
 
     # -------------------------------------------------------------------------
-    async def _connect(self):
+    async def _connect(self) -> None:
 
         self._client = BleakClient(self.address)
 
         await self._client.connect()
 
-        echo("Concept2 connecté")
+        echo(f"Concept2 : {get_text("CNX_CONNECTED")}")
 
         for service in self._client.services:
             echo(f"Service: {service.uuid}")
@@ -167,7 +169,7 @@ class Concept2Rower(RowerClient):
         # self.state.cadence = ...
 
     # -------------------------------------------------------------------------
-    def _handle_stroke_data(self, sender, data):
+    def _handle_stroke_data(self, sender, data) -> None:
 
         stroke = self._decode_stroke_data(data)
 
@@ -187,7 +189,7 @@ class Concept2Rower(RowerClient):
         }
 
     # -------------------------------------------------------------------------
-    def _handle_force_curve(self, sender, data):
+    def _handle_force_curve(self, sender, data) -> None:
 
         self.force_curve = bytes(data)
 

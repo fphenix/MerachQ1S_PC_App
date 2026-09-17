@@ -11,24 +11,6 @@
 # our calculations on something... We will only use the inst power
 # (not the raw average).
 
-# Frottements : Coefficient Concept2 est 2.8.
-# Peut être ajusté expérimentalement pour le Merach Q1S.
-DRAG_FACTOR  = 2.8
-
-# Power : le raw_power venant du Q1S semble beaucoup trop bas (30-35 au lieu de 90-120W!)
-# On va le calibrer grâce à cette valeur:
-POWER_SCALE = 3.6
-
-# Candence : lissage
-CADENCE_WINDOW = 4      # nombre de coups utilisés pour le calcul brut (ou plus précisément la taille de la fenêtre utilisée pour calculer la cadence brute)
-CADENCE_SMOOTHING = 3   # nombre de cadences calculées utilisées pour le lissage
-
-# Calories
-USE_C2_CALORIES = False
-CALORIE_OFFSET = 300.0
-CALORIES_CALIB = 1.1639
-CALORIES_PER_WATT = 3.4
-
 from collections import deque
 
 from engine.calc import (
@@ -50,17 +32,35 @@ from engine.calc import (
 # -------------------------------------------------------------------------
 class MerachQ1SCalc:
 
-    def __init__(self, settings):
+    # Frottements : Coefficient Concept2 est 2.8.
+    # Peut être ajusté expérimentalement pour le Merach Q1S.
+    DRAG_FACTOR:float  = 2.8
+
+    # Power : le raw_power venant du Q1S semble beaucoup trop bas (30-35 au lieu de 90-120W!)
+    # On va le calibrer grâce à cette valeur:
+    POWER_SCALE:float = 3.6
+
+    # Candence : lissage
+    CADENCE_WINDOW:int = 4      # nombre de coups utilisés pour le calcul brut (ou plus précisément la taille de la fenêtre utilisée pour calculer la cadence brute)
+    CADENCE_SMOOTHING:int = 3   # nombre de cadences calculées utilisées pour le lissage
+
+    # Calories
+    USE_C2_CALORIES:bool = False
+    CALORIE_OFFSET:float = 300.0
+    CALORIES_CALIB:float = 1.1639
+    CALORIES_PER_WATT:float = 3.4
+
+    def __init__(self, settings) -> None:
 
         self.settings = settings
 
-        self.stroke_times = deque(maxlen=CADENCE_WINDOW)
-        self.cadence_history = deque(maxlen=CADENCE_SMOOTHING)
+        self.stroke_times = deque(maxlen=self.CADENCE_WINDOW)
+        self.cadence_history = deque(maxlen=self.CADENCE_SMOOTHING)
 
         self.reset()
 
     # -------------------------------------------------------------------------
-    def reset(self):
+    def reset(self) -> None:
 
         self.distance = 0.0
         self.calories = 0.0
@@ -93,13 +93,13 @@ class MerachQ1SCalc:
         #
 
         raw_power = float(data.get("raw_power", 0.0))
-        power = raw_power * POWER_SCALE
+        power = raw_power * self.POWER_SCALE
 
         #
         # Vitesse : recalculé à partir de power
         #
 
-        speed = self.q1s_calc_speed(power)
+        speed = self.q1s_calc_speed(power, self.DRAG_FACTOR)
 
         # NOTE: Power's values (raw data from the Q1S machine) are weird:
         # Raw_Power is about half of Raw_Power_Avg. Hence using Raw_Power_Avg
@@ -142,7 +142,13 @@ class MerachQ1SCalc:
         # Calories inst: recalculé à partir de power
         #
 
-        calories_rate = self.q1s_calc_calories_rate(power)
+        calories_rate = self.q1s_calc_calories_rate(
+            power= power,
+            calo_per_w= self.CALORIES_PER_WATT,
+            calo_offset= self.CALORIE_OFFSET,
+            calo_calib= self.CALORIES_CALIB,
+            use_c2_formula= self.USE_C2_CALORIES
+        )
         self.calories += calc_calories(calories_rate, delta_elapsed)
 
         #
@@ -286,19 +292,19 @@ class MerachQ1SCalc:
                     first_time + i * step
                 )
 
-        if len(self.stroke_times) < CADENCE_WINDOW:
+        if len(self.stroke_times) < self.CADENCE_WINDOW:
             return delta_strokes, 0.0, 0.0
 
         delta_time = calc_delta(
             self.stroke_times[-1],
-            self.stroke_times[-CADENCE_WINDOW],
+            self.stroke_times[-self.CADENCE_WINDOW],
         )
 
         if delta_time <= 0:
             return delta_strokes, 0.0, 0.0
 
         cadence_inst = self.q1s_calc_cadence_window(
-            CADENCE_WINDOW - 1,
+            self.CADENCE_WINDOW - 1,
             delta_time,
         )
 
@@ -322,10 +328,10 @@ class MerachQ1SCalc:
     # Raw_Power_Avg from the Q1S can't be trusted, we will recalculate
     # speed_avg separately)
     @staticmethod
-    def q1s_calc_speed(power: float) -> float:
+    def q1s_calc_speed(power: float, drag: float) -> float:
         
         return (
-            (power / DRAG_FACTOR) ** (1.0 / 3.0)
+            (power / drag) ** (1.0 / 3.0)
             if power > 0.0
             else 0.0
         )
@@ -338,11 +344,18 @@ class MerachQ1SCalc:
     # Note : due to the offset, the resulting value is non-null even when
     #        power is 0. You may want to rework that formulae to sort this out.
     @staticmethod
-    def q1s_calc_calories_rate(power: float) -> float:
-        if USE_C2_CALORIES:
-            return ((4.0 * power / CALORIES_CALIB) + CALORIE_OFFSET) / 3600.0
+    def q1s_calc_calories_rate(
+        power: float,
+        calo_per_w:float,
+        calo_offset:float,
+        calo_calib:float,
+        use_c2_formula:bool = False
+    ) -> float:
+
+        if use_c2_formula:
+            return ((4.0 * power / calo_calib) + calo_offset) / 3600.0
         else:
-            return (CALORIES_PER_WATT * power) / 3600.0
+            return (calo_per_w * power) / 3600.0
 
     # -----------------------------------------------------------------------------
     # Cadence (strokes per minute) = 60 * nb_strokes / time
@@ -353,7 +366,11 @@ class MerachQ1SCalc:
     # a smoothed calculation) or for cadence average (using respectively delta_N 
     # and delta_t OR N and time)
     @staticmethod
-    def q1s_calc_cadence_window(stroke_count: int, delta_t:float) -> float:
+    def q1s_calc_cadence_window(
+        stroke_count: int,
+        delta_t: float
+    ) -> float:
+
         return calc_cadence_from_strokes(stroke_count, delta_t)
 
     # --------------------------------------------------------

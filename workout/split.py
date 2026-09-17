@@ -5,7 +5,7 @@ from workout.split_data import WorkoutSplit
 # =============================================================================
 class WorkoutSplitCalculator:
 
-    def __init__(self, settings):
+    def __init__(self, settings) -> None:
 
         self.settings = settings
 
@@ -18,11 +18,11 @@ class WorkoutSplitCalculator:
         self._step_start_elapsed = 0.0
         self._step_start_distance = 0.0
 
-        self._previous_elapsed = None
-        self._previous_distance = None
+        self._previous_elapsed: float | None = None
+        self._previous_distance: float | None = None
 
     # -------------------------------------------------------------------------
-    def reset(self, workout=None):
+    def reset(self, workout=None) -> None:
 
         self.workout = workout
 
@@ -35,6 +35,22 @@ class WorkoutSplitCalculator:
 
         self._previous_elapsed = None
         self._previous_distance = None
+
+    # -------------------------------------------------------------------------
+    def start(self, distance: float) -> None:
+
+        self.current_step = 0
+
+        self._step_start_elapsed = 0.0
+        self._step_start_distance = max(
+            0.0,
+            distance,
+        )
+
+        self._previous_elapsed = 0.0
+        self._previous_distance = self._step_start_distance
+
+        self._ensure_split(0)
 
     # -------------------------------------------------------------------------
     def update(
@@ -65,20 +81,13 @@ class WorkoutSplitCalculator:
 
         # -------------------------------------------------------------
         # Première donnée
+        # Sécurité : si le calculateur n'a pas été démarré explicitement.
         # -------------------------------------------------------------
 
         if self.current_step is None:
 
-            self.current_step = step_index
-
-            self._step_start_elapsed = (
-                workout_elapsed - step_elapsed
-            )
-
-            self._step_start_distance = distance
-
-            self._ensure_split(
-                step_index
+            self.start(
+                distance=distance,
             )
 
         # -------------------------------------------------------------

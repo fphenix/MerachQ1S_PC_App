@@ -11,10 +11,11 @@ import zipfile
 
 from pathlib import Path
 
+from setup.lang import get_text
+from setup.constants import ALLOWED_REPLAY_EXT
+
 # =============================================================================
 class ReplaySource(ABC):
-
-    ALLOWED_REPLAY_EXT = ["csv", "zip"]
 
     # -------------------------------------------------------------------------
     def __init__(
@@ -22,16 +23,16 @@ class ReplaySource(ABC):
         filename: str,
         speed: float = 1.0,
     ) -> None:
-        
+
         self.filename = Path(filename)
 
         suffix = self.filename.suffix.lower()
 
         self.source_type = suffix.removeprefix(".")
 
-        if self.source_type not in self.ALLOWED_REPLAY_EXT:
+        if self.source_type not in ALLOWED_REPLAY_EXT:
             raise ValueError(
-                f"Format de replay non supporté : {self.filename.suffix} ; doit être csv ou zip"
+                f"{get_text("ERR_REPLAY_UNSUPP_LOG")} : {self.filename.suffix}"
             )
 
         self.speed = speed
@@ -71,6 +72,7 @@ class ReplaySource(ABC):
         Arrête le replay courant, réinitialise la source et
         recommence la lecture depuis le début.
         """
+
         self.stop()
         self.reset()
         self.start()
@@ -87,7 +89,7 @@ class ReplaySource(ABC):
             self._running = False
 
             raise FileNotFoundError(
-                f"Replay Q1S : fichier introuvable : {self.filename}"
+                f"Q1S Replay : {get_text("ERR_LOGFILE_NOT_FOUND")} : {self.filename}"
             )
 
         if self.source_type == "csv":
@@ -99,14 +101,14 @@ class ReplaySource(ABC):
             return
 
         raise ValueError(
-            f"Type de replay inconnu : {self.source_type}"
+            f"{get_text("ERR_REPLAY_UNSUPP_LOG")} : {self.source_type}"
         )
 
     # ------------------------------------------------------------------
     @staticmethod
-    def csv_skip_row(csvfile, skipnb:int=1):
+    def csv_skip_row(csvfile, skipnb: int = 1) -> None:
 
-        _skipnb = max(1, skipnb)
+        _skipnb = max(0, skipnb)
 
         for _ in range(_skipnb):
             next(csvfile, None)
@@ -147,13 +149,12 @@ class ReplaySource(ABC):
 
             if not csv_names:
                 raise ValueError(
-                    f"Aucun fichier CSV dans {filename}"
+                    f"{filename} : {get_text('ERR_ZIP_NO_FILE')}"
                 )
 
             if len(csv_names) > 1:
-                raise ValueError(
-                    "Le ZIP de replay doit contenir un seul fichier CSV."
-                )
+                raise ValueError(get_text("ERR_ZIP_ONLY_1_FILE"))
+
 
             csv_name = csv_names[0]
 
@@ -175,7 +176,7 @@ class ReplaySource(ABC):
     # -------------------------------------------------------------------------
     # Abstract
     @abstractmethod
-    def _run(self):
+    def _run(self) -> None:
         raise NotImplementedError
 
     # ------------------------------------------------------------------

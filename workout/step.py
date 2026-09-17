@@ -11,7 +11,7 @@ from setup.constants import (
 class WorkoutStep:
 
     duration_seconds: float
-    cpm: int
+    spm: int
     intensity: str
     part: str | None
     info: str | None
@@ -19,7 +19,7 @@ class WorkoutStep:
 
     # -------------------------------------------------------------------------
     @property
-    def intensity_text(self):
+    def intensity_text(self) -> str:
         part_txt = (
             ""
             if self.part is None
@@ -33,5 +33,5 @@ class WorkoutStep:
 
     # -------------------------------------------------------------------------
     @property
-    def intensity_color(self):
+    def intensity_color(self) -> str:
         return INTENSITY_COLORS[self.intensity]

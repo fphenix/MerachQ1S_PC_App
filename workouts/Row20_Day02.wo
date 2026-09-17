@@ -1,5 +1,5 @@
 WORKOUT: Row20_Day02
-FIELD: Technique
+FIELD: Technique, abdo
 60 20 N
 INFO: Pause 1 sec en position finale
 60 15 N
@@ -21,12 +21,12 @@ INFO: Pause 1 sec en position finale
 60 20 F
 INFO: Pause 1 sec en position finale
 60 16 F
-60 20 F
+60 22 F
 INFO: Pause 1 sec en position finale
 60 16 F
-60 20 F
+60 22 F
 INFO: Pause 1 sec en position finale
 60 16 F
-60 20 F
+60 24 M
 INFO: Pause 1 sec en position finale
-60 16 F
+60 18 F

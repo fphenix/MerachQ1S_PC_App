@@ -1,3 +1,4 @@
+from setup.lang import get_text
 from setup.constants import (
     INTENSITY_DICT,
     PART_DICT,
@@ -8,7 +9,7 @@ from workout.workout import Workout
 from workout.step import WorkoutStep
 
 # -----------------------------------------------------------------------------
-def load_workout(filename):
+def load_workout(filename) -> Workout:
 
     workout = Workout(filename)
 
@@ -43,16 +44,16 @@ def load_workout(filename):
 
                 if not new_comment:
                     print(
-                        f"Warning line {lineno}: "
-                        "Enmpty comments are ignored."
+                        f"{get_text("WO_FILE_WARNING_LINE")} {lineno}: ",
+                        get_text("WO_FILE_EMPTY_CMT")
                     )
                     
                     continue
 
                 if pending_comment is not None:
                     print(
-                        f"Warning line {lineno}: "
-                        "consecutive comments merged."
+                        f"{get_text("WO_FILE_WARNING_LINE")} {lineno}: ",
+                        get_text("WO_FILE_CONSEC_CMT")
                     )
 
                     pending_comment = (
@@ -75,16 +76,16 @@ def load_workout(filename):
 
                 if not new_info:
                     print(
-                        f"Warning line {lineno}: "
-                        "Enmpty INFO: are ignored."
+                        f"{get_text("WO_FILE_WARNING_LINE")} {lineno}: ",
+                        get_text("WO_FILE_EMPTY_INFO")
                     )
 
                     continue
 
                 if pending_info is not None:
                     print(
-                        f"Warning line {lineno}: "
-                        "consecutive INFO: lines merged."
+                        f"{get_text("WO_FILE_WARNING_LINE")} {lineno}: ",
+                         get_text("WO_FILE_CONSEC_INFO")
                     )
 
                     pending_info = (
@@ -103,7 +104,10 @@ def load_workout(filename):
             if upper.startswith(WO_KEYWORD["Title"]):
                 if title is not None:
                     raise ValueError(
-                        f"Line {lineno}: Keyword {WO_KEYWORD["Title"]} must be unique in a .wo file"
+                        f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
+                        f"{get_text("WO_FILE_KEYWORD")} ",
+                        f"{WO_KEYWORD["Title"]} ",
+                        get_text("WO_FILE_KW_UNIQUE")
                     )
 
                 title = line[len(WO_KEYWORD["Title"]):].strip()
@@ -123,7 +127,10 @@ def load_workout(filename):
             if upper.startswith(WO_KEYWORD["Field"]):
                 if field is not None:
                     raise ValueError(
-                        f"Line {lineno}: Keyword {WO_KEYWORD["Field"]} must be unique in a .wo file"
+                        f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
+                        f"{get_text("WO_FILE_KEYWORD")} ",
+                        f"{WO_KEYWORD["Field"]} ",
+                        get_text("WO_FILE_KW_UNIQUE")
                     )
 
                 field = line[len(WO_KEYWORD["Field"]):].strip()
@@ -144,13 +151,13 @@ def load_workout(filename):
 
             if len(parts) not in (3, 4):
                 raise ValueError(
-                    f"Line {lineno}: expected "
-                    "'seconds cpm intensity <part>'"
+                    f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
+                    get_text("WO_FILE_EXPECTED_DATA")
                 )
 
             try:
                 duration_seconds = float(parts[0])
-                cpm = int(parts[1])
+                spm = int(parts[1])
                 intensity = str(parts[2])
                 part = (
                     str(parts[3])
@@ -160,38 +167,38 @@ def load_workout(filename):
 
             except ValueError:
                 raise ValueError(
-                    f"Line {lineno}: invalid data type; "
-                    "must be: int_or_float int char <char_or_str>"
+                    f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
+                    get_text("WO_FILE_EXP_DATA_TYPE")
                 )
 
             if duration_seconds <= 0.0 or duration_seconds > 7200.0:
                 raise ValueError(
-                    f"Line {lineno}: duration must be "
-                    "> 0 and <= 7200"
+                    f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
+                    get_text("WO_FILE_EXP_DURATION")
                 )
 
-            if cpm <= 0 or cpm > 50:
+            if spm <= 0 or spm > 50:
                 raise ValueError(
-                    f"Line {lineno}: CPM must be "
-                    "> 0 and <= 50"
+                    f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
+                    get_text("WO_FILE_EXP_SPM")
                 )
 
             if intensity not in INTENSITY_DICT:
                 raise ValueError(
-                    f"Line {lineno}: intensity must be "
-                    "one of R, E, N, F or M"
+                    f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
+                    get_text("WO_FILE_EXP_INTENSITY")
                 )
 
             if part is not None and part not in PART_DICT:
                 raise ValueError(
-                    f"Line {lineno}: part must be one "
-                    f"of {PART_DICT.keys()}"
+                    f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
+                    f"{get_text("WO_FILE_EXP_PART")} {PART_DICT.keys()}"
                 )
 
             workout.steps.append(
                 WorkoutStep(
                     duration_seconds= duration_seconds,
-                    cpm= cpm,
+                    spm= spm,
                     intensity= intensity,
                     part= part,
                     info= pending_info,
@@ -204,19 +211,20 @@ def load_workout(filename):
 
     if pending_info is not None:
         print(
-            "Warning: INFO: at end of file "
-            "is not associated with a workout step."
+            f"{get_text("WO_FILE_WARNING_LINE")} {lineno}: ",
+            get_text("WO_FILE_EOF_INFO")
         )
 
     if pending_comment is not None:
         print(
-            "Warning: comment at end of file "
-            "is not associated with a workout step."
+            f"{get_text("WO_FILE_WARNING_LINE")} {lineno}: ",
+            get_text("WO_FILE_EOF_CMT")
         )
 
     if not workout.steps:
         raise ValueError(
-            "Workout is empty."
+            f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
+            get_text("WO_FILE_EMPTY")
         )
 
     return workout
@@ -229,13 +237,13 @@ def load_workout(filename):
 # * debug() (and bare print()) will be used to temporarily print
 #   debug informations. 
 #   Note: debug() adds a "DBG" before the string.
-def echo(*args, **kwargs):
+def echo(*args, **kwargs) -> None:
     print(*args, **kwargs)
 
-def echoerr(*args, **kwargs):
+def echoerr(*args, **kwargs) -> None:
     print("Erreur", *args, **kwargs)
 
-def debug(*args, **kwargs):
+def debug(*args, **kwargs) -> None:
     print("DBG", *args, **kwargs)
 
 # -----------------------------------------------------------------------------

@@ -16,6 +16,7 @@ from setup.constants import (
     PLOTWO_WIDTH, PLOTWO_HEIGHT,
 )
 
+from setup.lang import get_text
 from setup.utils import load_workout
 
 # =============================================================================
@@ -32,7 +33,7 @@ class WorkoutPlotWidget(FigureCanvas):
     def __init__(
         self,
         parent=None,
-    ):
+    ) -> None:
         self.current_workout = None
 
         figure = Figure(
@@ -48,7 +49,7 @@ class WorkoutPlotWidget(FigureCanvas):
         )
 
     # -------------------------------------------------------------------------
-    def clear(self):
+    def clear(self) -> None:
 
         self.current_workout = None
 
@@ -65,11 +66,11 @@ class WorkoutPlotWidget(FigureCanvas):
         )
 
         self.axes.set_xlabel(
-            "Temps (minutes)"
+            f"{get_text("TIME")} ({get_text("MINUTE_UNIT_FULL")})"
         )
 
         self.axes.set_ylabel(
-            "Cadence (spm)"
+            f"{get_text("CADENCE")} ({get_text("SPM_UNIT")})"
         )
 
         self.axes.grid(
@@ -79,19 +80,6 @@ class WorkoutPlotWidget(FigureCanvas):
         self.figure.tight_layout()
 
         self.draw()
-
-    # -------------------------------------------------------------------------
-    def set_vertical_style(
-        self,
-        style: str,
-    ) -> None:
-
-        self.VERTICAL_STYLE = style
-
-        if self.current_workout is not None:
-            self.plot_workout(
-                self.current_workout
-            )
 
     # -------------------------------------------------------------------------
     def plot_workout(
@@ -156,11 +144,11 @@ class WorkoutPlotWidget(FigureCanvas):
         )
 
         ax.set_xlabel(
-            "Temps (minutes)"
+            f"{get_text("TIME")} ({get_text("MINUTE_UNIT_FULL")})"
         )
 
         ax.set_ylabel(
-            "Cadence (spm)"
+            f"{get_text("CADENCE")} ({get_text("SPM_UNIT")})"
         )
 
         ax.set_facecolor(
@@ -184,7 +172,7 @@ class WorkoutPlotWidget(FigureCanvas):
 
             ax.plot(
                 [x0, x1],
-                [step.cpm, step.cpm],
+                [step.spm, step.spm],
                 color=color,
                 linewidth=self.LINE_WIDTH,
                 solid_capstyle="round",
@@ -211,7 +199,7 @@ class WorkoutPlotWidget(FigureCanvas):
                         [x0, x0],
                         [
                             previous_spm,
-                            step.cpm,
+                            step.spm,
                         ],
                         color=vcolor,
                         linewidth=vwidth,
@@ -219,7 +207,7 @@ class WorkoutPlotWidget(FigureCanvas):
                         zorder=1,
                     )
 
-            previous_spm = step.cpm
+            previous_spm = step.spm
 
             current_time = x1
 
@@ -295,7 +283,7 @@ class WorkoutPlotWindow(QMainWindow):
         self,
         filename: str | Path,
         parent=None,
-    ):
+    ) -> None:
         super().__init__(
             parent
         )
@@ -305,7 +293,7 @@ class WorkoutPlotWindow(QMainWindow):
         )
 
         self.setWindowTitle(
-            "Workout Viewer"
+            get_text("PLOT_TITLE")
         )
 
         self.plot = WorkoutPlotWidget(
@@ -335,6 +323,6 @@ class WorkoutPlotWindow(QMainWindow):
         )
 
         self.setWindowTitle(
-            "Workout Viewer - "
+            f"{get_text("PLOT_TITLE")} - "
             + self.filename.name
         )

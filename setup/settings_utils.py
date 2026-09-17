@@ -1,7 +1,10 @@
 import json
+from typing import Any
 from dataclasses import asdict
 
 from setup.constants import (
+    DEFAULT_LANGUAGE,
+    LANGUAGES,
     DEFAULT_DELAY_SECONDS,
     DEFAULT_SPLIT_LENGTH,
     DELAY_SECONDS_STEP,
@@ -23,7 +26,7 @@ def clamp_step(
     minimum,
     maximum,
     step,
-):
+) -> Any:
     value = max(
         minimum,
         min(maximum, value),
@@ -44,9 +47,17 @@ def load_settings() -> Settings:
         with SETTINGS_FILE.open(
             "r",
             encoding="utf-8",
-        ) as file:
+        ) as jfile:
 
-            data = json.load(file)
+            data = json.load(jfile)
+
+        language = data.get(
+            "language",
+            DEFAULT_LANGUAGE,
+        )
+
+        if language not in LANGUAGES:
+            language = DEFAULT_LANGUAGE
 
         delay_seconds = clamp_step(
             int(data.get(
@@ -77,9 +88,10 @@ def load_settings() -> Settings:
             split_mode = DEFAULT_SPLIT_MODE
 
         return Settings(
-            delay_seconds=delay_seconds,
-            split_length=split_length,
-            split_mode=split_mode,
+            language= language,
+            delay_seconds= delay_seconds,
+            split_length= split_length,
+            split_mode= split_mode,
         )
 
     except (

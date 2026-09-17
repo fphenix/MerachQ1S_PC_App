@@ -12,7 +12,7 @@ from logger.logrecord import LogRecord
 # =============================================================================
 class RowState:
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         self._lock = Lock()
 
@@ -28,12 +28,12 @@ class RowState:
         self.delta_strokes = 0
         self.stroke_event = False
 
-        self.logger = None
+        self.logger: CsvLogger | None = None
 
         self._session_rebase_pending = False
 
     # -------------------------------------------------------------------------
-    def reset_session(self):
+    def reset_session(self) -> None:
         """
         Remet à zéro les données de séance sans arrêter le rameur.
         La prochaine trame reçue devient la nouvelle référence des
@@ -54,18 +54,18 @@ class RowState:
             )
 
     # -------------------------------------------------------------------------
-    def set_connection(self, status: str):
+    def set_cnx_status(self, status) -> None:
 
         with self._lock:
             self.curr_rowerdata.connection = status
 
     # -------------------------------------------------------------------------
-    def set_logger(self, logger: CsvLogger):
+    def set_logger(self, logger: CsvLogger) -> None:
 
         self.logger = logger
 
     # -------------------------------------------------------------------------
-    def update(self, new_rowerdata: RowerData):
+    def update(self, new_rowerdata: RowerData) -> None:
 
         with self._lock:
 
@@ -210,7 +210,7 @@ class RowState:
                 self.logger.log(record)
 
     # -------------------------------------------------------------------------
-    def snapshot(self):
+    def snapshot(self) -> Snapshot:
         
         with self._lock:
             return Snapshot(

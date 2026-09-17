@@ -11,11 +11,14 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from setup.lang import get_text
 from setup.utils import format_pace, format_time
 from setup.settings import Settings
 from setup.constants import (
     TITLE_FONT,
     DEFAULT_SPLIT_LENGTH,
+    WIDGET_TITLE_FONT_SIZE,
+    SPLIT_LIST_FONT_SIZE,
 )
 
 from engine.calc import calc_full_split
@@ -37,7 +40,7 @@ class SplitListWidget(QFrame):
         self,
         title: str = "Splits",
         settings: Settings | None = None,
-    ):
+    ) -> None:
         super().__init__()
 
         self.setFrameShape(QFrame.Box)
@@ -72,10 +75,10 @@ class SplitListWidget(QFrame):
         self.set_splits([])
 
     # ------------------------------------------------------------------
-    def _create_ui(self):
+    def _create_ui(self) -> None:
 
         # List Font
-        self._list_font = QFont(TITLE_FONT, 12)
+        self._list_font = QFont(TITLE_FONT, SPLIT_LIST_FONT_SIZE)
         self._list_font.setBold(True)
 
         # ---------------------------------------------------------------------
@@ -85,7 +88,7 @@ class SplitListWidget(QFrame):
         self.title_label = QLabel(self.title)
         self.title_label.setAlignment(Qt.AlignCenter)
 
-        title_font = QFont(TITLE_FONT, 11)
+        title_font = QFont(TITLE_FONT, WIDGET_TITLE_FONT_SIZE)
         title_font.setBold(True)
         self.title_label.setFont(title_font)
 
@@ -178,7 +181,7 @@ class SplitListWidget(QFrame):
             self._follow_tail = True
 
     # ----------------------------------------------------------------------
-    def _scroll_to_target(self):
+    def _scroll_to_target(self) -> None:
         """Positionne la vue sur le dernier split."""
 
         if not self._follow_tail:
@@ -390,7 +393,7 @@ class SplitListWidget(QFrame):
             )
 
             suffix = (
-                " ← en cours"
+                get_text("SPLIT_CURRENT")
                 if index == new_count
                 else ""
             )

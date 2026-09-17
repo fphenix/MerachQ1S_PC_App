@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QDialog,
 )
 
+from setup.lang import get_text
 from setup.utils import (
     format_pace,
     format_time,
@@ -30,7 +31,6 @@ from setup.utils import (
 from setup.settings_utils import save_settings
 from setup.constants import (
     GUI_REFRESH_MS,
-    WINDOW_TITLE,
     WINDOW_WIDTH, WINDOW_HEIGHT,
     WORKOUT_WIDTH, WORKOUT_HEIGHT,
     METRONOME_MARGIN,
@@ -40,6 +40,7 @@ from setup.constants import (
     LOGS_DIR, WORKOUTS_DIR,
     ANALYZER_WIDTH, ANALYZER_HEIGHT,
 )
+from setup.cnx_enum import CnxState
 
 from ui.status_widget import StatusWidget
 from ui.widgets import MetricWidget
@@ -56,7 +57,7 @@ from analyzer.analyzer import AnalyzerWindow
 # =============================================================================
 class MainWindow(QMainWindow):
 
-    def __init__(self, state, settings):
+    def __init__(self, state, settings) -> None:
 
         super().__init__()
 
@@ -80,8 +81,8 @@ class MainWindow(QMainWindow):
         self.refresh()
 
     # ------------------------------------------------------------------
-    def _create_ui(self):
-        self.setWindowTitle(f"{WINDOW_TITLE} : {self.state.rower.NAME}")
+    def _create_ui(self) -> None:
+        self.setWindowTitle(f"{get_text("WINDOW_TITLE")} : {self.state.rower.NAME}")
 
         self.create_menu()
 
@@ -138,54 +139,54 @@ class MainWindow(QMainWindow):
         #
 
         self.timeWidget = MetricWidget(
-            title= "Temps",
+            title= get_text("TIME"),
             unit= "h:mm:ss",
         )
 
         self.distanceWidget = MetricWidget(
-            title= "Distance",
+            title= get_text("DISTANCE"),
             unit= "m",
         )
 
         self.speedWidget = MetricWidget(
-            title= "Vitesse",
-            unit= "m/s  /  moy",
+            title= get_text("SPEED"),
+            unit= f"m/s  /  {get_text("AVG")}",
             gauge= GradientGauge(
                 zones=[0, 2, 4, 6, 8], # 2 à 6 m/s est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
         )
 
         self.strokeWidget = MetricWidget(
-            title= "Coups",
+            title= f"{get_text("STROKE")}s",
         )
 
         self.distStrokeWidget = MetricWidget(
-            title= "Dist/Coup",
-            unit= "m/coup  /  moy",
+            title= get_text("DPS"),
+            unit= f"m/{get_text("STROKE").lower()}  /  {get_text("AVG")}",
             gauge= GradientGauge(
                 zones=[0, 5, 10, 15, 20], # 6 à 15 m/coup est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
         )
 
         self.powerWidget = MetricWidget(
-            title= "Puissance",
-            unit= "W  /  W moy",
+            title= get_text("POWER"),
+            unit= f"W  /  W {get_text("AVG")}",
             gauge= GradientGauge(
                 zones=[0, 100, 200, 300, 400], # 60 à 350 W est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
         )
 
         self.cadenceWidget = MetricWidget(
-            title= "Cadence",
-            unit= "cpm  /  cpm moy",
+            title= get_text("CADENCE"),
+            unit= f"{get_text("SPM_UNIT")}  /  {get_text("AVG")}",
             gauge= GradientGauge(
                 zones=[10, 20, 24, 30, 40], # 18 à 34 est plus réaliste pour h/f-débutant à h/f-très-confirmé
             ),
         )
 
         self.splitWidget = MetricWidget(
-            title= "Split",
-            unit= "mm:ss/500m  /  moy",
+            title= get_text("SPLIT"),
+            unit= f"mm:ss/500m  /  {get_text("AVG")}",
             gauge= GradientGauge(
                 zones=[80, 100, 130, 160, 200], # en sec/500m ; 2:55 à 1:45 mm:ss/500m est plus réaliste pour femme-débutante à homme-très-confirmé
                 inverted= True,
@@ -198,7 +199,7 @@ class MainWindow(QMainWindow):
 
         # Split selector : radiobutton
 
-        splitMode_label   = QLabel("Split Mode:")
+        splitMode_label   = QLabel(get_text("SPLIT_MODE_TITLE"))
 
         self.splitModeNormal  = QRadioButton("Normal")
         self.splitMode500m    = QRadioButton("500m")
@@ -247,7 +248,7 @@ class MainWindow(QMainWindow):
         self.splitListWidget.setVisible(False)
 
         self.caloriesWidget = MetricWidget(
-            title= "Calories",
+            title= get_text("CALORIES"),
             unit= "kcal/s  /  kcal",
         )
 
@@ -283,7 +284,7 @@ class MainWindow(QMainWindow):
         #
 
         self.resetButton = QPushButton(
-            "Nouvelle séance"
+            get_text("NEW_SESSION")
         )
 
         self.resetButton.clicked.connect(
@@ -333,6 +334,10 @@ class MainWindow(QMainWindow):
 
         self.workoutWidget.setVisible(
             False
+        )
+
+        self.workoutWidget.workout_started.connect(
+            self._workout_started
         )
 
         top_layout.addWidget(
@@ -388,7 +393,7 @@ class MainWindow(QMainWindow):
         self.metronome_container.setVisible(False)
 
     # -------------------------------------------------------------------------
-    def create_menu(self):
+    def create_menu(self) -> None:
 
         #
         # Workout >
@@ -398,16 +403,22 @@ class MainWindow(QMainWindow):
         #
 
         workout_menu = self.menuBar().addMenu(
-            "Workout"
+            get_text("MENU_WORKOUT")
         )
 
-        open_workout_action = workout_menu.addAction("Ouvrir...")
+        open_workout_action = workout_menu.addAction(
+            get_text("MENU_WORKOUT_OPEN")
+        )
         open_workout_action.triggered.connect(self.open_workout_file)
 
-        create_workout_action = workout_menu.addAction("Créer...")
+        create_workout_action = workout_menu.addAction(
+            get_text("MENU_WORKOUT_CREATE")
+        )
         create_workout_action.triggered.connect(self.create_workout)
 
-        edit_workout_action = workout_menu.addAction("Éditer...")
+        edit_workout_action = workout_menu.addAction(
+            get_text("MENU_WORKOUT_EDIT")
+        )
         edit_workout_action.triggered.connect(self.edit_workout)
 
         #
@@ -417,11 +428,11 @@ class MainWindow(QMainWindow):
         #
 
         tools_menu = self.menuBar().addMenu(
-            "Outils"
+            get_text("MENU_TOOLS")
         )
 
         analyzer_action = tools_menu.addAction(
-            "Analyser un log..."
+            get_text("MENU_TOOLS_ANALYZER")
         )
 
         analyzer_action.triggered.connect(
@@ -429,7 +440,7 @@ class MainWindow(QMainWindow):
         )
 
         plot_wo_action = tools_menu.addAction(
-            "Visualiser un .wo..."
+            get_text("MENU_TOOLS_PLOT")
         )
 
         plot_wo_action.triggered.connect(
@@ -442,11 +453,11 @@ class MainWindow(QMainWindow):
         #
 
         settings_menu = self.menuBar().addMenu(
-            "Réglages"
+            get_text("MENU_SETTINGS")
         )
 
         settings_action = settings_menu.addAction(
-            "Paramètres..."
+            f"{get_text("SETTINGS")}..."
         )
 
         settings_action.triggered.connect(
@@ -456,6 +467,15 @@ class MainWindow(QMainWindow):
         #Desactive le Réglage des Paramètres en Replay"
         settings_action.setEnabled(
             not USE_REPLAY
+        )
+
+    # -------------------------------------------------------------------------
+    def _workout_started(self) -> None:
+
+        rowerdata = self.state.snapshot().rowerdata
+
+        self.workoutSplitCalculator.start(
+            distance=rowerdata.distance,
         )
 
     # -------------------------------------------------------------------------
@@ -536,9 +556,8 @@ class MainWindow(QMainWindow):
 
             QMessageBox.information(
                 self,
-                "Nouvelle séance",
-                "Réinitialisez le rameur maintenant, "
-                "puis cliquez sur OK pour commencer la nouvelle séance.",
+                get_text("NEW_SESSION"),
+                get_text("MSG_RESET_ROWER"),
             )
 
             # Reset du modèle/calculateur local.
@@ -554,9 +573,8 @@ class MainWindow(QMainWindow):
 
         self.refresh()
 
-
     # -------------------------------------------------------------------------
-    def refresh(self):
+    def refresh(self) -> None:
         
         snapshot = self.state.snapshot()
 
@@ -567,7 +585,7 @@ class MainWindow(QMainWindow):
         #
 
         if self._workout_editor_paused:
-            self.connectionWidget.set_status("Pause")
+            self.connectionWidget.set_status(CnxState.PAUSE)
         else:
             self.connectionWidget.set_status(rowerdata.connection)
 
@@ -668,6 +686,7 @@ class MainWindow(QMainWindow):
             )
 
         elif self.splitModeWorkout.isChecked():
+
             self.splitListWidget.set_workout_splits(
                 self.workoutWidget.workout,
                 self.workoutSplitCalculator.splits,
@@ -682,14 +701,13 @@ class MainWindow(QMainWindow):
         )
 
     # -------------------------------------------------------------------------
-    def _edit_workout_dialog(self, workout=None):
+    def _edit_workout_dialog(self, workout= None) -> None:
         # Pas d'édition pendant une séance.
         if self.workoutWidget.started:
             QMessageBox.warning(
                 self,
-                "Workout",
-                "Impossible de créer ou modifier un Workout "
-                "pendant une séance.",
+                get_text("WARNING"),
+                get_text("WARN_CANT_EDIT_WO"),
             )
             return
 
@@ -714,14 +732,14 @@ class MainWindow(QMainWindow):
                 source.start()
 
     # -------------------------------------------------------------------------
-    def create_workout(self):
+    def create_workout(self) -> None:
         self._edit_workout_dialog()
 
     # -------------------------------------------------------------------------
-    def edit_workout(self):
+    def edit_workout(self) -> None:
         filename, _ = QFileDialog.getOpenFileName(
             self,
-            "Éditer un workout",
+            get_text("WO_EDIT_TITLE"),
             str(WORKOUTS_DIR),
             "Workout (*.wo)",
         )
@@ -734,7 +752,7 @@ class MainWindow(QMainWindow):
         self._edit_workout_dialog(workout)
 
     # -------------------------------------------------------------------------
-    def open_workout_file(self):
+    def open_workout_file(self) -> None:
 
         self.load_workout_file(
             filename=None,
@@ -775,13 +793,13 @@ class MainWindow(QMainWindow):
         return True
 
     # -------------------------------------------------------------------------
-    def open_analyzer(self):
+    def open_analyzer(self) -> None:
 
         filename, _ = QFileDialog.getOpenFileName(
             self,
-            "Choisir un log",
+            get_text("LOG_FILE_SELECT"),
             str(LOGS_DIR),
-            "Logs (*.csv *.zip);;Tous les fichiers (*)",
+            get_text("LOG_FILE_EXT"),
         )
 
         if not filename:
@@ -799,13 +817,13 @@ class MainWindow(QMainWindow):
         self.analyzer_window.show()
 
     # -------------------------------------------------------------------------
-    def open_plot_wo(self):
+    def open_plot_wo(self) -> None:
 
         filename, _ = QFileDialog.getOpenFileName(
             self,
-            "Choisir un workout",
+            get_text("WORKOUT_FILE_SELECT"),
             str(WORKOUTS_DIR),
-            "Workout (*.wo);;Tous les fichiers (*)",
+            get_text("WORKOUT_FILE_EXT"),
         )
 
         if not filename:
@@ -825,12 +843,12 @@ class MainWindow(QMainWindow):
 
             QMessageBox.warning(
                 self,
-                "Erreur",
-                f"Impossible de charger le workout.\n\n{exc}",
+                get_text("ERROR"),
+                f"{get_text("ERR_LOAD_WORKOUT")}\n{exc}",
             )
 
     # -------------------------------------------------------------------------
-    def closeEvent(self, event):
+    def closeEvent(self, event) -> None:
         # Arrête le moteur principal.
         if self.state.source is not None:
             self.state.source.stop()
@@ -871,7 +889,7 @@ class MainWindow(QMainWindow):
         )
 
     # -------------------------------------------------------------------------
-    def open_settings(self):
+    def open_settings(self) -> None:
 
         # On évite de modifier SPLIT_LENGTH en plein milieu
         # d'une session active.
@@ -880,11 +898,12 @@ class MainWindow(QMainWindow):
         if rowerdata.elapsed_time > 0.0:
             QMessageBox.information(
                 self,
-                "Paramètres",
-                "Les paramètres peuvent être modifiés "
-                "entre deux séances.",
+                get_text("SETTINGS"),
+                get_text("WARN_NO_SETTINGS"),
             )
             return
+
+        old_language_setting = self.settings.language
 
         dialog = SettingsDialog(
             self.settings,
@@ -902,6 +921,13 @@ class MainWindow(QMainWindow):
             self.settings
         )
 
+        if self.settings.language != old_language_setting:
+            QMessageBox.information(
+                self,
+                get_text("SETTINGS"),
+                get_text("LANGUAGE_RESTART_REQUIRED"),
+            )
+
     # -------------------------------------------------------------------------
     def _apply_split_mode_preference(self) -> None:
 
@@ -911,9 +937,11 @@ class MainWindow(QMainWindow):
         # alors on force à "Normal" si aucun Workout n'est chargé
         # mais on applique Split Mode = "Workout" si un .wo est chargé.
         # Note: Si un .wo est chargé, alors workoutWidget est visible.
+        # Si le choix par défaut est "Workout", on ne peut l'utiliser
+        # que lorsqu'un Workout est effectivement chargé.
         if (
             mode == "workout"
-            and not self.workoutWidget.isVisible()
+            and not self.splitModeWorkout.isEnabled()
         ):
             mode = "normal"
 

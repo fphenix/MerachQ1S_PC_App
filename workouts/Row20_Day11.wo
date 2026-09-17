@@ -1,0 +1,23 @@
+WORKOUT: Row20_Day11
+FIELD: Field
+INFO: Full stroke
+120 20 N
+# Peut être non faisable sur Q1S, qui est plus court que le C2
+INFO: Half slide stroke (sur le retour on ne va pas aussi loin, juste au moment o le talon va se décoller)
+120 20 F
+INFO: Full stroke
+120 20 N
+INFO: Half slide stroke
+120 20 F
+INFO: Full stroke
+120 20 N
+INFO: Half slide stroke
+120 20 F
+INFO: Full stroke
+120 20 N
+INFO: Half slide stroke
+120 20 F
+INFO: Full stroke
+120 20 N
+INFO: Half slide stroke
+120 20 F

@@ -8,8 +8,10 @@ from PySide6.QtWidgets import (
     QComboBox,
 )
 
+from setup.lang import get_text
 from setup.settings import Settings
 from setup.constants import (
+    LANGUAGES,
     MIN_DELAY_SECONDS,
     MAX_DELAY_SECONDS,
     DELAY_SECONDS_STEP,
@@ -25,7 +27,7 @@ class SettingsDialog(QDialog):
         self,
         settings: Settings,
         parent=None,
-    ):
+    ) -> None:
 
         super().__init__(parent)
 
@@ -34,8 +36,24 @@ class SettingsDialog(QDialog):
         self._create_ui()
 
     # ------------------------------------------------------------------
-    def _create_ui(self):
-        self.setWindowTitle("Paramètres")
+    def _create_ui(self) -> None:
+        self.setWindowTitle(get_text("SETTINGS"))
+
+        # Language
+
+        self.language_combo = QComboBox()
+
+        for key, val in LANGUAGES.items():
+            self.language_combo.addItem(val, key)
+
+        index = self.language_combo.findData(
+            self.settings.language
+        )
+
+        if index >= 0:
+            self.language_combo.setCurrentIndex(index)
+
+        # Delay before Workout starts
 
         self.delay_spinbox = QSpinBox()
         self.delay_spinbox.setRange(
@@ -50,6 +68,8 @@ class SettingsDialog(QDialog):
             self.settings.delay_seconds
         )
 
+        # Split length
+
         self.split_length_spinbox = QSpinBox()
         self.split_length_spinbox.setRange(
             MIN_SPLIT_LENGTH,
@@ -62,6 +82,8 @@ class SettingsDialog(QDialog):
         self.split_length_spinbox.setValue(
             int(self.settings.split_length)
         )
+
+        # Split Widget Mode
 
         self.split_mode_combo = QComboBox()
 
@@ -89,20 +111,29 @@ class SettingsDialog(QDialog):
         else:
             self.split_mode_combo.setCurrentIndex(0)
 
+        #
+        # Formulaire
+        #
+
         form = QFormLayout(self)
 
         form.addRow(
-            "Délai avant le workout :",
+            f"{get_text("SETTINGS_LANG")} :",
+            self.language_combo,
+        )
+
+        form.addRow(
+            f"{get_text("SETTINGS_DELAY")} :",
             self.delay_spinbox,
         )
 
         form.addRow(
-            "Longueur des splits :",
+            f"{get_text("SETTINGS_SPLIT_LEN")} :",
             self.split_length_spinbox,
         )
 
         form.addRow(
-            "Mode Split par défaut :",
+            f"{get_text("SETTINGS_SPLIT_MODE")} :",
             self.split_mode_combo,
         )
 
@@ -126,6 +157,10 @@ class SettingsDialog(QDialog):
         self,
         settings: Settings,
     ) -> None:
+
+        settings.language = (
+            self.language_combo.currentData()
+        )
 
         settings.delay_seconds = (
             self.delay_spinbox.value()

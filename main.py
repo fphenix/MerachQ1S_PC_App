@@ -23,10 +23,11 @@ import asyncio
 from PySide6.QtWidgets import QApplication
 
 from setup.settings import Settings
+from setup.lang import init_language, get_text
 from setup.settings_utils import load_settings
 from setup.constants import (
-    WINDOW_TITLE,
     WINDOW_WIDTH, WINDOW_HEIGHT,
+    WINDOW_TO_SCREEN_LEFT_MARGIN,
     REPLAY_FILE, REPLAY_SPEED, USE_REPLAY,
     USE_REPLAY_WORKOUT, REPLAY_WORKOUT_FILE,
 )
@@ -52,16 +53,18 @@ def main():
 
     settings: Settings = load_settings()
 
+    init_language(settings.language)
+
     if not USE_REPLAY:
         bluetooth_manager = BluetoothManager()
 
         asyncio.run(bluetooth_manager.initialize()) # make sure BT is On
 
     else:
-        echo(f"REPLAY Mode : fichier chargé est {REPLAY_FILE}")
+        echo(f"{get_text("REPLAY_LOADED_LOG")} {REPLAY_FILE}")
 
     app = QApplication(sys.argv)
-    app.setApplicationName(WINDOW_TITLE)
+    app.setApplicationName(get_text("WINDOW_TITLE"))
 
     #
     # Etat partagé
@@ -122,6 +125,15 @@ def main():
         WINDOW_HEIGHT,
     )
 
+    screen = QApplication.primaryScreen()
+    available = screen.availableGeometry()
+
+    window.move(
+        WINDOW_TO_SCREEN_LEFT_MARGIN,
+        available.top()
+        + (available.height() - window.height()) // 2,
+    )
+
     if USE_REPLAY and USE_REPLAY_WORKOUT:
 
         if not window.load_workout_file(
@@ -129,8 +141,7 @@ def main():
             replay_mode=True,
         ):
             raise RuntimeError(
-                "Impossible de charger le workout Replay : "
-                f"{REPLAY_WORKOUT_FILE}"
+                f"{get_text("ERR_REPLAY_WORKOUT")} : {REPLAY_WORKOUT_FILE}"
             )
 
     window.show()
