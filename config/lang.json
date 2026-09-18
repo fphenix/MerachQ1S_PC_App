@@ -256,6 +256,10 @@
         "fr": "Moyen",
         "en": "Average"
     },
+    "PLOT_INST": {
+        "fr": "Instantané",
+        "en": "Instant."
+    },
     "PLOT_POWER_RECAL": {
         "fr": "Recalibré",
         "en": "Recalibrated"
