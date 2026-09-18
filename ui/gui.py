@@ -38,7 +38,6 @@ from setup.constants import (
     USE_REPLAY, USE_REPLAY_WORKOUT,
     REPLAY_WORKOUT_FILE,
     LOGS_DIR, WORKOUTS_DIR,
-    ANALYZER_WIDTH, ANALYZER_HEIGHT,
 )
 from setup.cnx_enum import CnxState
 
@@ -49,10 +48,11 @@ from ui.progbar_widget import GradientGauge
 from ui.workout_widget import WorkoutWidget
 from ui.settings_dialog import SettingsDialog
 from ui.workout_editor import WorkoutEditorDialog
-from ui.plot_wo import WorkoutPlotWindow
 
 from workout.split import WorkoutSplitCalculator
-from analyzer.analyzer import AnalyzerWindow
+
+from tools.analyzer import AnalyzerWindow
+from tools.plot_wo import WorkoutPlotWindow
 
 # =============================================================================
 class MainWindow(QMainWindow):
@@ -807,11 +807,6 @@ class MainWindow(QMainWindow):
 
         self.analyzer_window = AnalyzerWindow(
             filename,
-        )
-
-        self.analyzer_window.resize(
-            ANALYZER_WIDTH,
-            ANALYZER_HEIGHT,
         )
 
         self.analyzer_window.show()

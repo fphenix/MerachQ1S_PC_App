@@ -1,9 +1,9 @@
 from pathlib import Path
 
-VERSION = 4.5
+VERSION: str = "4.5b"
 
-GUI_REFRESH_MS = 100 # milliseconds
-FPS = 50
+GUI_REFRESH_MS   = 100 # milliseconds
+WORKOUT_TIMER_MS = 20 # milliseconds
 
 WINDOW_WIDTH = 1100 # pixels
 WINDOW_HEIGHT = 700 # pixels
@@ -59,12 +59,22 @@ SPLIT_MODES = (
 ALLOWED_REPLAY_EXT = ["csv", "zip"]
 
 # ----------------------------------------------------------------------
-# Analyzer
+# Analyzer et Plot_Wo
 # ----------------------------------------------------------------------
 
+ANALYZER_WIDTH  = 1400 # pixels
+ANALYZER_HEIGHT = 1000 # pixels
+
 ANALYZER_STATS_FONT_SIZE = 11
-ANALYZER_STATS_MIN_WIDTH = 260
-ANALYZER_STATS_MAX_WIDTH = 320
+ANALYZER_STATS_MIN_WIDTH = 260 # pixels
+ANALYZER_STATS_MAX_WIDTH = 320 # pixels
+
+PLOTWO_WIDTH  = 1300 # pixels
+PLOTWO_HEIGHT =  800 # pixels
+
+PLOTWO_CODE_FONT_SIZE = 12
+PLOTWO_CODE_MIN_WIDTH = 300 # pixels
+PLOTWO_CODE_MAX_WIDTH = 600 # pixels
 
 # ----------------------------------------------------------------------
 # Logger
@@ -105,16 +115,15 @@ LOGGER_FORMAT = LOGGER_FORMAT_ZIP
 # * True  : (Mode Dvp/Debug) BT émulé en rejouant une session loggée précédente.
 USE_REPLAY = False
 USE_REPLAY_WORKOUT = False
-
 # Le fichier REPLAY_FILE peut être:
 # * un .csv
 # * un .zip ayant un (et un seul) .csv à l'intérieur
 REPLAY_FILE = (
     #f"{LOGS_DIR}/session_20260908_102813.zip" # Choose Log to replay (csv ou zip)
-    f"{LOGS_DIR}/session_20260915_180536.zip"
+    f"{LOGS_DIR}/session_20260917_180528.zip"
 )
 REPLAY_WORKOUT_FILE = (
-    f"{WORKOUTS_DIR}/Row20_Day02.wo"
+    f"{WORKOUTS_DIR}/Row20_Day03.wo"
 )
 
 REPLAY_SPEED = 100.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.
@@ -196,13 +205,3 @@ DURATION_RANGES = {
     "min": (0.01, 120),
     "h":   (0.01, 2),
 }
-
-# ----------------------------------------------------------------------
-# Analyzer et Plot_Wo
-# ----------------------------------------------------------------------
-
-ANALYZER_WIDTH  = 1400 # pixels
-ANALYZER_HEIGHT = 1000 # pixels
-
-PLOTWO_WIDTH  = 1000 # pixels
-PLOTWO_HEIGHT =  800 # pixels

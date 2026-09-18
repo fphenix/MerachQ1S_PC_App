@@ -22,7 +22,7 @@ from setup.utils import (
 )
 from setup.settings import Settings
 from setup.constants import (
-    FPS,
+    WORKOUT_TIMER_MS,
     BAR_HEIGHT,
     LIST_FONT_SIZE,
     LIST_WIDTH,
@@ -134,7 +134,7 @@ class WorkoutWidget(QFrame):
         )
         self.intensity_label.setPalette(palette)
 
-        self.info_label.setText("")
+        self.info_label.clear()
 
     # ------------------------------------------------------------------
     def _default_label_text(self) -> None:
@@ -514,9 +514,7 @@ class WorkoutWidget(QFrame):
         self.last_tick = time.perf_counter()
 
         if not self.replay_mode:
-            self.timer.start(
-                int(1000 / FPS)
-            )
+            self.timer.start(int(WORKOUT_TIMER_MS))
 
         return True
 
@@ -590,9 +588,7 @@ class WorkoutWidget(QFrame):
     # ------------------------------------------------------------------
     def start_step(self) -> None:
 
-        if self.current_step >= len(
-            self.workout.steps
-        ):
+        if self.current_step >= len(self.workout.steps):
             self.finish_workout()
             return
 
@@ -617,10 +613,15 @@ class WorkoutWidget(QFrame):
 
         self.beat_phase = 0.0
 
+        was_started = self.started
+
         self.running = True
         self.started = True
 
-        self.workout_started.emit()
+        # This should only fire once at the Workout start,
+        # not at every new step (hence the "was_started")
+        if not was_started:
+            self.workout_started.emit()
 
         self.metronome_bar.setValue(0)
 
@@ -744,9 +745,9 @@ class WorkoutWidget(QFrame):
             f"{get_text("WORKOUT_COMPLETE")} !"
         )
 
-        self.exercise_label.setText("")
-        self.rate_label.setText("")
-        self.intensity_label.setText("")
+        self.exercise_label.clear()
+        self.rate_label.clear()
+        self.intensity_label.clear()
         self.info_label.clear()
 
     # ------------------------------------------------------------------
