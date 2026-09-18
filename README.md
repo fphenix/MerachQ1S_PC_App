@@ -23,10 +23,10 @@ Note: If your Bluetooth card is disabled, the App will automatically turn it On,
 Note and Disclaimers: The motivation for this project are the poor metrics on the rower's LCD screen and the desire to use a PC "App" rather than a smartphone one.
 It became obvious, for instance, that the "Distance" in meters displayed on the Q1S screen simply is "5 * number_of_strokes" and the Calories in kcal roughly is "0.1428 * number_of_strokes".
 Therefore the displayed values are pretty much useless and are not real by any stretch of the imagination.
-It is not known if the Power figures transmitted via BlueTooth can be trusted or how they are calculated/measured, but - with the time and stroke count - that's the only metrics that we have available.
+The Power figures transmitted via BlueTooth cannot be trusted either unfortunately and is also very dependent on the cadence (and not on the actual effort on the handle) but - with the time and stroke count - that's the only metrics that we have available.
 All other figures will derived from these 3 in the Merach Q1S PC "App", with formulae that try to represent "real" values or what could be found on a Concept2 rower.
-There is not guarantee that the calculated value can be directly compared to real life values or C2 values, but the aim was to at least be in the ballpark. If you think you became the new World Champion by using this App, well, let's just say that it is likely that you are not! Sorry! However you can at least compare one of your session with another and see your progression.
-
+There is not guarantee that the calculated value can be directly compared to real life values or C2 values or, in fact, the opposite is guaranteed.
+But the aim was to at least be in the ballpark, and in V 4.6 I'll try to add a mode to approach a better power value. If you think you became the new World Champion by using this App, well, let's just say that it is likely that you are not! Sorry!
 ---
 
 ========================
