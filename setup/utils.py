@@ -3,6 +3,7 @@ from setup.constants import (
     INTENSITY_DICT,
     PART_DICT,
     WO_KEYWORD,
+    FILE_ENCODING,
 )
 
 from workout.workout import Workout
@@ -21,7 +22,7 @@ def load_workout(filename) -> Workout:
     with open(
         filename,
         "r",
-        encoding="utf-8",
+        encoding=FILE_ENCODING,
     ) as fr:
 
         for lineno, raw in enumerate(

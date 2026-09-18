@@ -1,6 +1,6 @@
 from pathlib import Path
 
-VERSION: str = "4.5b"
+VERSION: str = "4.5c"
 
 GUI_REFRESH_MS   = 100 # milliseconds
 WORKOUT_TIMER_MS = 20 # milliseconds
@@ -9,54 +9,62 @@ WINDOW_WIDTH = 1100 # pixels
 WINDOW_HEIGHT = 700 # pixels
 WINDOW_TO_SCREEN_LEFT_MARGIN = 35 # pixels
 
-SETTINGS_FILE = (
-    Path(__file__).resolve().parent.parent
-    / "config" / "settings.json"
-)
+DEFAULT_LANGUAGE: str = "fr" # "fr" or "en"
 
-LANGUAGES = {
+LANGUAGES: dict[str, str] = {
     "fr": "Français",
     "en": "English",
 }
 
-DEFAULT_LANGUAGE = "fr" # "Fr" or "En"
-
-LANG_FILE = (
+LANG_FILE: Path = (
     Path(__file__).resolve().parent.parent
     / "config" / "lang.json"
 )
 
-WIDGET_TITLE_FONT_SIZE = 11
-WIDGET_VALUE_FONT_SIZE = 28
-WIDGET_UNIT_FONT_SIZE  = 10
-SPLIT_LIST_FONT_SIZE   = 12
+SETTINGS_FILE: Path = (
+    Path(__file__).resolve().parent.parent
+    / "config" / "settings.json"
+)
+
+LOGS_DIR: Path = (
+      Path(__file__).resolve().parent.parent
+    / "logs"  
+)
+
+WORKOUTS_DIR: Path = (
+    Path(__file__).resolve().parent.parent
+    / "workouts"
+)
+
+FILE_ENCODING: str = "utf-8"
+FILE_ENCODING_BOM: str = "utf-8-sig"
+
+MAIN_FONT = "Consolas"
+TITLE_FONT = "Segoe UI"
+
+WIDGET_TITLE_FONT_SIZE = 11 # point
+WIDGET_VALUE_FONT_SIZE = 28 # point
+WIDGET_UNIT_FONT_SIZE  = 10 # point
+SPLIT_LIST_FONT_SIZE   = 12 # point
 
 DEFAULT_SPLIT_LENGTH  = 500.0 # meters
 MIN_SPLIT_LENGTH = 100   # meters
 MAX_SPLIT_LENGTH = 2000  # meters
 SPLIT_LENGTH_STEP = 100  # meters
 
-MAIN_FONT = "Consolas"
-TITLE_FONT = "Segoe UI"
+SPLIT_MODES_NORMAL: str  = "normal"
+SPLIT_MODES_500M: str    = "500m"
+SPLIT_MODES_WORKOUT: str = "workout"
 
-LOGS_DIR = (
-      Path(__file__).resolve().parent.parent
-    / "logs"  
-)
-WORKOUTS_DIR = (
-    Path(__file__).resolve().parent.parent
-    / "workouts"
-)
+DEFAULT_SPLIT_MODE: str = SPLIT_MODES_NORMAL
 
-DEFAULT_SPLIT_MODE = "normal"
+SPLIT_MODES: list[str] = [
+    SPLIT_MODES_NORMAL,
+    SPLIT_MODES_500M,
+    SPLIT_MODES_WORKOUT,
+]
 
-SPLIT_MODES = (
-    "normal",
-    "500m",
-    "workout",
-)
-
-ALLOWED_REPLAY_EXT = ["csv", "zip"]
+ALLOWED_REPLAY_EXT: list[str] = ["csv", "zip"]
 
 # ----------------------------------------------------------------------
 # Analyzer et Plot_Wo
@@ -65,14 +73,14 @@ ALLOWED_REPLAY_EXT = ["csv", "zip"]
 ANALYZER_WIDTH  = 1400 # pixels
 ANALYZER_HEIGHT = 1000 # pixels
 
-ANALYZER_STATS_FONT_SIZE = 11
+ANALYZER_STATS_FONT_SIZE = 11 # point
 ANALYZER_STATS_MIN_WIDTH = 260 # pixels
 ANALYZER_STATS_MAX_WIDTH = 320 # pixels
 
 PLOTWO_WIDTH  = 1300 # pixels
 PLOTWO_HEIGHT =  800 # pixels
 
-PLOTWO_CODE_FONT_SIZE = 12
+PLOTWO_CODE_FONT_SIZE = 12 # point
 PLOTWO_CODE_MIN_WIDTH = 300 # pixels
 PLOTWO_CODE_MAX_WIDTH = 600 # pixels
 
@@ -82,11 +90,11 @@ PLOTWO_CODE_MAX_WIDTH = 600 # pixels
 
 # Intervalle (en secondes) entre deux flush() du fichier CSV.
 # Permet de limiter les pertes de données en cas d'arrêt brutal.
-LOGGER_FLUSH_PERIOD = 5.0 # seconds
+LOGGER_FLUSH_PERIOD: float = 5.0 # seconds
 
 # Temps (en secondes) sans nouveau coup avant de considérer que
 # la séance est terminée et de forcer un flush().
-LOGGER_END_SESSION_TIMEOUT = 10.0 # seconds
+LOGGER_END_SESSION_TIMEOUT: float = 10.0 # seconds
 
 # LOGGER_FORMAT choisi de créer un .csv OU un .zip contenant un .csv
 LOGGER_FORMAT_CSV = "csv"
@@ -95,8 +103,6 @@ LOGGER_FORMAT = LOGGER_FORMAT_ZIP
 
 # ----------------------------------------------------------------------
 # Replay
-# ----------------------------------------------------------------------
-
 # ----------------------------------------------------------------------
 # Source de Données (Bluetooth vs. Replay Log)
 # On peut relancer une séance rameur en "rejouant" un log.
@@ -113,26 +119,26 @@ LOGGER_FORMAT = LOGGER_FORMAT_ZIP
 # Normal Mode vs. Replay Mode : USE_REPLAY
 # * False : (Mode Normal) BT vient du rameur ou
 # * True  : (Mode Dvp/Debug) BT émulé en rejouant une session loggée précédente.
-USE_REPLAY = False
-USE_REPLAY_WORKOUT = False
+USE_REPLAY: bool = False
+USE_REPLAY_WORKOUT: bool = False
 # Le fichier REPLAY_FILE peut être:
 # * un .csv
 # * un .zip ayant un (et un seul) .csv à l'intérieur
-REPLAY_FILE = (
+REPLAY_FILE: str = (
     #f"{LOGS_DIR}/session_20260908_102813.zip" # Choose Log to replay (csv ou zip)
     f"{LOGS_DIR}/session_20260917_180528.zip"
 )
-REPLAY_WORKOUT_FILE = (
+REPLAY_WORKOUT_FILE: str = (
     f"{WORKOUTS_DIR}/Row20_Day03.wo"
 )
 
-REPLAY_SPEED = 100.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.
+REPLAY_SPEED: float = 100.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.
 
 # ----------------------------------------------------------------------
 # Workout
 # ----------------------------------------------------------------------
 
-DEFAULT_DELAY_SECONDS  = 15
+DEFAULT_DELAY_SECONDS = 15
 MIN_DELAY_SECONDS = 0
 MAX_DELAY_SECONDS = 60
 DELAY_SECONDS_STEP = 5
@@ -143,10 +149,10 @@ WORKOUT_HEIGHT = WINDOW_HEIGHT # pixels
 WORKOUT_EDIT_WIDTH  = 1100  # pixels
 WORKOUT_EDIT_HEIGHT =  800  # pixels
 
-TITLE_FONT_SIZE = 24
-BIG_FONT_SIZE   = 22
-LIST_FONT_SIZE  = 14
-INFO_FONT_SIZE  = 18
+TITLE_FONT_SIZE = 24 # point
+BIG_FONT_SIZE   = 22 # point
+LIST_FONT_SIZE  = 14 # point
+INFO_FONT_SIZE  = 18 # point
 
 LIST_WIDTH = 220  # pixels
 BAR_HEIGHT = 28   # pixels
@@ -162,14 +168,14 @@ BAR_COLOR           = "#00CC44"
 TEXT_COLOR          = "white"
 LISTTEXT_COLOR = TEXT_COLOR
 
-WO_KEYWORD:dict[str, str] = {
+WO_KEYWORD: dict[str, str] = {
     "Comment" : "#",
     "Title"   : "WORKOUT:",
     "Field"   : "FIELD:",
     "Info"    : "INFO:",
 }
 
-PART_DICT = {
+PART_DICT: dict[str, str] = {
     "O": "OPTIONEL",
     "A": "Arms",
     "C": "Core",
@@ -178,7 +184,7 @@ PART_DICT = {
     "LC": "Legs+Core",
 }
 
-INTENSITY_DICT = {
+INTENSITY_DICT: dict[str, str] = {
     "R": "Recovery (Très facile)",
     "E": "Active Recovery / Facile",
     "N": "Normale",
@@ -186,7 +192,7 @@ INTENSITY_DICT = {
     "M": "Max / Très Forte",
 }
 
-INTENSITY_COLORS = {
+INTENSITY_COLORS: dict[str, str] = {
     "R": "#7FDBFF",
     "E": "#0055FF",
     "N": "#00AA00",
@@ -194,13 +200,13 @@ INTENSITY_COLORS = {
     "M": "#BB44DD",
 }
 
-DURATION_UNITS = {
+DURATION_UNITS: dict[str, int] = {
     "sec":  1,
     "min": 60,
     "h": 3600,
 }
 
-DURATION_RANGES = {
+DURATION_RANGES: dict[str, tuple[int|float, int]] = {
     "sec": (1, 3600),
     "min": (0.01, 120),
     "h":   (0.01, 2),

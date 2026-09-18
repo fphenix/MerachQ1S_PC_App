@@ -1,5 +1,6 @@
 from enum import Enum
 
+# =============================================================================
 class CnxState(Enum):
     CONNECTED    = 0
     SEEKING      = 1

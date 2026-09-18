@@ -1,4 +1,8 @@
-from engine.calc import calc_full_split
+from engine.calc import (
+    calc_full_split,
+    calc_deltatime,
+    calc_delta,
+)
 
 from workout.split_data import WorkoutSplit
 
@@ -113,10 +117,8 @@ class WorkoutSplitCalculator:
 
             self._update_split(
                 self.current_step,
-                boundary_elapsed
-                - self._step_start_elapsed,
-                boundary_distance
-                - self._step_start_distance,
+                calc_deltatime(boundary_elapsed, self._step_start_elapsed),
+                calc_delta(boundary_distance, self._step_start_distance),
             )
 
             # Nouveau step
@@ -142,9 +144,8 @@ class WorkoutSplitCalculator:
 
         current_step = self.workout.steps[current]
 
-        elapsed = (
-            workout_elapsed
-            - self._step_start_elapsed
+        elapsed = calc_deltatime(
+            workout_elapsed, self._step_start_elapsed
         )
 
         elapsed = min(
@@ -154,8 +155,7 @@ class WorkoutSplitCalculator:
 
         current_distance = max(
             0.0,
-            distance
-            - self._step_start_distance,
+            calc_delta(distance, self._step_start_distance),
         )
 
         self._update_split(
@@ -267,17 +267,15 @@ class WorkoutSplitCalculator:
         ):
             return current_distance
 
-        delta_elapsed = (
-            current_elapsed
-            - self._previous_elapsed
+        delta_elapsed = calc_deltatime(
+            current_elapsed, self._previous_elapsed
         )
 
         if delta_elapsed <= 0.0:
             return current_distance
 
-        ratio = (
-            target_elapsed
-            - self._previous_elapsed
+        ratio = calc_deltatime(
+            target_elapsed, self._previous_elapsed
         ) / delta_elapsed
 
         ratio = min(
@@ -287,8 +285,7 @@ class WorkoutSplitCalculator:
 
         return (
             self._previous_distance
-            + (
-                current_distance
-                - self._previous_distance
+            + calc_delta(
+                current_distance, self._previous_distance
             ) * ratio
         )

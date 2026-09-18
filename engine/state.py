@@ -2,7 +2,7 @@ from threading import Lock
 from copy import deepcopy
 
 from engine.snapshot import Snapshot
-from engine.calc import calc_delta
+from engine.calc import calc_delta, calc_deltatime
 
 from rowers.data import RowerData
 
@@ -87,7 +87,7 @@ class RowState:
             # session). We also clamp is to 0 if it ever goes negative.
             elapsed_time = max(
                 0.0, 
-                calc_delta(
+                calc_deltatime(
                     new_rowerdata.raw_elapsed_time, 
                     self._elapsed_offset
                 )
@@ -106,7 +106,7 @@ class RowState:
             else:
                 delta_elapsed = max(
                     0.0,
-                    calc_delta(elapsed_time, self._last_time),
+                    calc_deltatime(elapsed_time, self._last_time),
                 )
 
             self._last_time = elapsed_time

@@ -18,6 +18,9 @@ from setup.constants import (
     MIN_SPLIT_LENGTH,
     MAX_SPLIT_LENGTH,
     SPLIT_LENGTH_STEP,
+    SPLIT_MODES_NORMAL,
+    SPLIT_MODES_500M,
+    SPLIT_MODES_WORKOUT,
 )
 
 # =============================================================================
@@ -89,17 +92,17 @@ class SettingsDialog(QDialog):
 
         self.split_mode_combo.addItem(
             "Normal",
-            "normal",
+            SPLIT_MODES_NORMAL,
         )
 
         self.split_mode_combo.addItem(
             "500 m",
-            "500m",
+            SPLIT_MODES_500M,
         )
 
         self.split_mode_combo.addItem(
             "Workout",
-            "workout",
+            SPLIT_MODES_WORKOUT,
         )
 
         index = self.split_mode_combo.findData(

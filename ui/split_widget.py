@@ -19,12 +19,12 @@ from setup.constants import (
     DEFAULT_SPLIT_LENGTH,
     WIDGET_TITLE_FONT_SIZE,
     SPLIT_LIST_FONT_SIZE,
+    SPLIT_MODES_500M,
+    SPLIT_MODES_WORKOUT,
 )
 
 from engine.calc import calc_full_split
 
-# =============================================================================
-# SplitListWidget
 # =============================================================================
 class SplitListWidget(QFrame):
     """
@@ -38,9 +38,10 @@ class SplitListWidget(QFrame):
     # -------------------------------------------------------------------------
     def __init__(
         self,
-        title: str = "Splits",
+        title: str,
         settings: Settings | None = None,
     ) -> None:
+
         super().__init__()
 
         self.setFrameShape(QFrame.Box)
@@ -375,7 +376,7 @@ class SplitListWidget(QFrame):
             self._last_workout_step = None
             self._set_lines(
                 [],
-                mode="500m",
+                mode=SPLIT_MODES_500M,
             )
             return
 
@@ -417,7 +418,7 @@ class SplitListWidget(QFrame):
         self._set_lines(
             lines,
             update_from=update_from,
-            mode="500m",
+            mode=SPLIT_MODES_500M,
             target_index=new_count - 1,
         )
 
@@ -535,7 +536,7 @@ class SplitListWidget(QFrame):
         #     ancien courant + nouveau courant.
         # --------------------------------------------------------------
 
-        if self._display_mode != "workout":
+        if self._display_mode != SPLIT_MODES_WORKOUT:
             update_from = 0
 
         elif self._last_workout_step is None:
@@ -562,7 +563,7 @@ class SplitListWidget(QFrame):
         self._set_lines(
             lines,
             update_from=update_from,
-            mode="workout",
+            mode=SPLIT_MODES_WORKOUT,
             target_index=target_index,
         )
 

@@ -19,6 +19,12 @@ def calc_delta(curr: int|float, prev: int|float) -> int|float:
     return curr - prev
 
 # -----------------------------------------------------------------------------
+# deltatime = curr - prev
+# both values must be float
+def calc_deltatime(curr: float, prev: float) -> float:
+    return curr - prev
+
+# -----------------------------------------------------------------------------
 # generic metric average : metric / per_unit
 # returns 0.0 if the per_unit is negative or null
 def calc_metric_avg(metric: float, per_unit: int|float) -> float:

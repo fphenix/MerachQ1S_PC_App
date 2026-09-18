@@ -14,7 +14,7 @@
 from collections import deque
 
 from engine.calc import (
-    calc_delta,
+    calc_delta, calc_deltatime,
     calc_average,
     calc_speed_avg,
     calc_power_avg,
@@ -285,7 +285,7 @@ class MerachQ1SCalc:
 
             step = delta_elapsed / float(delta_strokes)
 
-            first_time = calc_delta(elapsed_time, delta_elapsed) + step
+            first_time = calc_deltatime(elapsed_time, delta_elapsed) + step
 
             for i in range(delta_strokes):
                 self.stroke_times.append(
@@ -295,7 +295,7 @@ class MerachQ1SCalc:
         if len(self.stroke_times) < self.CADENCE_WINDOW:
             return delta_strokes, 0.0, 0.0
 
-        delta_time = calc_delta(
+        delta_time = calc_deltatime(
             self.stroke_times[-1],
             self.stroke_times[-self.CADENCE_WINDOW],
         )
@@ -399,7 +399,7 @@ class MerachQ1SCalc:
         )
 
         current_distance = calc_delta(distance, completed_distance)
-        current_time = calc_delta(elapsed_time, completed_time)
+        current_time = calc_deltatime(elapsed_time, completed_time)
 
         if current_distance <= 0.0:
             return splits_list
@@ -429,7 +429,7 @@ class MerachQ1SCalc:
             splits_list[-1][1] = segment_time
 
             current_distance = calc_delta(current_distance, split_length)
-            current_time = calc_delta(current_time, segment_time)
+            current_time = calc_deltatime(current_time, segment_time)
 
             if current_distance <= 0.0:
                 break

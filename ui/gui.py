@@ -35,6 +35,9 @@ from setup.constants import (
     WORKOUT_WIDTH, WORKOUT_HEIGHT,
     METRONOME_MARGIN,
     SPLIT_MODES,
+    SPLIT_MODES_NORMAL,
+    SPLIT_MODES_500M,
+    SPLIT_MODES_WORKOUT,
     USE_REPLAY, USE_REPLAY_WORKOUT,
     REPLAY_WORKOUT_FILE,
     LOGS_DIR, WORKOUTS_DIR,
@@ -170,7 +173,7 @@ class MainWindow(QMainWindow):
 
         self.powerWidget = MetricWidget(
             title= get_text("POWER"),
-            unit= f"W  /  W {get_text("AVG")}",
+            unit= f"W  /  {get_text("AVG")}",
             gauge= GradientGauge(
                 zones=[0, 100, 200, 300, 400], # 60 à 350 W est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
@@ -194,6 +197,7 @@ class MainWindow(QMainWindow):
         )
 
         self.splitListWidget = SplitListWidget(
+            title= get_text("SPLIT"),
             settings= self.settings,
         )
 
@@ -201,9 +205,9 @@ class MainWindow(QMainWindow):
 
         splitMode_label   = QLabel(get_text("SPLIT_MODE_TITLE"))
 
-        self.splitModeNormal  = QRadioButton("Normal")
-        self.splitMode500m    = QRadioButton("500m")
-        self.splitModeWorkout = QRadioButton("Workout")
+        self.splitModeNormal  = QRadioButton(SPLIT_MODES_NORMAL)
+        self.splitMode500m    = QRadioButton(SPLIT_MODES_500M)
+        self.splitModeWorkout = QRadioButton(SPLIT_MODES_WORKOUT)
 
         split_mode_list = [self.splitModeNormal, self.splitMode500m, self.splitModeWorkout]
 
@@ -663,10 +667,7 @@ class MainWindow(QMainWindow):
             gaugevalue= rowerdata.split_inst
         )
 
-        if (
-            USE_REPLAY
-            and self.workoutWidget.replay_mode
-        ):
+        if USE_REPLAY and self.workoutWidget.replay_mode:
             self.workoutWidget.update_replay_time(
                 rowerdata.elapsed_time
             )
@@ -935,10 +936,10 @@ class MainWindow(QMainWindow):
         # Si le choix par défaut est "Workout", on ne peut l'utiliser
         # que lorsqu'un Workout est effectivement chargé.
         if (
-            mode == "workout"
+            mode == SPLIT_MODES_WORKOUT
             and not self.splitModeWorkout.isEnabled()
         ):
-            mode = "normal"
+            mode = SPLIT_MODES_NORMAL
 
         mode_index = SPLIT_MODES.index(mode)
 

@@ -1,5 +1,6 @@
 from workout.step import WorkoutStep
 
+# =============================================================================
 class Workout:
 
     def __init__(self, filename: str | None = None) -> None:

@@ -24,8 +24,6 @@ from setup.constants import (
 from ui.progbar_widget import GradientGauge
 
 # =============================================================================
-# MetricWidget
-# =============================================================================
 class MetricWidget(QFrame):
     """
     Affiche une métrique sous la forme (exemple) :

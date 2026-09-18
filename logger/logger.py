@@ -14,9 +14,12 @@ from setup.constants import (
     LOGGER_END_SESSION_TIMEOUT,
     LOGGER_FORMAT, LOGS_DIR,
     USE_REPLAY, REPLAY_FILE,
+    LOGGER_FORMAT_CSV,
+    LOGGER_FORMAT_ZIP,
+    FILE_ENCODING,
 )
 
-from engine.calc import calc_delta
+from engine.calc import calc_deltatime
 
 from logger.logrecord import LogRecord
 
@@ -65,7 +68,7 @@ class CsvLogger:
             self.filename,
             "w",
             newline="",
-            encoding="utf-8",
+            encoding=FILE_ENCODING,
         )
 
         self.writer = csv.writer(self._file)
@@ -140,7 +143,7 @@ class CsvLogger:
 
         now = time.monotonic()
 
-        if calc_delta(now, self.last_flush_time) >= LOGGER_FLUSH_PERIOD:
+        if calc_deltatime(now, self.last_flush_time) >= LOGGER_FLUSH_PERIOD:
             self.flush()
 
     # -------------------------------------------------------------------------
@@ -162,7 +165,7 @@ class CsvLogger:
 
         now = time.monotonic()
 
-        if calc_delta(now, self.last_stroke_time) >= LOGGER_END_SESSION_TIMEOUT:
+        if calc_deltatime(now, self.last_stroke_time) >= LOGGER_END_SESSION_TIMEOUT:
             self.flush()
 
             #
@@ -194,13 +197,13 @@ class CsvLogger:
         now = time.perf_counter()
 
         if self.last_pc_time is None:
-            delta = 0.0
+            delta_time = 0.0
         else:
-            delta = calc_delta(now, self.last_pc_time)
+            delta_time = calc_deltatime(now, self.last_pc_time)
 
         self.last_pc_time = now
 
-        return self.packet, now, delta
+        return self.packet, now, delta_time
 
     # -------------------------------------------------------------------------
     def stop(self) -> None:
@@ -220,7 +223,7 @@ class CsvLogger:
             echo(get_text("WARN_EMPTY_LOG"))
 
         # si on veut zip, on compresse le csv et on l'efface
-        elif self.log_format == "zip":
+        elif self.log_format == LOGGER_FORMAT_ZIP:
 
             zip_filename = self.filename.with_suffix(".zip")
 
@@ -239,7 +242,7 @@ class CsvLogger:
             self.filename = zip_filename
 
         # si on veut csv, il est déjà créé, rien de plus à faire
-        elif self.log_format == "csv":
+        elif self.log_format == LOGGER_FORMAT_CSV:
             pass
 
         # si log_format n'est pas de la bonne forme, error

@@ -20,6 +20,7 @@ from setup.utils import (
     format_time,
     format_duration,
 )
+from engine.calc import calc_deltatime
 from setup.settings import Settings
 from setup.constants import (
     WORKOUT_TIMER_MS,
@@ -94,6 +95,7 @@ class WorkoutWidget(QFrame):
         self.timer.timeout.connect(
             self.update_timer
         )
+        self.workout_start_time = None
 
     # ------------------------------------------------------------------
     def reset(self) -> None:
@@ -442,6 +444,8 @@ class WorkoutWidget(QFrame):
 
         self.workout = workout
 
+        self.workout_start_time = None
+
         self.step_list.clear()
 
         for i, step in enumerate(
@@ -523,14 +527,9 @@ class WorkoutWidget(QFrame):
 
         now = time.perf_counter()
 
-        elapsed = (
-            now - self.last_tick
-        )
+        elapsed = calc_deltatime(now, self.last_tick)
 
         self.last_elapsed = elapsed
-
-        if elapsed > 1.0:
-            elapsed = 1.0
 
         self.last_tick = now
 
@@ -565,18 +564,17 @@ class WorkoutWidget(QFrame):
 
         if self.running:
 
-            self.workout_elapsed += elapsed
-
             self.workout_elapsed = min(
-                self.workout_elapsed,
                 self.total_time,
+                calc_deltatime(now, self.workout_start_time),
             )
 
-            self.total_remaining -= elapsed
-            self.step_remaining -= elapsed
+            self.total_remaining = max(
+                0.0,
+                calc_deltatime(self.total_time, self.workout_elapsed),
+            )
 
-            if self.total_remaining < 0:
-                self.total_remaining = 0
+            self.step_remaining -= elapsed
 
             if self.step_remaining <= 0:
                 self.next_step()
@@ -621,6 +619,7 @@ class WorkoutWidget(QFrame):
         # This should only fire once at the Workout start,
         # not at every new step (hence the "was_started")
         if not was_started:
+            self.workout_start_time = time.perf_counter()
             self.workout_started.emit()
 
         self.metronome_bar.setValue(0)
@@ -829,13 +828,11 @@ class WorkoutWidget(QFrame):
 
         self.step_remaining = max(
             0.0,
-            step.duration_seconds
-            - self.step_elapsed,
+            calc_deltatime(step.duration_seconds, self.step_elapsed),
         )
 
-        self.total_remaining = (
-            self.total_time
-            - self.workout_elapsed
+        self.total_remaining = calc_deltatime(
+            self.total_time, self.workout_elapsed
         )
 
         self.started = True

@@ -13,7 +13,6 @@ from setup.cnx_enum import CnxState
 # =============================================================================
 class StatusWidget(QWidget):
 
-    # -------------------------------------------------------------------------
     def __init__(self, title="Bluetooth") -> None:
         
         super().__init__()

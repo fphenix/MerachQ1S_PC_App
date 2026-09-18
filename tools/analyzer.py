@@ -59,10 +59,10 @@ class AnalyzerWindow(QMainWindow):
         self.expanded_plot = None
 
         self.ax: list = []
-        self.line_calc = None
-        self.line_avg = None
-        self.line_rower = None
-        self.line_rower_avg = None
+        self.line_split_calc = None
+        self.line_split_avg = None
+        self.line_raw_split = None
+        self.line_raw_split_avg = None
         self.rax = None
         self.check = None
 
@@ -273,19 +273,19 @@ class AnalyzerWindow(QMainWindow):
     def toggle(self, label) -> None:
 
         if (
-            label == "Rower Instant"
-            and self.line_rower is not None
+            label == get_text("PLOT_INST")
+            and self.line_raw_split is not None
         ):
-            self.line_rower.set_visible(
-                not self.line_rower.get_visible()
+            self.line_raw_split.set_visible(
+                not self.line_raw_split.get_visible()
             )
 
         elif (
-            label == "Rower Average"
-            and self.line_rower_avg is not None
+            label == get_text("PLOT_AVERAGE")
+            and self.line_raw_split_avg is not None
         ):
-            self.line_rower_avg.set_visible(
-                not self.line_rower_avg.get_visible()
+            self.line_raw_split_avg.set_visible(
+                not self.line_raw_split_avg.get_visible()
             )
 
         self.canvas.draw_idle()
@@ -300,16 +300,16 @@ class AnalyzerWindow(QMainWindow):
         labels: list = []
         states: list = []
 
-        if self.line_rower is not None:
-            labels.append("Rower Instant")
+        if self.line_raw_split is not None:
+            labels.append(get_text("PLOT_INST"))
             states.append(
-                self.line_rower.get_visible()
+                self.line_raw_split.get_visible()
             )
 
-        if self.line_rower_avg is not None:
-            labels.append("Rower Average")
+        if self.line_raw_split_avg is not None:
+            labels.append(get_text("PLOT_AVERAGE"))
             states.append(
-                self.line_rower_avg.get_visible()
+                self.line_raw_split_avg.get_visible()
             )
 
         if labels:
@@ -386,10 +386,10 @@ class AnalyzerWindow(QMainWindow):
             )
         )
 
-        self.line_calc = None
-        self.line_avg = None
-        self.line_rower = None
-        self.line_rower_avg = None
+        self.line_split_calc = None
+        self.line_split_avg = None
+        self.line_raw_split = None
+        self.line_raw_split_avg = None
         self.rax = None
         self.check = None
 
@@ -405,16 +405,16 @@ class AnalyzerWindow(QMainWindow):
             for field_name, line in lines:
 
                 if field_name == "Split":
-                    self.line_calc = line
+                    self.line_split_calc = line
 
                 elif field_name == "Split_Avg":
-                    self.line_avg = line
+                    self.line_split_avg = line
 
                 elif field_name == "Raw_Split_Instant":
-                    self.line_rower = line
+                    self.line_raw_split = line
 
                 elif field_name == "Raw_Split_Avg":
-                    self.line_rower_avg = line
+                    self.line_raw_split_avg = line
 
         self.create_checkbuttons()
 
@@ -437,10 +437,10 @@ class AnalyzerWindow(QMainWindow):
             self.figure.add_subplot(111)
         ]
 
-        self.line_calc = None
-        self.line_avg = None
-        self.line_rower = None
-        self.line_rower_avg = None
+        self.line_split_calc = None
+        self.line_split_avg = None
+        self.line_raw_split = None
+        self.line_raw_split_avg = None
 
         self.rax = None
         self.check = None
@@ -455,16 +455,16 @@ class AnalyzerWindow(QMainWindow):
         for field_name, line in lines:
 
             if field_name == "Split":
-                self.line_calc = line
+                self.line_split_calc = line
 
             elif field_name == "Split_Avg":
-                self.line_avg = line
+                self.line_split_avg = line
 
             elif field_name == "Raw_Split_Instant":
-                self.line_rower = line
+                self.line_raw_split = line
 
             elif field_name == "Raw_Split_Avg":
-                self.line_rower_avg = line
+                self.line_raw_split_avg = line
 
         self.figure.subplots_adjust(
             left=0.08,

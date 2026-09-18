@@ -1,6 +1,9 @@
 import json
 
-from setup.constants import LANG_FILE
+from setup.constants import (
+    LANG_FILE,
+    FILE_ENCODING,
+)
 
 # =============================================================================
 class Language:
@@ -15,7 +18,7 @@ class Language:
 
         with LANG_FILE.open(
             "r",
-            encoding="utf-8",
+            encoding=FILE_ENCODING,
         ) as jfile:
             
             data = json.load(jfile)

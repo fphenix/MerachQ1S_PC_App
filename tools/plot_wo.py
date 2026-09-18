@@ -13,6 +13,7 @@ from setup.constants import (
     PLOTWO_CODE_FONT_SIZE,
     PLOTWO_WIDTH, PLOTWO_HEIGHT,
     PLOTWO_CODE_MIN_WIDTH, PLOTWO_CODE_MAX_WIDTH,
+    FILE_ENCODING,
 )
 
 from setup.lang import get_text
@@ -96,7 +97,7 @@ class WorkoutPlotWindow(QMainWindow):
         )
 
         source_code = self.filename.read_text(
-            encoding="utf-8"
+            encoding=FILE_ENCODING
         )
 
         self.plot.plot_workout(

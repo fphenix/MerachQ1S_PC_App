@@ -12,7 +12,12 @@ import zipfile
 from pathlib import Path
 
 from setup.lang import get_text
-from setup.constants import ALLOWED_REPLAY_EXT
+from setup.constants import (
+    ALLOWED_REPLAY_EXT,
+    LOGGER_FORMAT_CSV,
+    LOGGER_FORMAT_ZIP,
+    FILE_ENCODING_BOM,
+)
 
 # =============================================================================
 class ReplaySource(ABC):
@@ -92,11 +97,11 @@ class ReplaySource(ABC):
                 f"Q1S Replay : {get_text("ERR_LOGFILE_NOT_FOUND")} : {self.filename}"
             )
 
-        if self.source_type == "csv":
+        if self.source_type == LOGGER_FORMAT_CSV:
             yield from self._iter_csv_file(self.filename)
             return
 
-        if self.source_type == "zip":
+        if self.source_type == LOGGER_FORMAT_ZIP:
             yield from self._iter_zip_file(self.filename)
             return
 
@@ -121,7 +126,7 @@ class ReplaySource(ABC):
 
         with filename.open(
             "r",
-            encoding="utf-8-sig",
+            encoding=FILE_ENCODING_BOM,
             newline="",
         ) as csvfile:
             
@@ -161,7 +166,7 @@ class ReplaySource(ABC):
             with archive.open(csv_name, "r") as raw_file:
                 text_file = io.TextIOWrapper(
                     raw_file,
-                    encoding="utf-8-sig",
+                    encoding=FILE_ENCODING_BOM,
                     newline="",
                 )
 

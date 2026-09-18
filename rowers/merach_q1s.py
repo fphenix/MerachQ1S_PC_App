@@ -19,6 +19,7 @@ from pyftms.client.machines.rower import Rower
 
 from setup.lang import get_text
 from setup.utils import echo, echoerr
+from engine.calc import calc_deltatime
 
 from setup.cnx_enum import CnxState
 from setup.settings import Settings
@@ -235,7 +236,7 @@ class MerachRower(RowerClient):
                     # on considère la liaison perdue.
                     #
 
-                    if time.monotonic() - self._last_update > 5:
+                    if calc_deltatime(time.monotonic(), self._last_update) > 5:
 
                         echoerr(f"FTMS : {get_text("FTMS_LOST_CNX")}")
 

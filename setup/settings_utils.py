@@ -16,6 +16,7 @@ from setup.constants import (
     SPLIT_LENGTH_STEP,
     DEFAULT_SPLIT_MODE,
     SPLIT_MODES,
+    FILE_ENCODING,
 )
 
 from setup.settings import Settings
@@ -46,7 +47,7 @@ def load_settings() -> Settings:
 
         with SETTINGS_FILE.open(
             "r",
-            encoding="utf-8",
+            encoding=FILE_ENCODING,
         ) as jfile:
 
             data = json.load(jfile)
@@ -110,7 +111,7 @@ def save_settings(
 
     with SETTINGS_FILE.open(
         "w",
-        encoding="utf-8",
+        encoding=FILE_ENCODING,
     ) as file:
 
         json.dump(
