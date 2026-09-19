@@ -82,7 +82,7 @@ PLOTWO_CODE_FONT_SIZE = 12 # point
 PLOTWO_CODE_MIN_WIDTH = 300 # pixels
 PLOTWO_CODE_MAX_WIDTH = 600 # pixels
 
-SHOW_CHECKBUTTONS = False
+ANALYZER_SHOW_CHECKBUTTONS = False
 
 # ----------------------------------------------------------------------
 # Logger
@@ -124,8 +124,8 @@ ALLOWED_REPLAY_EXT: list[str] = [
 # Normal Mode vs. Replay Mode : USE_REPLAY
 # * False : (Mode Normal) BT vient du rameur ou
 # * True  : (Mode Dvp/Debug) BT émulé en rejouant une session loggée précédente.
-USE_REPLAY: bool = True
-USE_REPLAY_WORKOUT: bool = True
+USE_REPLAY: bool = False
+USE_REPLAY_WORKOUT: bool = False
 # Le fichier REPLAY_FILE peut être:
 # * un .csv
 # * un .zip ayant un (et un seul) .csv à l'intérieur

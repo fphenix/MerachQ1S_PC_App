@@ -33,7 +33,7 @@ from setup.constants import (
     ANALYZER_STATS_MAX_WIDTH,
     LOGGER_FORMAT_CSV,
     LOGGER_FORMAT_ZIP,
-    SHOW_CHECKBUTTONS,
+    ANALYZER_SHOW_CHECKBUTTONS,
 )
 
 from engine.calc import calc_stats
@@ -297,7 +297,7 @@ class AnalyzerWindow(QMainWindow):
     # -------------------------------------------------------------------------
     def create_checkbuttons(self) -> None:
 
-        if not SHOW_CHECKBUTTONS:
+        if not ANALYZER_SHOW_CHECKBUTTONS:
             self.rax = None
             self.check = None
             return
@@ -431,7 +431,7 @@ class AnalyzerWindow(QMainWindow):
             left=0.08,
             right=(
                 0.78
-                if SHOW_CHECKBUTTONS
+                if ANALYZER_SHOW_CHECKBUTTONS
                 else 0.95
             ),
             top=0.95,
