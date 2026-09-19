@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 
+from setup.lang import get_text
 from setup.constants import (
-    INTENSITY_DICT,
     INTENSITY_COLORS,
-    PART_DICT,
 )
 
 # =============================================================================
@@ -20,14 +19,15 @@ class WorkoutStep:
     # -------------------------------------------------------------------------
     @property
     def intensity_text(self) -> str:
+        
         part_txt = (
             ""
             if self.part is None
-            else f" ({PART_DICT[self.part]})"
+            else f" ({get_text(f"PART_DICT_{self.part}")})"
         )
 
         return (
-            f"{INTENSITY_DICT[self.intensity]}"
+            f"{get_text(f"INTENSITY_DICT_{self.intensity}")}"
             f"{part_txt}"
         )
 

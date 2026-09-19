@@ -196,6 +196,7 @@ class WorkoutEditorDialog(QDialog):
 
     # -------------------------------------------------------------------------
     def build_workout_text(self) -> str:
+
         title = self.title_edit.text().strip()
         field = self.field_edit.text().strip()
 
@@ -234,6 +235,7 @@ class WorkoutEditorDialog(QDialog):
 
     # -------------------------------------------------------------------------
     def save_to_file(self) -> bool:
+
         text = self.build_workout_text()
 
         title = self.title_edit.text().strip()
@@ -253,6 +255,7 @@ class WorkoutEditorDialog(QDialog):
                         text,
                         encoding=FILE_ENCODING
                     )
+
                 except OSError as exc:
                     QMessageBox.critical(
                         self,
@@ -276,6 +279,7 @@ class WorkoutEditorDialog(QDialog):
 
             try:
                 filename.write_text(text, encoding=FILE_ENCODING)
+    
             except OSError as exc:
                 QMessageBox.critical(
                     self,
@@ -299,6 +303,7 @@ class WorkoutEditorDialog(QDialog):
 
         try:
             filename.write_text(text, encoding=FILE_ENCODING)
+
         except OSError as exc:
             QMessageBox.critical(
                 self,
@@ -311,6 +316,7 @@ class WorkoutEditorDialog(QDialog):
 
     # -------------------------------------------------------------------------
     def save(self) -> None:
+
         title = self.title_edit.text().strip()
         field = self.field_edit.text().strip()
 

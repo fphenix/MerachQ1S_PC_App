@@ -3,7 +3,10 @@ from engine.calc import (
     calc_deltatime,
     calc_delta,
 )
+from setup.utils import clamp_neg
 
+from setup.settings import Settings
+from workout.workout import Workout
 from workout.split_data import WorkoutSplit
 
 # =============================================================================
@@ -11,16 +14,16 @@ class WorkoutSplitCalculator:
 
     def __init__(self, settings) -> None:
 
-        self.settings = settings
+        self.settings: Settings = settings
 
-        self.workout = None
+        self.workout: Workout | None = None
 
         self.splits: list[WorkoutSplit] = []
 
         self.current_step: int | None = None
 
-        self._step_start_elapsed = 0.0
-        self._step_start_distance = 0.0
+        self._step_start_elapsed: float = 0.0
+        self._step_start_distance: float = 0.0
 
         self._previous_elapsed: float | None = None
         self._previous_distance: float | None = None
@@ -28,7 +31,7 @@ class WorkoutSplitCalculator:
     # -------------------------------------------------------------------------
     def reset(self, workout=None) -> None:
 
-        self.workout = workout
+        self.workout: Workout | None = workout
 
         self.splits.clear()
 
@@ -46,10 +49,7 @@ class WorkoutSplitCalculator:
         self.current_step = 0
 
         self._step_start_elapsed = 0.0
-        self._step_start_distance = max(
-            0.0,
-            distance,
-        )
+        self._step_start_distance = clamp_neg(distance)
 
         self._previous_elapsed = 0.0
         self._previous_distance = self._step_start_distance
@@ -69,17 +69,11 @@ class WorkoutSplitCalculator:
         if not self.workout.steps:
             return
 
-        workout_elapsed = max(
-            0.0,
-            workout_elapsed,
-        )
+        workout_elapsed = clamp_neg(workout_elapsed)
 
-        distance = max(
-            0.0,
-            distance,
-        )
+        distance = clamp_neg(distance)
 
-        step_index, step_elapsed = (
+        step_index, _step_elapsed = (
             self._find_step(workout_elapsed)
         )
 
@@ -128,13 +122,9 @@ class WorkoutSplitCalculator:
                 self.current_step
             )
 
-            self._step_start_elapsed = (
-                boundary_elapsed
-            )
+            self._step_start_elapsed = boundary_elapsed
 
-            self._step_start_distance = (
-                boundary_distance
-            )
+            self._step_start_distance = boundary_distance
 
         # -------------------------------------------------------------
         # Step courant
@@ -153,9 +143,8 @@ class WorkoutSplitCalculator:
             current_step.duration_seconds,
         )
 
-        current_distance = max(
-            0.0,
-            calc_delta(distance, self._step_start_distance),
+        current_distance = clamp_neg(
+            calc_delta(distance, self._step_start_distance)
         )
 
         self._update_split(
@@ -168,13 +157,9 @@ class WorkoutSplitCalculator:
         # Mémorise la dernière mesure pour l'interpolation.
         # -------------------------------------------------------------
 
-        self._previous_elapsed = (
-            workout_elapsed
-        )
+        self._previous_elapsed = workout_elapsed
 
-        self._previous_distance = (
-            distance
-        )
+        self._previous_distance = distance
 
     # -------------------------------------------------------------------------
     def _ensure_split(
@@ -198,15 +183,9 @@ class WorkoutSplitCalculator:
 
         split = self.splits[index]
 
-        split.elapsed = max(
-            0.0,
-            elapsed,
-        )
+        split.elapsed = clamp_neg(elapsed)
 
-        split.distance = max(
-            0.0,
-            distance,
-        )
+        split.distance = clamp_neg(distance)
 
         if split.distance > 0.0:
 
@@ -280,7 +259,7 @@ class WorkoutSplitCalculator:
 
         ratio = min(
             1.0,
-            max(0.0, ratio),
+            clamp_neg(ratio),
         )
 
         return (

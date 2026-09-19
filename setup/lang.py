@@ -57,6 +57,7 @@ _language: Language | None = None
 # =============================================================================
 def init_language(language: str) -> None:
     global _language
+
     _language = Language(language)
 
 # =============================================================================

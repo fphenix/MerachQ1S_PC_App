@@ -1,6 +1,6 @@
 from pathlib import Path
 
-VERSION: str = "4.6"
+VERSION: str = "4.7"
 
 GUI_REFRESH_MS   = 100 # milliseconds
 WORKOUT_TIMER_MS = 20 # milliseconds
@@ -180,22 +180,8 @@ WO_KEYWORD: dict[str, str] = {
     "Info"    : "INFO:",
 }
 
-PART_DICT: dict[str, str] = {
-    "O": "OPTIONEL",
-    "A": "Arms",
-    "C": "Core",
-    "L": "Legs",
-    "AC": "Arms+Core",
-    "LC": "Legs+Core",
-}
-
-INTENSITY_DICT: dict[str, str] = {
-    "R": "Recovery (Très facile)",
-    "E": "Active Recovery / Facile",
-    "N": "Normale",
-    "F": "Forte",
-    "M": "Max / Très Forte",
-}
+PART_DICT_KEYS: list[str] = ["O", "A", "C", "L", "AC", "LC"]
+INTENSITY_DICT_KEYS: list[str] = ["R", "E", "N", "F", "M"]
 
 INTENSITY_COLORS: dict[str, str] = {
     "R": "#7FDBFF",
@@ -211,6 +197,7 @@ DURATION_UNITS: dict[str, int] = {
     "h": 3600,
 }
 
+# min and max
 DURATION_RANGES: dict[str, tuple[int|float, int]] = {
     "sec": (1, 3600),
     "min": (0.01, 120),

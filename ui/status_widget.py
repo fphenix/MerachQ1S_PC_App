@@ -69,14 +69,18 @@ class StatusWidget(QWidget):
 
     # -------------------------------------------------------------------------
     def _get_color(self, status) -> str:
+        
         if 0 <= status.value < len(self.STATUS_COLORS):
             return self.STATUS_COLORS[status.value]
+        
         return "#808080"
 
     # -------------------------------------------------------------------------
     def _get_text(self, status) -> str:
+        
         if 0 <= status.value < len(self.STATUS_COLORS):
             return self.STATUS_TEXT[status.value]
+        
         return "???"
     
     # -------------------------------------------------------------------------

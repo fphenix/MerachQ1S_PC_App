@@ -3,7 +3,6 @@ from typing import Any
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QComboBox,
-    QHBoxLayout,
     QLabel,
     QGridLayout,
     QLineEdit,
@@ -15,8 +14,8 @@ from PySide6.QtWidgets import (
 
 from setup.lang import get_text
 from setup.constants import (
-    INTENSITY_DICT,
-    PART_DICT,
+    INTENSITY_DICT_KEYS,
+    PART_DICT_KEYS,
     DURATION_UNITS,
     DURATION_RANGES,
 )
@@ -75,7 +74,7 @@ class WorkoutStepEditor(QWidget):
         # Numéro du step
         #
 
-        self.step_number = QLabel("1")
+        self.step_number = QLabel("0.")
         self.step_number.setFixedWidth(self.STEP_NUMBER_WIDTH)
         self.step_number.setAlignment(
             Qt.AlignRight | Qt.AlignVCenter
@@ -182,7 +181,7 @@ class WorkoutStepEditor(QWidget):
         self.intensity = QComboBox()
         self.intensity.setFixedWidth(self.INTENSITY_WIDTH)
         self.intensity.addItems(
-            INTENSITY_DICT.keys()
+            INTENSITY_DICT_KEYS # INTENSITY_DICT.keys()
         )
         self.intensity.setCurrentText("N")
 
@@ -214,7 +213,7 @@ class WorkoutStepEditor(QWidget):
         self.part.setFixedWidth(self.PART_VALUE_WIDTH)
         self.part.addItem("")
         self.part.addItems(
-            PART_DICT.keys()
+            PART_DICT_KEYS
         )
 
         layout.addWidget(
@@ -259,7 +258,7 @@ class WorkoutStepEditor(QWidget):
         # Supprimer
         #
 
-        self.remove_button = QPushButton("-")
+        self.remove_button = QPushButton("\u2796") # ➖
         self.remove_button.setFixedWidth(self.BUTTON_WIDTH)
 
         layout.addWidget(
@@ -272,7 +271,7 @@ class WorkoutStepEditor(QWidget):
         # Ajouter
         #
 
-        self.add_button = QPushButton("+")
+        self.add_button = QPushButton("\u2795") # ➕
         self.add_button.setFixedWidth(self.BUTTON_WIDTH)
 
         layout.addWidget(
@@ -283,12 +282,6 @@ class WorkoutStepEditor(QWidget):
 
     # -------------------------------------------------------------------------
     def set_step_number(self, number: int) -> None:
-        self.step_number.setText(
-            str(number)
-        )
-
-    # -------------------------------------------------------------------------
-    def set_step_number(self, number: int) -> None:
 
         self.step_number.setText(
             f"{number}."
@@ -296,6 +289,7 @@ class WorkoutStepEditor(QWidget):
 
     # -------------------------------------------------------------------------
     def update_duration_range(self, unit: str | None = None) -> None:
+        
         if unit is None:
             unit = self.duration_unit.currentText()
 

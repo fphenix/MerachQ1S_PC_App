@@ -32,7 +32,7 @@ class MetricWidget(QFrame):
 
           24.5
 
-         spm
+          spm
 
     En option on peut aussi ajouter une jauge.
     """

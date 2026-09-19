@@ -1,7 +1,7 @@
 from setup.lang import get_text
 from setup.constants import (
-    INTENSITY_DICT,
-    PART_DICT,
+    INTENSITY_DICT_KEYS,
+    PART_DICT_KEYS,
     WO_KEYWORD,
     FILE_ENCODING,
 )
@@ -184,16 +184,16 @@ def load_workout(filename) -> Workout:
                     get_text("WO_FILE_EXP_SPM")
                 )
 
-            if intensity not in INTENSITY_DICT:
+            if intensity not in INTENSITY_DICT_KEYS:
                 raise ValueError(
                     f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
                     get_text("WO_FILE_EXP_INTENSITY")
                 )
 
-            if part is not None and part not in PART_DICT:
+            if part is not None and part not in PART_DICT_KEYS:
                 raise ValueError(
                     f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
-                    f"{get_text("WO_FILE_EXP_PART")} {PART_DICT.keys()}"
+                    f"{get_text("WO_FILE_EXP_PART")} : {PART_DICT_KEYS}"
                 )
 
             workout.steps.append(
@@ -266,6 +266,12 @@ def format_pace(seconds: float) -> str:
     secondes = total % 60
 
     return f"{minutes}:{secondes:02}"
+
+# -----------------------------------------------------------------------------
+# clamp negative values to 0
+def clamp_neg(value: int | float) -> int | float:
+    """ If value is <= 0, return 0, else return value """
+    return max(0, value)
 
 # -----------------------------------------------------------------------------
 def format_time(seconds: float) -> str:

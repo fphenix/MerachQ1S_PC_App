@@ -4,6 +4,7 @@ from workout.step import WorkoutStep
 class Workout:
 
     def __init__(self, filename: str | None = None) -> None:
+
         self.title: str = "Placeholder Workout"
         self.field: str = "Placeholder Field"
         self.steps: list[WorkoutStep] = []
@@ -12,6 +13,7 @@ class Workout:
     # -------------------------------------------------------------------------
     @property
     def total_seconds(self) -> float:
+
         return sum(
             step.duration_seconds
             for step in self.steps
@@ -19,6 +21,7 @@ class Workout:
 
     # -------------------------------------------------------------------------
     def clear(self) -> None:
+        
         self.title = "Placeholder Workout"
         self.field = "Placeholder Field"
         self.steps.clear()

@@ -191,6 +191,26 @@
         "fr": "Intensité",
         "en": "Intensity"
     },
+    "INTENSITY_DICT_R": {
+        "fr": "R: Reposant",
+        "en": "R: Recovery"
+    },
+    "INTENSITY_DICT_E": {
+        "fr": "E: Facile",
+        "en": "E: Easy"
+    },
+    "INTENSITY_DICT_N": {
+        "fr": "N: Normal",
+        "en": "N: Normal"
+    },
+    "INTENSITY_DICT_F": {
+        "fr": "F: Fort",
+        "en": "F: Strong"
+    },
+    "INTENSITY_DICT_M": {
+        "fr": "M: Maximum",
+        "en": "m: Maximum"
+    },
     "LANGUAGE_RESTART_REQUIRED": {
         "comment": "# We need to inverse the languages for the Message Box here.",
         "fr": "In order for the new language settings to take effect, please restart the software.",
@@ -251,6 +271,30 @@
     "NEW_SESSION": {
         "fr": "Nouvelle séance",
         "en": "New session"
+    },
+    "PART_DICT_O": {
+        "fr": "Optionel",
+        "en": "Optional"
+    },
+    "PART_DICT_A": {
+        "fr": "Bras",
+        "en": "Arms"
+    },
+    "PART_DICT_C": {
+        "fr": "Tronc",
+        "en": "Core"
+    },
+    "PART_DICT_AC": {
+        "fr": "Bras+Tronc",
+        "en": "Arms+Core"
+    },
+    "PART_DICT_L": {
+        "fr": "Jambes",
+        "en": "Legs"
+    },
+    "PART_DICT_LC": {
+        "fr": "Jambes+Tronc",
+        "en": "Legs+Core"
     },
     "PLOT_AVERAGE": {
         "fr": "Moyen",
@@ -469,7 +513,7 @@
         "en": "Intensity must be one of R, E, N, F or M"
     },
     "WO_FILE_EXP_PART": {
-        "fr": "<partie> doit être l'un de",
+        "fr": "<partie> (facultatif) doit être l'un de",
         "en": "<part> (optional) must be one of"
     },
     "WO_FILE_EXP_SPM": {

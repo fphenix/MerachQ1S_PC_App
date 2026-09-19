@@ -709,18 +709,7 @@ class MainWindow(QMainWindow):
             self.workoutWidget.started
             or replay_completed
         ):
-            print(
-                "SPLIT DEBUG:",
-                "elapsed=", self.workoutWidget.workout_elapsed,
-                "distance=", rowerdata.distance,
-                "current_step=", self.workoutSplitCalculator.current_step,
-                "last_split_distance=",
-                (
-                    self.workoutSplitCalculator.splits[-1].distance
-                    if self.workoutSplitCalculator.splits
-                    else None
-                ),
-            )
+
             self.workoutSplitCalculator.update(
                 workout_elapsed=(
                     self.workoutWidget.workout_elapsed

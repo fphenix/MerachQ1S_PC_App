@@ -2,7 +2,9 @@ from threading import Lock
 from copy import deepcopy
 
 from engine.snapshot import Snapshot
+
 from engine.calc import calc_delta, calc_deltatime
+from setup.utils import clamp_neg
 
 from rowers.data import RowerData
 
@@ -84,17 +86,15 @@ class RowState:
 
             # for elapsed_time and stroke_count we want the value
             # minus the "New Session" offset (offset is 0 for first
-            # session). We also clamp is to 0 if it ever goes negative.
-            elapsed_time = max(
-                0.0, 
+            # session). We also clamp it to 0 if it ever goes negative.
+            elapsed_time = clamp_neg(
                 calc_deltatime(
                     new_rowerdata.raw_elapsed_time, 
                     self._elapsed_offset
                 )
             )
 
-            stroke_count = max(
-                0, 
+            stroke_count = clamp_neg(
                 calc_delta(
                     new_rowerdata.raw_stroke_count,
                     self._stroke_offset
@@ -103,10 +103,10 @@ class RowState:
 
             if self._last_time is None: # first packet
                 delta_elapsed = 0.0
+
             else:
-                delta_elapsed = max(
-                    0.0,
-                    calc_deltatime(elapsed_time, self._last_time),
+                delta_elapsed = clamp_neg(
+                    calc_deltatime(elapsed_time, self._last_time)
                 )
 
             self._last_time = elapsed_time

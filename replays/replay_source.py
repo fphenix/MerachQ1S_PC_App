@@ -11,6 +11,7 @@ import zipfile
 
 from pathlib import Path
 
+from setup.utils import clamp_neg
 from setup.lang import get_text
 from setup.constants import (
     ALLOWED_REPLAY_EXT,
@@ -113,7 +114,7 @@ class ReplaySource(ABC):
     @staticmethod
     def csv_skip_row(csvfile, skipnb: int = 1) -> None:
 
-        _skipnb = max(0, skipnb)
+        _skipnb = clamp_neg(skipnb)
 
         for _ in range(_skipnb):
             next(csvfile, None)

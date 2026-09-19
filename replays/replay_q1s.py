@@ -15,7 +15,7 @@ import time
 import traceback
 
 from setup.lang import get_text
-from setup.utils import echoerr
+from setup.utils import echoerr, clamp_neg
 
 from setup.cnx_enum import CnxState
 
@@ -106,9 +106,8 @@ class ReplayQ1S(ReplaySource):
 
                     if self.speed > 0.0:
                         time.sleep(
-                            max(
-                                0.0,
-                                delta_elapsed / self.speed,
+                            clamp_neg(
+                                delta_elapsed / self.speed
                             )
                         )
 

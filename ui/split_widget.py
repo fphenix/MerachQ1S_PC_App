@@ -12,7 +12,10 @@ from PySide6.QtWidgets import (
 )
 
 from setup.lang import get_text
-from setup.utils import format_pace, format_time
+from setup.utils import (
+    format_pace, format_time,
+    clamp_neg,
+)
 from setup.settings import Settings
 from setup.constants import (
     TITLE_FONT,
@@ -335,9 +338,8 @@ class SplitListWidget(QFrame):
         # Création des labels manquants.
         self._ensure_label_count(new_count)
 
-        update_from = max(
-            0,
-            min(update_from, new_count - 1),
+        update_from = clamp_neg(
+            min(update_from, new_count - 1)
         )
 
         for index in range(
@@ -353,9 +355,8 @@ class SplitListWidget(QFrame):
         if target_index is None:
             target_index = new_count - 1
 
-        self._scroll_target_index = max(
-            0,
-            min(target_index, new_count - 1),
+        self._scroll_target_index = clamp_neg(
+            min(target_index, new_count - 1)
         )
 
         # Mise à jour différée : Qt doit avoir terminé
@@ -410,10 +411,7 @@ class SplitListWidget(QFrame):
         #
         # Nouvelle ligne : l'ancien dernier perd "en cours"
         # et le nouveau dernier devient courant.
-        update_from = max(
-            0,
-            old_count - 1,
-        )
+        update_from = clamp_neg(old_count - 1)
 
         self._set_lines(
             lines,
@@ -505,7 +503,7 @@ class SplitListWidget(QFrame):
 
                 progress = min(
                     100.0,
-                    max(0.0, progress),
+                    clamp_neg(progress),
                 )
 
                 extra = f"{progress:.0f}%"
@@ -555,10 +553,7 @@ class SplitListWidget(QFrame):
         # Avant le démarrage du workout, on veut toujours voir le step 1.
         # --------------------------------------------------------------
 
-        if current_step is None:
-            target_index = 0
-        else:
-            target_index = current_step
+        target_index = 0 if current_step is None else current_step
 
         self._set_lines(
             lines,

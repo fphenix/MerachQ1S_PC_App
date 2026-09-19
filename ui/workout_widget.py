@@ -19,6 +19,7 @@ from setup.utils import (
     load_workout,
     format_time,
     format_duration,
+    clamp_neg,
 )
 from engine.calc import calc_deltatime
 from setup.settings import Settings
@@ -283,37 +284,20 @@ class WorkoutWidget(QFrame):
                 """
             )
 
-        layout.addWidget(
-            self.title_label
-        )
+        for label in (
+            self.title_label,
+            self.field_label,
+            self.state_label,
+            self.total_label,
+            self.exercise_label,
+            self.rate_label,
+            self.intensity_label,
+            self.info_label,
+        ):
 
-        layout.addWidget(
-            self.field_label
-        )
-
-        layout.addWidget(
-            self.state_label
-        )
-
-        layout.addWidget(
-            self.total_label
-        )
-
-        layout.addWidget(
-            self.exercise_label
-        )
-
-        layout.addWidget(
-            self.rate_label
-        )
-
-        layout.addWidget(
-            self.intensity_label
-        )
-
-        layout.addWidget(
-            self.info_label
-        )
+            layout.addWidget(
+                label
+            )
 
         #
         # Liste des étapes à droite
@@ -408,7 +392,7 @@ class WorkoutWidget(QFrame):
     # Else if a filename is give, then we auto load it.
     def open_setup(
         self,
-        filename=None,
+        filename: str | None = None,
         replay_mode: bool = False,
     ) -> bool:
 
@@ -569,9 +553,8 @@ class WorkoutWidget(QFrame):
                 calc_deltatime(now, self.workout_start_time),
             )
 
-            self.total_remaining = max(
-                0.0,
-                calc_deltatime(self.total_time, self.workout_elapsed),
+            self.total_remaining = clamp_neg(
+                calc_deltatime(self.total_time, self.workout_elapsed)
             )
 
             self.step_remaining -= elapsed
@@ -766,7 +749,7 @@ class WorkoutWidget(QFrame):
             return
 
         self.workout_elapsed = min(
-            max(0.0, elapsed_time),
+            clamp_neg(elapsed_time),
             self.total_time,
         )
 
@@ -809,9 +792,8 @@ class WorkoutWidget(QFrame):
             step.duration_seconds,
         )
 
-        self.step_remaining = max(
-            0.0,
-            calc_deltatime(step.duration_seconds, self.step_elapsed),
+        self.step_remaining = clamp_neg(
+            calc_deltatime(step.duration_seconds, self.step_elapsed)
         )
 
         self.total_remaining = calc_deltatime(

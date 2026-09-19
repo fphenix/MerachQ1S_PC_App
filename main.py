@@ -51,29 +51,39 @@ from bluetooth.manager import BluetoothManager
 # -----------------------------------------------------------------------------
 def main():
 
+    #
+    # Config
+    #
+
     settings: Settings = load_settings()
 
     init_language(settings.language)
 
+    #
+    # Data source : BT or log file
+    #
+
     if not USE_REPLAY:
         bluetooth_manager = BluetoothManager()
 
-        asyncio.run(bluetooth_manager.initialize()) # make sure BT is On
+        # make sure the BT card is On
+        asyncio.run(bluetooth_manager.initialize())
 
     else:
         echo(f"{get_text("REPLAY_LOADED_LOG")} {REPLAY_FILE}")
 
+    #
+    # Application et Etat partagé
+    #
+
     app = QApplication(sys.argv)
     app.setApplicationName(get_text("WINDOW_TITLE"))
-
-    #
-    # Etat partagé
-    #
 
     state = RowState()
 
     #
-    # Modèle du Rameur
+    # Modèle du Rameur : Merach Q1S
+    #                    (Mode "C2" is not working yet)
     #
 
     rower = MerachRower(
@@ -82,7 +92,9 @@ def main():
     )
 
     #
-    # Source des données (Bluetooth FTMS for Q1S ou Replay Log (and later BLE for C2))
+    # Source des données : Bluetooth FTMS for Q1S 
+    #                      ou Replay Log ;
+    #                      (and later BLE for C2)
     #
 
     if USE_REPLAY:
@@ -98,10 +110,8 @@ def main():
 
         source = rower
 
-    # Model rameur intégrant éventuellement un calculateur
     state.rower = rower
 
-    # Source des données d'entrée (BT ou Replay)
     state.source = source
 
     #
@@ -134,6 +144,10 @@ def main():
         + (available.height() - window.height()) // 2,
     )
 
+    #
+    # En mode Replay, charge automatiquement le Workout (s'il y en a un)
+    #
+
     if USE_REPLAY and USE_REPLAY_WORKOUT:
 
         if not window.load_workout_file(
@@ -144,16 +158,16 @@ def main():
                 f"{get_text("ERR_REPLAY_WORKOUT")} : {REPLAY_WORKOUT_FILE}"
             )
 
-    window.show()
+    #
+    # Start the main Window and the Rower Client
+    #
 
-    #
-    # Start the Rower Client
-    #
+    window.show()
 
     source.start()
  
     #
-    # Boucle Qt
+    # Boucle Qt et fermerture
     #
 
     try:
@@ -167,7 +181,8 @@ def main():
                 logger.stop()
             finally:
                 if not USE_REPLAY:
-                    asyncio.run(bluetooth_manager.restore()) # restore BT state as it was before launching this software
+                    # restore BT card state as it was before launching this software
+                    asyncio.run(bluetooth_manager.restore())
 
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
