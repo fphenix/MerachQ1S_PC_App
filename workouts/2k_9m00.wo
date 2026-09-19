@@ -1,0 +1,30 @@
+WORKOUT: 2k_9m00
+FIELD: Catégorie
+# Warmup
+INFO: Before a 2k sprint, always start with a WarmUp
+60 18 E
+90 20 E
+60 20 N
+60 22 F
+60 20 N
+60 24 F
+60 20 N
+60 26 F
+60 20 N
+30 28 F
+60 20 N
+30 30 F
+60 20 N
+INFO: 30 spm or more if you can!
+30 30 M
+90 20 E
+# -----------------------------------
+INFO: 10 sec avant la fin, lacher la poignée pour partir de zéro à l'étape suivante
+90 18 R
+# Goal: 2000m, 9:00 minutes (ref split : 2:15)
+INFO: Faire 500m dans ce temps
+134 26 M
+INFO: Faire 1000m dans ce temps
+272 26 F
+INFO: Faire 500m dans ce temps
+134 26 M
