@@ -598,18 +598,9 @@ class WorkoutWidget(QFrame):
             step.duration_seconds
         )
 
-        self.step_list.setCurrentRow(
+        self._select_step(
             self.current_step
         )
-
-        self._update_current_step_visuals()
-
-        self.step_list.scrollToItem(
-            self.step_list.currentItem(),
-            QListWidget.ScrollHint.PositionAtCenter,
-        )
-
-        self.beat_phase = 0.0
 
         was_started = self.started
 
@@ -618,7 +609,7 @@ class WorkoutWidget(QFrame):
 
         # This should only fire once at the Workout start,
         # not at every new step (hence the "was_started")
-        if not was_started:
+        if not was_started and not self.replay_mode:
             self.workout_start_time = time.perf_counter()
             self.workout_started.emit()
 
@@ -738,6 +729,8 @@ class WorkoutWidget(QFrame):
 
         self.metronome_bar.setValue(
             1000
+            if not self.replay_mode
+            else 0
         )
 
         self.state_label.setText(
@@ -777,6 +770,10 @@ class WorkoutWidget(QFrame):
             self.total_time,
         )
 
+        if self.workout_elapsed >= self.total_time:
+            self.finish_workout()
+            return
+
         remaining = self.workout_elapsed
 
         last_index = (
@@ -805,22 +802,8 @@ class WorkoutWidget(QFrame):
 
         # Nouveau step
         if new_step != self.current_step:
-
-            self.current_step = new_step
-
-            self._update_current_step_visuals()
-
-            self.step_list.setCurrentRow(
-                new_step
-            )
-
-            self.step_list.scrollToItem(
-                self.step_list.currentItem(),
-                QListWidget.ScrollHint.PositionAtCenter,
-            )
-
-            self.beat_phase = 0.0
-
+            self._select_step(new_step)
+            
         self.step_elapsed = min(
             step_elapsed,
             step.duration_seconds,
@@ -853,11 +836,23 @@ class WorkoutWidget(QFrame):
 
             self.update_labels()
 
-        else:
+    # ------------------------------------------------------------------
+    def _select_step(self, step_index: int) -> None:
 
-            self.state_label.setText(
-                get_text("WORKOUT_COMPLETE")
-            )
+        self.current_step = step_index
+
+        self._update_current_step_visuals()
+
+        self.step_list.setCurrentRow(
+            step_index
+        )
+
+        self.step_list.scrollToItem(
+            self.step_list.currentItem(),
+            QListWidget.ScrollHint.PositionAtCenter,
+        )
+
+        self.beat_phase = 0.0
 
     # ------------------------------------------------------------------
     def _update_current_step_visuals(self) -> None:

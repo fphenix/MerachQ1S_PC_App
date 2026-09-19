@@ -31,6 +31,9 @@ from setup.constants import (
     ANALYZER_STATS_FONT_SIZE,
     ANALYZER_STATS_MIN_WIDTH,
     ANALYZER_STATS_MAX_WIDTH,
+    LOGGER_FORMAT_CSV,
+    LOGGER_FORMAT_ZIP,
+    SHOW_CHECKBUTTONS,
 )
 
 from engine.calc import calc_stats
@@ -64,7 +67,7 @@ class AnalyzerWindow(QMainWindow):
         self.line_raw_split = None
         self.line_raw_split_avg = None
         self.rax = None
-        self.check = None
+        self.checkbtn = None
 
         self.create_ui()
 
@@ -153,27 +156,28 @@ class AnalyzerWindow(QMainWindow):
                 f"{get_text("ERR_LOGFILE_NOT_FOUND")} : {path}"
             )
 
-        suffix = path.suffix.lower()
+        suffix = path.suffix.lower()[1:]
 
-        if suffix == ".csv":
+        if suffix == LOGGER_FORMAT_CSV:
 
             return pd.read_csv(
                 path,
                 skiprows=2,
             )
 
-        if suffix == ".zip":
+        if suffix == LOGGER_FORMAT_ZIP:
 
             with zipfile.ZipFile(
                 path,
                 "r",
             ) as archive:
 
+                csv_ext = f".{LOGGER_FORMAT_CSV}"
                 csv_files = [
                     name
                     for name in archive.namelist()
                     if (
-                        name.lower().endswith(".csv")
+                        name.lower().endswith(csv_ext)
                         and not name.endswith("/")
                     )
                 ]
@@ -273,7 +277,7 @@ class AnalyzerWindow(QMainWindow):
     def toggle(self, label) -> None:
 
         if (
-            label == get_text("PLOT_INST")
+            label == f"{get_text("SPLIT")} {get_text("PLOT_INST")}"
             and self.line_raw_split is not None
         ):
             self.line_raw_split.set_visible(
@@ -281,7 +285,7 @@ class AnalyzerWindow(QMainWindow):
             )
 
         elif (
-            label == get_text("PLOT_AVERAGE")
+            label == f"{get_text("SPLIT")} {get_text("PLOT_AVERAGE")}"
             and self.line_raw_split_avg is not None
         ):
             self.line_raw_split_avg.set_visible(
@@ -293,6 +297,11 @@ class AnalyzerWindow(QMainWindow):
     # -------------------------------------------------------------------------
     def create_checkbuttons(self) -> None:
 
+        if not SHOW_CHECKBUTTONS:
+            self.rax = None
+            self.check = None
+            return
+
         self.rax = self.figure.add_axes(
             [0.82, 0.80, 0.16, 0.12]
         )
@@ -301,32 +310,32 @@ class AnalyzerWindow(QMainWindow):
         states: list = []
 
         if self.line_raw_split is not None:
-            labels.append(get_text("PLOT_INST"))
+            labels.append(f"{get_text("SPLIT")} {get_text("PLOT_INST")}")
             states.append(
                 self.line_raw_split.get_visible()
             )
 
         if self.line_raw_split_avg is not None:
-            labels.append(get_text("PLOT_AVERAGE"))
+            labels.append(f"{get_text("SPLIT")} {get_text("PLOT_AVERAGE")}")
             states.append(
                 self.line_raw_split_avg.get_visible()
             )
 
         if labels:
 
-            self.check = CheckButtons(
+            self.checkbtn = CheckButtons(
                 self.rax,
                 labels,
                 states,
             )
 
-            self.check.on_clicked(
+            self.checkbtn.on_clicked(
                 self.toggle
             )
 
         else:
 
-            self.check = None
+            self.checkbtn = None
 
     # -------------------------------------------------------------------------
     def draw_plot(self, plot, axis) -> list:
@@ -391,7 +400,7 @@ class AnalyzerWindow(QMainWindow):
         self.line_raw_split = None
         self.line_raw_split_avg = None
         self.rax = None
-        self.check = None
+        self.checkbtn = None
 
         for plot in self.plots:
 
@@ -420,7 +429,11 @@ class AnalyzerWindow(QMainWindow):
 
         self.figure.subplots_adjust(
             left=0.08,
-            right=0.78,
+            right=(
+                0.78
+                if SHOW_CHECKBUTTONS
+                else 0.95
+            ),
             top=0.95,
             bottom=0.06,
             hspace=0.35,
@@ -443,7 +456,7 @@ class AnalyzerWindow(QMainWindow):
         self.line_raw_split_avg = None
 
         self.rax = None
-        self.check = None
+        self.checkbtn = None
 
         plot = self.plots[plot_id]
 

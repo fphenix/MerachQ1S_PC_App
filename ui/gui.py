@@ -615,7 +615,10 @@ class MainWindow(QMainWindow):
         #
 
         self.speedWidget.setValue(
-            textvalue= f"{rowerdata.speed:.2f} / {rowerdata.speed_avg:.2f}",
+            textvalue= (
+                f"{rowerdata.speed:.2f} / "
+                f"{rowerdata.speed_avg:.2f}"
+            ),
             gaugevalue= rowerdata.speed
         )
 
@@ -633,7 +636,10 @@ class MainWindow(QMainWindow):
         #
 
         self.distStrokeWidget.setValue(
-            textvalue= f"{rowerdata.distance_per_stroke:.2f} / {rowerdata.dist_per_stroke_avg:.2f}",
+            textvalue= (
+                f"{rowerdata.distance_per_stroke:.2f} / "
+                f"{rowerdata.dist_per_stroke_avg:.2f}"
+            ),
             gaugevalue= rowerdata.distance_per_stroke
         )
 
@@ -643,7 +649,10 @@ class MainWindow(QMainWindow):
         #
 
         self.powerWidget.setValue(
-            textvalue= f"{rowerdata.power:.0f} / {rowerdata.power_avg:.0f}",
+            textvalue= (
+                f"{rowerdata.power:.0f} / "
+                f"{rowerdata.power_avg:.0f}"
+            ),
             gaugevalue=rowerdata.power
         )
 
@@ -653,7 +662,10 @@ class MainWindow(QMainWindow):
         #
 
         self.cadenceWidget.setValue(
-            textvalue= f"{rowerdata.cadence:.1f} / {rowerdata.cadence_avg:.1f}",
+            textvalue= (
+                f"{rowerdata.cadence:.1f} / "
+                f"{rowerdata.cadence_avg:.1f}"
+            ),
             gaugevalue= rowerdata.cadence
         )
 
@@ -663,17 +675,52 @@ class MainWindow(QMainWindow):
         #
 
         self.splitWidget.setValue(
-            textvalue= f"{format_pace(rowerdata.split_inst)} / {format_pace(rowerdata.split_avg)}",
+            textvalue= (
+                f"{format_pace(rowerdata.split_inst)} / "
+                f"{format_pace(rowerdata.split_avg)}"
+            ),
             gaugevalue= rowerdata.split_inst
         )
 
-        if USE_REPLAY and self.workoutWidget.replay_mode:
+        #
+        # Workout / Replay
+        #
+
+        replay_completed = False
+
+        if (
+            USE_REPLAY
+            and self.workoutWidget.replay_mode
+        ):
             self.workoutWidget.update_replay_time(
                 rowerdata.elapsed_time
             )
 
-        if self.workoutWidget.started:
+            replay_completed = (
+                self.workoutWidget.workout_elapsed
+                >= self.workoutWidget.total_time
+            )
 
+        #
+        # Workout Split
+        #
+
+        if (
+            self.workoutWidget.started
+            or replay_completed
+        ):
+            print(
+                "SPLIT DEBUG:",
+                "elapsed=", self.workoutWidget.workout_elapsed,
+                "distance=", rowerdata.distance,
+                "current_step=", self.workoutSplitCalculator.current_step,
+                "last_split_distance=",
+                (
+                    self.workoutSplitCalculator.splits[-1].distance
+                    if self.workoutSplitCalculator.splits
+                    else None
+                ),
+            )
             self.workoutSplitCalculator.update(
                 workout_elapsed=(
                     self.workoutWidget.workout_elapsed
@@ -681,7 +728,12 @@ class MainWindow(QMainWindow):
                 distance=rowerdata.distance,
             )
 
+        #
+        # Liste des splits
+        #
+
         if self.splitMode500m.isChecked():
+
             self.splitListWidget.set_splits(
                 rowerdata.splits
             )
@@ -697,12 +749,17 @@ class MainWindow(QMainWindow):
         #
         # Calories Rate et Calories Totales
         #
+
         self.caloriesWidget.setValue(
-            textvalue= f"{rowerdata.calories_rate:.3f} / {rowerdata.calories:.1f}"
+            textvalue=(
+                f"{rowerdata.calories_rate:.3f} / "
+                f"{rowerdata.calories:.1f}"
+            )
         )
 
     # -------------------------------------------------------------------------
     def _edit_workout_dialog(self, workout= None) -> None:
+
         # Pas d'édition pendant une séance.
         if self.workoutWidget.started:
             QMessageBox.warning(
@@ -713,10 +770,24 @@ class MainWindow(QMainWindow):
             return
 
         source = self.state.source
+        replay_mode = self.workoutWidget.replay_mode
+
+        #
+        # Mémorise si la source était réellement en cours.
+        #
+        if source is None:
+            source_was_running = False
+
+        elif replay_mode:
+            source_was_running = source.is_running
+
+        else:
+            # Le vrai rameur n'a pas de propriété is_running.
+            source_was_running = True
 
         self._workout_editor_paused = True
 
-        if source is not None:
+        if source_was_running:
             source.stop()
 
         try:
@@ -724,13 +795,28 @@ class MainWindow(QMainWindow):
                 workout=workout,
                 parent=self,
             )
+
             dialog.exec()
 
+        except Exception as exc:
+
+            QMessageBox.critical(
+                self,
+                get_text("ERROR"),
+                f"{exc}",
+            )
+
         finally:
+
             self._workout_editor_paused = False
 
-            if source is not None:
+            #
+            # Ne redémarre la source que si elle tournait
+            # réellement avant l'ouverture de l'éditeur.
+            #
+            if source is not None and source_was_running:
                 source.start()
+
 
     # -------------------------------------------------------------------------
     def create_workout(self) -> None:
@@ -738,6 +824,7 @@ class MainWindow(QMainWindow):
 
     # -------------------------------------------------------------------------
     def edit_workout(self) -> None:
+
         filename, _ = QFileDialog.getOpenFileName(
             self,
             get_text("WO_EDIT_TITLE"),
@@ -748,7 +835,18 @@ class MainWindow(QMainWindow):
         if not filename:
             return
 
-        workout = load_workout(filename)
+        try:
+            workout = load_workout(filename)
+
+        except Exception as exc:
+
+            QMessageBox.critical(
+                self,
+                get_text("ERROR"),
+                f"{get_text('ERR_LOAD_WORKOUT')}\n{exc}",
+            )
+
+            return
 
         self._edit_workout_dialog(workout)
 

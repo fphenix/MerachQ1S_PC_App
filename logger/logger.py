@@ -222,10 +222,11 @@ class CsvLogger:
             self.filename.unlink() # unlink = remove
             echo(get_text("WARN_EMPTY_LOG"))
 
-        # si on veut zip, on compresse le csv et on l'efface
+        # si on veut un zip, on compresse le csv puis on l'efface
         elif self.log_format == LOGGER_FORMAT_ZIP:
 
-            zip_filename = self.filename.with_suffix(".zip")
+            ext = f".{LOGGER_FORMAT_ZIP}"
+            zip_filename = self.filename.with_suffix(ext)
 
             with zipfile.ZipFile(
                 zip_filename,

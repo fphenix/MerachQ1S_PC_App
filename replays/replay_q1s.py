@@ -118,7 +118,9 @@ class ReplayQ1S(ReplaySource):
 
         except Exception as exc:
             self._running = False
+
             echoerr(f"Q1S {get_text("ERR_REPLAY_STOPPED")} : {exc}")
+
             traceback.print_exc()
             #raise Exception(f"Q1S {get_text("ERR_REPLAY_STOPPED")} : {exc}")
 

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-VERSION: str = "4.5c"
+VERSION: str = "4.6"
 
 GUI_REFRESH_MS   = 100 # milliseconds
 WORKOUT_TIMER_MS = 20 # milliseconds
@@ -64,8 +64,6 @@ SPLIT_MODES: list[str] = [
     SPLIT_MODES_WORKOUT,
 ]
 
-ALLOWED_REPLAY_EXT: list[str] = ["csv", "zip"]
-
 # ----------------------------------------------------------------------
 # Analyzer et Plot_Wo
 # ----------------------------------------------------------------------
@@ -84,6 +82,8 @@ PLOTWO_CODE_FONT_SIZE = 12 # point
 PLOTWO_CODE_MIN_WIDTH = 300 # pixels
 PLOTWO_CODE_MAX_WIDTH = 600 # pixels
 
+SHOW_CHECKBUTTONS = False
+
 # ----------------------------------------------------------------------
 # Logger
 # ----------------------------------------------------------------------
@@ -100,6 +100,11 @@ LOGGER_END_SESSION_TIMEOUT: float = 10.0 # seconds
 LOGGER_FORMAT_CSV = "csv"
 LOGGER_FORMAT_ZIP = "zip"
 LOGGER_FORMAT = LOGGER_FORMAT_ZIP
+
+ALLOWED_REPLAY_EXT: list[str] = [
+    LOGGER_FORMAT_CSV,
+    LOGGER_FORMAT_ZIP,
+]
 
 # ----------------------------------------------------------------------
 # Replay
@@ -119,8 +124,8 @@ LOGGER_FORMAT = LOGGER_FORMAT_ZIP
 # Normal Mode vs. Replay Mode : USE_REPLAY
 # * False : (Mode Normal) BT vient du rameur ou
 # * True  : (Mode Dvp/Debug) BT émulé en rejouant une session loggée précédente.
-USE_REPLAY: bool = False
-USE_REPLAY_WORKOUT: bool = False
+USE_REPLAY: bool = True
+USE_REPLAY_WORKOUT: bool = True
 # Le fichier REPLAY_FILE peut être:
 # * un .csv
 # * un .zip ayant un (et un seul) .csv à l'intérieur
@@ -146,7 +151,7 @@ DELAY_SECONDS_STEP = 5
 WORKOUT_WIDTH  = 720 # pixels
 WORKOUT_HEIGHT = WINDOW_HEIGHT # pixels
 
-WORKOUT_EDIT_WIDTH  = 1100  # pixels
+WORKOUT_EDIT_WIDTH  = 1200  # pixels
 WORKOUT_EDIT_HEIGHT =  800  # pixels
 
 TITLE_FONT_SIZE = 24 # point

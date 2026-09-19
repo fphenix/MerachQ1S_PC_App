@@ -1,7 +1,7 @@
 """
 main.py
 
-Point d'entrée de l'application Merach PM Monitor.
+Point d'entrée de l'application Merach PM (Performance Monitor).
 
 """
 

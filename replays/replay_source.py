@@ -145,10 +145,11 @@ class ReplaySource(ABC):
         with zipfile.ZipFile(filename, "r") as archive:
 
             # retreive all .csv from the archive (there should be one but only one)
+            ext = f".{LOGGER_FORMAT_CSV}"
             csv_names = [
                 name
                 for name in archive.namelist()
-                if name.lower().endswith(".csv")
+                if name.lower().endswith(ext)
                 and not name.endswith("/")
             ]
 
@@ -177,6 +178,15 @@ class ReplaySource(ABC):
                     yield from csv.DictReader(text_file)
                 finally:
                     text_file.detach()
+
+    # -------------------------------------------------------------------------
+    @property
+    def is_running(self) -> bool:
+        return (
+            self._running
+            and self._thread is not None
+            and self._thread.is_alive()
+        )
 
     # -------------------------------------------------------------------------
     # Abstract

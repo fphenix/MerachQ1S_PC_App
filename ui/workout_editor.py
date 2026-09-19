@@ -10,8 +10,11 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QVBoxLayout,
     QWidget,
+    QLabel,
+    QStatusBar,
 )
 
+from setup.utils import format_time
 from setup.lang import get_text
 from setup.constants import (
     WO_KEYWORD,
@@ -51,6 +54,7 @@ class WorkoutEditorDialog(QDialog):
             self.title_edit.setText(get_text("WO_CREATE_NEW"))
             self.field_edit.setText(get_text("FIELD"))
             self.add_step()
+
         else:
             self.setWindowTitle(get_text("WO_EDIT_TITLE"))
             self.fetch_workout(workout)
@@ -97,6 +101,29 @@ class WorkoutEditorDialog(QDialog):
 
         main_layout.addWidget(buttons)
 
+        self.status_bar = QStatusBar()
+        self.total_time_label = QLabel()
+        self.status_bar.addWidget(self.total_time_label)
+
+        main_layout.addWidget(
+            self.status_bar
+        )
+
+        self.update_total_time()
+
+    # -------------------------------------------------------------------------
+    def update_total_time(self) -> None:
+
+        total = sum(
+            editor.get_duration_seconds()
+            for editor in self.step_editors
+        )
+
+        self.total_time_label.setText(
+            f"{get_text("TOTAL_TIME")} : "
+            f"{format_time(total)}"
+        )
+
     # -------------------------------------------------------------------------
     def add_step(self, after=None) -> WorkoutStepEditor:
 
@@ -118,6 +145,13 @@ class WorkoutEditorDialog(QDialog):
             lambda checked=False, e=editor: self.add_step(e)
         )
 
+        editor.duration_changed.connect(
+            self.update_total_time
+        )
+
+        self.update_step_numbers()
+        self.update_total_time()
+
         return editor
 
     # -------------------------------------------------------------------------
@@ -129,6 +163,18 @@ class WorkoutEditorDialog(QDialog):
 
         self.step_editors.remove(editor)
         editor.deleteLater()
+
+        self.update_step_numbers()
+        self.update_total_time()
+
+    # -------------------------------------------------------------------------
+    def update_step_numbers(self) -> None:
+
+        for number, editor in enumerate(
+            self.step_editors,
+            start=1,
+        ):
+            editor.set_step_number(number)
 
     # -------------------------------------------------------------------------
     def fetch_workout(self, workout: Workout) -> None:
