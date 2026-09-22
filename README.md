@@ -20,7 +20,9 @@ You need to use a BlueTooth Scanner in order to get the ROWER_ADDRESS for your m
 
 Note: If your Bluetooth card is disabled, the App will automatically turn it On, then restore its disabled state on exit.
 
+
 <img width="1854" height="823" alt="MerachA1S_fphenix" src="https://github.com/user-attachments/assets/3cbd0996-da3a-4357-a6d1-6eb9e0276d15" />
+
 
 Note and Disclaimers: The motivation for this project are the poor metrics on the rower's LCD screen and the desire to use a PC "App" rather than a smartphone one.
 It became obvious, for instance, that the "Distance" in meters displayed on the Q1S screen simply is "5 * number_of_strokes" and the Calories in kcal roughly is "0.1428 * number_of_strokes".
