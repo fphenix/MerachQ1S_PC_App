@@ -1,9 +1,6 @@
 {
-    "current_user": "Fred",
+    "current_user": "Default",
     "users": [
-        "Default",
-        "Fred",
-        "Aymeric",
-        "Alice"
+        "Default"
     ]
 }
