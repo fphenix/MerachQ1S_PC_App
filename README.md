@@ -7,6 +7,8 @@ In Version 4.0, the Workout Widget (allowing to upload a .wo workout file that d
 
 In Version 4.3, the Workout Editor (Create or Edit) has been added.
 
+In Version 4.7, the raw power data is recalibrated based on the user profile information.
+
 Dependencies : PySide6, Bleak (& pyftms)
 
 * pip install PySide6
