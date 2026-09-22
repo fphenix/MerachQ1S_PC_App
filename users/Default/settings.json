@@ -1,0 +1,14 @@
+{
+    "language": "fr",
+    "delay_seconds": 15,
+    "split_length": 500,
+    "split_mode": "normal",
+    "power_recalibration_profile_enabled": false,
+    "power_recalibration_workout_enabled": false,
+    "profile_age": 40.0,
+    "profile_weight_kg": 75.0,
+    "profile_height_cm": 180.0,
+    "profile_sex": "M",
+    "profile_level_norm": 0.33,
+    "profile_level": "I"
+}
