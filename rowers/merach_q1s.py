@@ -129,6 +129,10 @@ class MerachRower(RowerClient):
         self.calculator.reset()
 
     # -------------------------------------------------------------------------
+    def set_power_calibration_context(self, context) -> None:
+        self.calculator.set_power_calibration_context(context)
+
+    # -------------------------------------------------------------------------
     def process(
         self,
         rowerdata: RowerData,

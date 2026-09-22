@@ -19,9 +19,9 @@ class Language:
         with LANG_FILE.open(
             "r",
             encoding=FILE_ENCODING,
-        ) as jfile:
+        ) as jrfile:
             
-            data = json.load(jfile)
+            data = json.load(jrfile)
 
         return {
             key: value[self.language]

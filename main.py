@@ -20,6 +20,7 @@ Point d'entrée de l'application Merach PM (Performance Monitor).
 import sys
 import asyncio
 
+from setup.users import UserManager
 from PySide6.QtWidgets import QApplication
 
 from setup.settings import Settings
@@ -28,6 +29,7 @@ from setup.settings_utils import load_settings
 from setup.constants import (
     WINDOW_WIDTH, WINDOW_HEIGHT,
     WINDOW_TO_SCREEN_LEFT_MARGIN,
+    WINDOW_TO_SCREEN_TOP_MARGIN,
     REPLAY_FILE, REPLAY_SPEED, USE_REPLAY,
     USE_REPLAY_WORKOUT, REPLAY_WORKOUT_FILE,
 )
@@ -55,7 +57,11 @@ def main():
     # Config
     #
 
-    settings: Settings = load_settings()
+    user_manager = UserManager()
+
+    settings: Settings = load_settings(
+        user_manager.settings_file()
+    )
 
     init_language(settings.language)
 
@@ -118,7 +124,9 @@ def main():
     # Data Logger
     #
 
-    logger = CsvLogger()
+    logger = CsvLogger(
+        logs_dir=user_manager.logs_dir()
+    )
     logger.set_rower_name(source.NAME)
     logger.start()
 
@@ -128,7 +136,12 @@ def main():
     # Interface graphique
     #
 
-    window = MainWindow(state, settings)
+    window = MainWindow(
+        state,
+        settings,
+        user_manager,
+        logger,
+    )
 
     window.resize(
         WINDOW_WIDTH,
@@ -141,7 +154,7 @@ def main():
     window.move(
         WINDOW_TO_SCREEN_LEFT_MARGIN,
         available.top()
-        + (available.height() - window.height()) // 2,
+        + (available.height() - window.height()) * WINDOW_TO_SCREEN_TOP_MARGIN,
     )
 
     #

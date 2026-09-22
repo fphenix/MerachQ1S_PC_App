@@ -51,6 +51,22 @@
         "fr": "Arrêt",
         "en": "Stopped"
     },
+    "CHECK_POWER_PROFILE_RECAL": {
+        "fr": "Recalibrer le power avec le profil",
+        "en": "Recalibrate the power based on the profile"
+    },
+    "CHECK_POWER_WORKOUT_RECAL": {
+        "fr": "Recalibrer le power avec l'intensité du workout",
+        "en": "Recalibrate the power based on the expected intensity from the workout"
+    },
+    "CHECK_POWER_PROFILE_TITLE": {
+        "fr": "Recal. Puissance par Profil",
+        "en": "Power Profile Recal."
+    },
+    "CHECK_POWER_WORKOUT_TITLE": {
+        "fr": "Recal. Puissance par Workout",
+        "en": "Power Workout Recal."
+    },
     "COMMENT": {
         "fr": "Commentaire",
         "en": "Comment"
@@ -99,6 +115,10 @@
         "fr": "Fichier log introuvable",
         "en": "Log file not found"
     },
+    "ERR_LOGGER_IS_ACTIVE": {
+        "fr": "Impossible de changer de répertoire logs quand le logger est actif.",
+        "en": "Cannot change logs directory while logger is active."
+    },
     "ERR_PBAR_5PTS_DIFF": {
         "fr": "GradientGauge : les 5 points de zones doivent être différents.",
         "en": "GradientGauge : zones 5 points must be different."
@@ -126,6 +146,10 @@
     "ERR_UNKNOWN_LOG_FORMAT": {
         "fr": "Format de Log inconnu",
         "en": "Unknown Log format"
+    },
+    "ERR_USER_ALREADY_EXISTS": {
+        "fr": "Cet utilisateur existe déjà.",
+        "en": "This username already exists."
     },
     "ERR_WO_CANT_CREATE": {
         "fr": "Impossible de créer le Workout",
@@ -240,6 +264,14 @@
         "fr": "Visualiser un .wo...",
         "en": "Plot a .wo..."
     },
+    "MENU_USER": {
+        "fr": "Utilisateur",
+        "en": "User"
+    },
+    "MENU_USER_ADD": {
+        "fr": "Ajouter un utilisateur",
+        "en": "Add a new user"
+    },
     "MENU_WORKOUT": {
         "fr": "Exercice",
         "en": "Workout"
@@ -323,6 +355,54 @@
     "POWER": {
         "fr": "Puissance",
         "en": "Power"
+    },
+    "PROFILE_AGE": {
+        "fr": "Age",
+        "en": "Age"
+    },
+    "PROFILE_AGE_UNIT": {
+        "fr": "ans",
+        "en": "years"
+    },
+    "PROFILE_WEIGHT": {
+        "fr": "Poids",
+        "en": "Weight"
+    },
+    "PROFILE_SEX": {
+        "fr": "Genre",
+        "en": "Sex"
+    },
+    "PROFILE_SEX_M": {
+        "fr": "Homme",
+        "en": "Male"
+    },
+    "PROFILE_SEX_F": {
+        "fr": "Femme",
+        "en": "Female"
+    },
+    "PROFILE_HEIGHT": {
+        "fr": "Taille",
+        "en": "Height"
+    },
+    "PROFILE_LEVEL": {
+        "fr": "Niveau",
+        "en": "Level"
+    },
+    "PROFILE_LEVEL_D": {
+        "fr": "Débutant",
+        "en": "Beginner"
+    },
+    "PROFILE_LEVEL_I": {
+        "fr": "Intermédiaire",
+        "en": "Intermediate"
+    },
+    "PROFILE_LEVEL_C": {
+        "fr": "Confirmé",
+        "en": "Confirmed"
+    },
+    "PROFILE_LEVEL_A": {
+        "fr": "Très confirmé",
+        "en": "Advanced"
     },
     "REPLAY_LOADED_LOG": {
         "fr": "Mode Replay : le fichier chargé est",
@@ -435,6 +515,10 @@
     "UNKNOWN_ROWER": {
         "fr": "Rameur inconnu",
         "en": "Unknown Rower"
+    },
+    "USER_NAME": {
+        "fr": "Nom ou identifiant:",
+        "en": "Name or username:"
     },
     "WARN_CANT_EDIT_WO": {
         "fr": "Impossible de créer ou modifier un Workout pendant une séance.",

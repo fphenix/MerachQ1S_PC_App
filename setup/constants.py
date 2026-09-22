@@ -8,36 +8,7 @@ WORKOUT_TIMER_MS = 20 # milliseconds
 WINDOW_WIDTH = 1100 # pixels
 WINDOW_HEIGHT = 700 # pixels
 WINDOW_TO_SCREEN_LEFT_MARGIN = 35 # pixels
-
-DEFAULT_LANGUAGE: str = "fr" # "fr" or "en"
-
-LANGUAGES: dict[str, str] = {
-    "fr": "Français",
-    "en": "English",
-}
-
-LANG_FILE: Path = (
-    Path(__file__).resolve().parent.parent
-    / "config" / "lang.json"
-)
-
-SETTINGS_FILE: Path = (
-    Path(__file__).resolve().parent.parent
-    / "config" / "settings.json"
-)
-
-LOGS_DIR: Path = (
-      Path(__file__).resolve().parent.parent
-    / "logs"  
-)
-
-WORKOUTS_DIR: Path = (
-    Path(__file__).resolve().parent.parent
-    / "workouts"
-)
-
-FILE_ENCODING: str = "utf-8"
-FILE_ENCODING_BOM: str = "utf-8-sig"
+WINDOW_TO_SCREEN_TOP_MARGIN = 0.33 # 0.33 = 33% of the margin at the top, 66% at the bottom
 
 MAIN_FONT = "Consolas"
 TITLE_FONT = "Segoe UI"
@@ -63,6 +34,34 @@ SPLIT_MODES: list[str] = [
     SPLIT_MODES_500M,
     SPLIT_MODES_WORKOUT,
 ]
+
+DEFAULT_LANGUAGE: str = "fr" # "fr" or "en"
+
+LANGUAGES: dict[str, str] = {
+    "fr": "Français",
+    "en": "English",
+}
+
+# ----------------------------------------------------------------------
+# Files and Directories
+# ----------------------------------------------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+CONFIG_DIR: Path   = BASE_DIR / "config"
+WORKOUTS_DIR: Path = BASE_DIR / "workouts"
+USERS_DIR: Path    = BASE_DIR / "users"
+
+LANG_FILE: Path         = CONFIG_DIR / "lang.json"
+USERS_CONFIG_FILE: Path = CONFIG_DIR / "users.json"
+
+SETTINGS_FILE_NAME: str = "settings.json"
+LOGS_DIR_NAME: str = "logs"
+
+print(BASE_DIR)
+
+FILE_ENCODING: str = "utf-8"
+FILE_ENCODING_BOM: str = "utf-8-sig"
 
 # ----------------------------------------------------------------------
 # Analyzer et Plot_Wo
@@ -126,18 +125,48 @@ ALLOWED_REPLAY_EXT: list[str] = [
 # * True  : (Mode Dvp/Debug) BT émulé en rejouant une session loggée précédente.
 USE_REPLAY: bool = False
 USE_REPLAY_WORKOUT: bool = False
+
 # Le fichier REPLAY_FILE peut être:
 # * un .csv
 # * un .zip ayant un (et un seul) .csv à l'intérieur
-REPLAY_FILE: str = (
-    #f"{LOGS_DIR}/session_20260908_102813.zip" # Choose Log to replay (csv ou zip)
-    f"{LOGS_DIR}/session_20260917_180528.zip"
+REPLAY_USER: str = "Fred"
+REPLAY_FILE: Path = (
+    USERS_DIR / REPLAY_USER / LOGS_DIR_NAME
+    / "session_20260918_114100.zip"
 )
-REPLAY_WORKOUT_FILE: str = (
-    f"{WORKOUTS_DIR}/Row20_Day03.wo"
-)
+REPLAY_WORKOUT_FILE: Path = WORKOUTS_DIR / "spm_power.wo"
 
 REPLAY_SPEED: float = 100.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.
+
+# ----------------------------------------------------------------------
+# Power recalibration / profile
+# ----------------------------------------------------------------------
+
+DEFAULT_USER_NAME: str = "Default"
+
+MIN_PROFILE_AGE: int = 18 # years
+MAX_PROFILE_AGE: int = 100 # years
+DEFAULT_PROFILE_AGE: int = 40 # years
+
+MIN_PROFILE_WEIGHT: float = 35.0 # kg
+MAX_PROFILE_WEIGHT: float = 200.0 # kg
+DEFAULT_PROFILE_WEIGHT: float = 75.0 # kg
+
+MIN_PROFILE_HEIGHT: float = 140.0 # cm
+MAX_PROFILE_HEIGHT: float = 220.0 # cm
+DEFAULT_PROFILE_HEIGHT: float = 180.0 # cm
+
+PROFILE_LEVELS_KEYS: list[str] = ["D", "I", "C", "A"]
+PROFILE_LEVELS_THRESHOLDS: dict[str, float] = {
+    "D" : 0.0,
+    "I" : 0.33,
+    "C" : 0.66,
+    "A" : 1.0,
+}
+DEFAULT_PROFILE_LEVEL: str = "I"
+DEFAULT_PROFILE_NORM_LEVEL: float = 0.33
+
+DEFAULT_PROFILE_SEX: str = "M"
 
 # ----------------------------------------------------------------------
 # Workout

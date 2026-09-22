@@ -5,6 +5,7 @@ Fenêtre principale.
 """
 
 from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QActionGroup
 from PySide6.QtWidgets import (
     QGridLayout,
     QMainWindow,
@@ -20,6 +21,7 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QMessageBox,
     QDialog,
+    QInputDialog,
 )
 
 from setup.lang import get_text
@@ -28,7 +30,10 @@ from setup.utils import (
     format_time,
     load_workout,
 )
-from setup.settings_utils import save_settings
+from setup.settings_utils import (
+    save_settings, load_settings,
+    profile_level_key_from_norm,
+)
 from setup.constants import (
     GUI_REFRESH_MS,
     WINDOW_WIDTH, WINDOW_HEIGHT,
@@ -40,7 +45,7 @@ from setup.constants import (
     SPLIT_MODES_WORKOUT,
     USE_REPLAY, USE_REPLAY_WORKOUT,
     REPLAY_WORKOUT_FILE,
-    LOGS_DIR, WORKOUTS_DIR,
+    WORKOUTS_DIR,
 )
 from setup.cnx_enum import CnxState
 
@@ -53,6 +58,7 @@ from ui.settings_dialog import SettingsDialog
 from ui.workout_editor import WorkoutEditorDialog
 
 from workout.split import WorkoutSplitCalculator
+from rowers.power_calib_data import PowerCalibrationContext
 
 from tools.analyzer import AnalyzerWindow
 from tools.plot_wo import WorkoutPlotWindow
@@ -60,12 +66,21 @@ from tools.plot_wo import WorkoutPlotWindow
 # =============================================================================
 class MainWindow(QMainWindow):
 
-    def __init__(self, state, settings) -> None:
+    def __init__(
+        self,
+        state,
+        settings,
+        user_manager,
+        logger,
+    ) -> None:
 
         super().__init__()
 
         self.state = state
         self.settings = settings
+
+        self.user_manager = user_manager
+        self.logger = logger
 
         self._workout_editor_paused = False
 
@@ -397,7 +412,223 @@ class MainWindow(QMainWindow):
         self.metronome_container.setVisible(False)
 
     # -------------------------------------------------------------------------
+    def add_user(self) -> None:
+
+        if not self._can_change_user():
+            return
+
+        name, accepted = QInputDialog.getText(
+            self,
+            get_text("MENU_USER_ADD"),
+            get_text("USER_NAME"),
+        )
+
+        if not accepted:
+            return
+
+        name = name.strip()
+
+        if not name:
+            return
+
+        if name in self.user_manager.users:
+
+            QMessageBox.warning(
+                self,
+                get_text("MENU_USER"),
+                get_text("ERR_USER_ALREADY_EXISTS"),
+            )
+            return
+
+        #
+        # Sauvegarde du profil actuel
+        #
+
+        save_settings(
+            self.settings,
+            self.user_manager.settings_file(),
+        )
+
+        #
+        # Le logger est actuellement ouvert.
+        # On termine le fichier de l'utilisateur actuel.
+        #
+
+        if self.logger is not None:
+            self.logger.stop()
+
+        #
+        # Crée et sélectionne le nouvel utilisateur.
+        #
+
+        if not self.user_manager.add_user(name):
+            return
+
+        #
+        # Charge les settings du nouvel utilisateur.
+        #
+
+        new_settings = load_settings(
+            self.user_manager.settings_file()
+        )
+
+        self.settings.__dict__.update(
+            new_settings.__dict__
+        )
+
+        #
+        # Le logger repart dans le nouveau répertoire.
+        #
+
+        if self.logger is not None:
+
+            self.logger.set_logs_dir(
+                self.user_manager.logs_dir()
+            )
+
+            self.logger.start()
+
+            self.state.set_logger(
+                self.logger
+            )
+
+        self._rebuild_user_menu()
+
+    # -------------------------------------------------------------------------
+    def _rebuild_user_menu(self) -> None:
+
+        self.user_menu.clear()
+
+        self.user_actions = {}
+
+        self.user_action_group = QActionGroup(
+            self.user_menu
+        )
+
+        self.user_action_group.setExclusive(True)
+
+        for name in self.user_manager.users:
+
+            action = self.user_menu.addAction(name)
+
+            action.setCheckable(True)
+            action.setChecked(
+                name == self.user_manager.current_user
+            )
+
+            self.user_action_group.addAction(
+                action
+            )
+
+            action.triggered.connect(
+                lambda checked=False, user=name:
+                    self.switch_user(user)
+            )
+
+            self.user_actions[name] = action
+
+        self.user_menu.addSeparator()
+
+        add_action = self.user_menu.addAction(
+            get_text("MENU_USER_ADD")
+        )
+
+        add_action.triggered.connect(
+            self.add_user
+        )
+
+    # -------------------------------------------------------------------------
+    def _can_change_user(self) -> bool:
+
+        if self._session_or_workout_active():
+
+            QMessageBox.information(
+                self,
+                get_text("MENU_USER"),
+                get_text("WARN_NO_USER_CHANGE"),
+            )
+            return False
+
+        return True
+
+    # -------------------------------------------------------------------------
+    def switch_user(self, name: str) -> None:
+
+        if name == self.user_manager.current_user:
+            return
+
+        if not self._can_change_user():
+            return
+
+        #
+        # Sauvegarde du profil actuel
+        #
+
+        save_settings(
+            self.settings,
+            self.user_manager.settings_file(),
+        )
+
+        #
+        # Termine le fichier log de l'utilisateur actuel.
+        #
+
+        if self.logger is not None:
+            self.logger.stop()
+
+        #
+        # Change l'utilisateur.
+        #
+
+        if not self.user_manager.select_user(name):
+            return
+
+        #
+        # Charge ses paramètres.
+        #
+
+        new_settings = load_settings(
+            self.user_manager.settings_file()
+        )
+
+        self.settings.__dict__.update(
+            new_settings.__dict__
+        )
+
+        #
+        # Le logger utilise maintenant son répertoire.
+        #
+
+        if self.logger is not None:
+
+            self.logger.set_logs_dir(
+                self.user_manager.logs_dir()
+            )
+
+            self.logger.start()
+
+            self.state.set_logger(
+                self.logger
+            )
+
+        #
+        # Actualise le menu.
+        #
+
+        self._rebuild_user_menu()
+
+    # -------------------------------------------------------------------------
     def create_menu(self) -> None:
+
+        #
+        # Users >
+        #
+
+        self.user_menu = self.menuBar().addMenu(
+            get_text("MENU_USER")
+        )
+
+        self._rebuild_user_menu()       
 
         #
         # Workout >
@@ -460,17 +691,49 @@ class MainWindow(QMainWindow):
             get_text("MENU_SETTINGS")
         )
 
-        settings_action = settings_menu.addAction(
+        self.settings_action = settings_menu.addAction(
             f"{get_text("SETTINGS")}..."
         )
 
-        settings_action.triggered.connect(
+        self.settings_action.triggered.connect(
             self.open_settings
         )
 
-        #Desactive le Réglage des Paramètres en Replay"
-        settings_action.setEnabled(
-            not USE_REPLAY
+    # -------------------------------------------------------------------------
+    def _update_settings_action(self) -> None:
+
+        if USE_REPLAY:
+
+            replay_active = (
+                self.state.source is not None
+                and self.state.source.is_running
+            )
+
+            session_active = replay_active
+
+        else:
+
+            # MerachRower n'a pas de is_running.
+            # elapsed_time > 0 indique qu'une séance réelle
+            # a déjà commencé.
+            rowerdata = self.state.snapshot().rowerdata
+
+            session_active = (
+                rowerdata.elapsed_time > 0.0
+            )
+
+        #
+        # Workout actif
+        #
+
+        workout_active = (
+            self.workoutWidget.running
+            or self.workoutWidget.started
+        )
+
+        self.settings_action.setEnabled(
+            not session_active
+            and not workout_active
         )
 
     # -------------------------------------------------------------------------
@@ -519,11 +782,9 @@ class MainWindow(QMainWindow):
     # -------------------------------------------------------------------------
     def new_session(self) -> None:
 
-        logger = self.state.logger
-
-        if logger is not None:
-            logger.flush()
-            logger.stop()
+        if self.logger is not None:
+            self.logger.flush()
+            self.logger.stop()
 
         # --------------------------------------------------------------
         # Ferme le workout courant.
@@ -546,9 +807,9 @@ class MainWindow(QMainWindow):
 
             self.state.reset_session()
 
-            if logger is not None:
-                logger.start()
-                self.state.set_logger(logger)
+            if self.logger is not None:
+                self.logger.start()
+                self.state.set_logger(self.logger) # TODO: Toujours besoin de ça?????
 
             self.state.source.restart()
 
@@ -571,9 +832,9 @@ class MainWindow(QMainWindow):
             # la nouvelle référence de séance.
             self.state.reset_session()
 
-            if logger is not None:
-                logger.start()
-                self.state.set_logger(logger)
+            if self.logger is not None:
+                self.logger.start()
+                self.state.set_logger(self.logger) # TODO : Toujours besoin de ça?????
 
         self.refresh()
 
@@ -583,6 +844,43 @@ class MainWindow(QMainWindow):
         snapshot = self.state.snapshot()
 
         rowerdata = snapshot.rowerdata
+
+        # Le calculateur Q1S reçoit uniquement le contexte nécessaire à la
+        # recalibration du power. Il ne dépend pas du widget Workout.
+        step = None
+        if self.workoutWidget.workout.steps:
+            if (
+                0 <= self.workoutWidget.current_step
+                < len(self.workoutWidget.workout.steps)
+            ):
+                step = self.workoutWidget.workout.steps[
+                    self.workoutWidget.current_step
+                ]
+
+        self.state.rower.set_power_calibration_context(
+            PowerCalibrationContext(
+                profile_enabled=(
+                    self.settings.power_recalibration_profile_enabled
+                ),
+                workout_enabled=(
+                    self.settings.power_recalibration_workout_enabled
+                    and self.workoutWidget.started
+                ),
+                age=self.settings.profile_age,
+                weight_kg=self.settings.profile_weight_kg,
+                height_cm=self.settings.profile_height_cm,
+                sex=self.settings.profile_sex,
+                level_norm=self.settings.profile_level_norm,
+                level=profile_level_key_from_norm(
+                    self.settings.profile_level_norm
+                ),
+                intensity=(step.intensity if step is not None else None),
+                duration_seconds=(
+                    step.duration_seconds if step is not None else 0.0
+                ),
+                spm=(step.spm if step is not None else 0.0),
+            )
+        )
 
         #
         # Bluetooth
@@ -692,6 +990,7 @@ class MainWindow(QMainWindow):
             USE_REPLAY
             and self.workoutWidget.replay_mode
         ):
+            
             self.workoutWidget.update_replay_time(
                 rowerdata.elapsed_time
             )
@@ -700,6 +999,8 @@ class MainWindow(QMainWindow):
                 self.workoutWidget.workout_elapsed
                 >= self.workoutWidget.total_time
             )
+
+        self._update_settings_action()
 
         #
         # Workout Split
@@ -860,10 +1161,8 @@ class MainWindow(QMainWindow):
         ):
             return False
 
-        logger = self.state.logger
-
-        if logger is not None:
-            logger.set_workout_file(
+        if self.logger is not None:
+            self.logger.set_workout_file(
                 self.workoutWidget.workout.filename
             )
 
@@ -886,7 +1185,7 @@ class MainWindow(QMainWindow):
         filename, _ = QFileDialog.getOpenFileName(
             self,
             get_text("LOG_FILE_SELECT"),
-            str(LOGS_DIR),
+            str(self.user_manager.logs_dir()),
             get_text("LOG_FILE_EXT"),
         )
 
@@ -959,10 +1258,9 @@ class MainWindow(QMainWindow):
         self.splitModeWorkout.setChecked(False)
         self.splitModeWorkout.setEnabled(False)
 
-        logger = self.state.logger
 
-        if logger is not None:
-            logger.set_workout_file(None)
+        if self.logger is not None:
+            self.logger.set_workout_file(None)
 
         self._apply_split_mode_preference()
 
@@ -972,13 +1270,32 @@ class MainWindow(QMainWindow):
         )
 
     # -------------------------------------------------------------------------
-    def open_settings(self) -> None:
+    def _session_or_workout_active(self) -> bool:
 
-        # On évite de modifier SPLIT_LENGTH en plein milieu
-        # d'une session active.
         rowerdata = self.state.snapshot().rowerdata
 
-        if rowerdata.elapsed_time > 0.0:
+        if USE_REPLAY:
+            session_active = (
+                self.state.source is not None
+                and self.state.source.is_running
+            )
+        else:
+            session_active = (
+                rowerdata.elapsed_time > 0.0
+            )
+
+        workout_active = (
+            self.workoutWidget.running
+            or self.workoutWidget.started
+        )
+
+        return session_active or workout_active
+
+    # -------------------------------------------------------------------------
+    def open_settings(self) -> None:
+
+        if self._session_or_workout_active():
+
             QMessageBox.information(
                 self,
                 get_text("SETTINGS"),
@@ -1001,7 +1318,8 @@ class MainWindow(QMainWindow):
         )
 
         save_settings(
-            self.settings
+            self.settings,
+            self.user_manager.settings_file(),
         )
 
         if self.settings.language != old_language_setting:

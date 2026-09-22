@@ -12,7 +12,7 @@ from setup.constants import (
     VERSION,
     LOGGER_FLUSH_PERIOD,
     LOGGER_END_SESSION_TIMEOUT,
-    LOGGER_FORMAT, LOGS_DIR,
+    LOGGER_FORMAT,
     USE_REPLAY, REPLAY_FILE,
     LOGGER_FORMAT_CSV,
     LOGGER_FORMAT_ZIP,
@@ -26,7 +26,12 @@ from logger.logrecord import LogRecord
 # =============================================================================
 class CsvLogger:
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        logs_dir: Path,
+    ) -> None:
+
+        self.logs_dir = Path(logs_dir)
 
         self.rower_name = get_text("UNKNOWN_ROWER")
 
@@ -54,13 +59,17 @@ class CsvLogger:
         self.last_pc_time = None
         self._has_data = False
 
-        Path(LOGS_DIR).mkdir(exist_ok=True)
+        self.logs_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
         logbasename = "replay" if USE_REPLAY else "session"
 
-        self.filename = Path(
-            datetime.now().strftime(
-                f"{LOGS_DIR}/{logbasename}_%Y%m%d_%H%M%S.csv"
+        self.filename = (
+            self.logs_dir
+            / datetime.now().strftime(
+                f"{logbasename}_%Y%m%d_%H%M%S.csv"
             )
         )
 
@@ -254,6 +263,19 @@ class CsvLogger:
 
         self.filename = None
         self._has_data = False
+
+    # -------------------------------------------------------------------------
+    def set_logs_dir(
+        self,
+        logs_dir: Path,
+    ) -> None:
+
+        if self._file is not None:
+            raise RuntimeError(
+                get_text("ERR_LOGGER_IS_ACTIVE")
+            )
+
+        self.logs_dir = Path(logs_dir)
 
     # -------------------------------------------------------------------------
     def set_workout_file(

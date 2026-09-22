@@ -13,6 +13,9 @@
 
 from collections import deque
 
+from rowers.power_calibration import WorkoutPowerCalibration
+from rowers.power_calib_data import PowerCalibrationContext
+
 from engine.calc import (
     calc_delta, calc_deltatime,
     calc_average,
@@ -36,10 +39,6 @@ class MerachQ1SCalc:
     # Peut être ajusté expérimentalement pour le Merach Q1S.
     DRAG_FACTOR:float  = 2.8
 
-    # Power : le raw_power venant du Q1S semble beaucoup trop bas (30-35 au lieu de 90-120W!)
-    # On va le calibrer grâce à cette valeur:
-    POWER_SCALE:float = 3.6
-
     # Candence : lissage
     CADENCE_WINDOW:int = 4      # nombre de coups utilisés pour le calcul brut (ou plus précisément la taille de la fenêtre utilisée pour calculer la cadence brute)
     CADENCE_SMOOTHING:int = 3   # nombre de cadences calculées utilisées pour le lissage
@@ -53,6 +52,11 @@ class MerachQ1SCalc:
     def __init__(self, settings) -> None:
 
         self.settings = settings
+
+        self.power_calibration = WorkoutPowerCalibration(
+            machine_scale=WorkoutPowerCalibration.POWER_SCALE
+        )
+        self.power_calibration_context = PowerCalibrationContext()
 
         self.stroke_times = deque(maxlen=self.CADENCE_WINDOW)
         self.cadence_history = deque(maxlen=self.CADENCE_SMOOTHING)
@@ -79,6 +83,14 @@ class MerachQ1SCalc:
         self.splits: list = []
 
     # -------------------------------------------------------------------------
+    def set_power_calibration_context(
+        self,
+        context: PowerCalibrationContext,
+    ) -> None:
+        
+        self.power_calibration_context = context
+
+    # -------------------------------------------------------------------------
     def process(
         self,
         data: dict,
@@ -93,10 +105,13 @@ class MerachQ1SCalc:
         #
 
         raw_power = float(data.get("raw_power", 0.0))
-        power = raw_power * self.POWER_SCALE
+        power = self.power_calibration.calibrate(
+            raw_power=raw_power,
+            context=self.power_calibration_context,
+        )
 
         #
-        # Vitesse : recalculé à partir de power
+        # Vitesse : recalculée à partir de power
         #
 
         speed = self.q1s_calc_speed(power, self.DRAG_FACTOR)

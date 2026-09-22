@@ -23,10 +23,10 @@ def load_workout(filename) -> Workout:
         filename,
         "r",
         encoding=FILE_ENCODING,
-    ) as fr:
+    ) as rfile:
 
         for lineno, raw in enumerate(
-            fr,
+            rfile,
             start=1,
         ):
 
@@ -272,6 +272,27 @@ def format_pace(seconds: float) -> str:
 def clamp_neg(value: int | float) -> int | float:
     """ If value is <= 0, return 0, else return value """
     return max(0, value)
+
+# -----------------------------------------------------------------------------
+# clamp values between min and max
+def clamp_between(value: int | float, minval: int | float, maxval: int | float) -> int | float:
+    """ 
+        If value is <= min, return min, 
+        else_if value >= max return max
+        else value
+    """
+    return max(minval, min(maxval, value))
+
+# -----------------------------------------------------------------------------
+# Linearly interpolate a point between two points
+def interpolate(
+        xval: int | float,
+        x0: int | float, y0: int | float,
+        x1: int | float, y1: int | float
+    ) -> float:
+        
+        tx = float(xval - x0) / float(x1 - x0)
+        return y0 + (tx * float(y1 - y0))
 
 # -----------------------------------------------------------------------------
 def format_time(seconds: float) -> str:
