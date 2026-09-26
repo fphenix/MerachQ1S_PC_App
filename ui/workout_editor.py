@@ -21,6 +21,8 @@ from setup.constants import (
     WORKOUT_EDIT_WIDTH, WORKOUT_EDIT_HEIGHT,
     WORKOUTS_DIR,
     FILE_ENCODING,
+    AVERAGE_FONT_SIZE,
+    TITLE_FONT,
 )
 
 from ui.workout_editstep import WorkoutStepEditor
@@ -38,26 +40,16 @@ class WorkoutEditorDialog(QDialog):
 
         super().__init__(parent)
 
-        self.workout = workout
+        self.workout: Workout = workout
         self.step_editors: list = []
 
-        self.original_filename = (
+        self.original_filename: Path | None = (
             Path(workout.filename)
             if workout is not None and workout.filename is not None
             else None
         )
 
         self._create_ui()
-
-        if workout is None:
-            self.setWindowTitle(get_text("WO_CREATE_TITLE"))
-            self.title_edit.setText(get_text("WO_CREATE_NEW"))
-            self.field_edit.setText(get_text("FIELD"))
-            self.add_step()
-
-        else:
-            self.setWindowTitle(get_text("WO_EDIT_TITLE"))
-            self.fetch_workout(workout)
 
     # -------------------------------------------------------------------------
     def _create_ui(self) -> None:
@@ -103,6 +95,15 @@ class WorkoutEditorDialog(QDialog):
 
         self.status_bar = QStatusBar()
         self.total_time_label = QLabel()
+
+        font = AVERAGE_FONT_SIZE
+        self.total_time_label.setStyleSheet(
+            f"""
+            QLabel {{
+                font: bold {font}px {TITLE_FONT};
+            }}
+            """
+        )
         self.status_bar.addWidget(self.total_time_label)
 
         main_layout.addWidget(
@@ -110,6 +111,16 @@ class WorkoutEditorDialog(QDialog):
         )
 
         self.update_total_time()
+
+        if self.workout is None:
+            self.setWindowTitle(get_text("WO_CREATE_TITLE"))
+            self.title_edit.setText(get_text("WO_CREATE_NEW"))
+            self.field_edit.setText(get_text("FIELD"))
+            self.add_step()
+
+        else:
+            self.setWindowTitle(get_text("WO_EDIT_TITLE"))
+            self.fetch_workout(self.workout)
 
     # -------------------------------------------------------------------------
     def update_total_time(self) -> None:

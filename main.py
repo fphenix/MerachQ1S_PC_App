@@ -103,7 +103,11 @@ def main():
     #                      (and later BLE for C2)
     #
 
-    if USE_REPLAY:
+    if not USE_REPLAY:
+
+        source = rower
+
+    else:
 
         source = ReplayQ1S(
             filename= REPLAY_FILE,
@@ -112,13 +116,8 @@ def main():
             speed= REPLAY_SPEED,
         )
 
-    else:
-
-        source = rower
-
-    state.rower = rower
-
-    state.source = source
+    state.set_rower(rower)
+    state.set_source(source)
 
     #
     # Data Logger

@@ -100,6 +100,7 @@ class MainWindow(QMainWindow):
 
     # ------------------------------------------------------------------
     def _create_ui(self) -> None:
+        
         self.setWindowTitle(f"{get_text("WINDOW_TITLE")} : {self.state.rower.NAME}")
 
         self.create_menu()
@@ -367,6 +368,8 @@ class MainWindow(QMainWindow):
         self.workoutSplitCalculator = WorkoutSplitCalculator(
             self.settings
         )
+
+        self._workout_split_last_sample_index = 0
 
         #
         # Workout : Metronome
@@ -741,9 +744,11 @@ class MainWindow(QMainWindow):
 
         rowerdata = self.state.snapshot().rowerdata
 
-        self.workoutSplitCalculator.start(
-            distance=rowerdata.distance,
+        self.state.rower.calculator.set_power_calibration_workout_start_elapsed(
+            rowerdata.elapsed_time
         )
+
+        self._workout_split_last_sample_index = 0
 
     # -------------------------------------------------------------------------
     def set_split_mode(
@@ -847,24 +852,22 @@ class MainWindow(QMainWindow):
 
         # Le calculateur Q1S reçoit uniquement le contexte nécessaire à la
         # recalibration du power. Il ne dépend pas du widget Workout.
-        step = None
-        if self.workoutWidget.workout.steps:
-            if (
-                0 <= self.workoutWidget.current_step
-                < len(self.workoutWidget.workout.steps)
-            ):
-                step = self.workoutWidget.workout.steps[
-                    self.workoutWidget.current_step
-                ]
 
         self.state.rower.set_power_calibration_context(
             PowerCalibrationContext(
                 profile_enabled=(
                     self.settings.power_recalibration_profile_enabled
                 ),
+                spm_correction_enabled=(
+                    self.settings.power_recalibration_spm_enabled
+                ),
                 workout_enabled=(
                     self.settings.power_recalibration_workout_enabled
-                    and self.workoutWidget.started
+                    and bool(self.workoutWidget.workout.steps)
+                ),
+                duration_correction_enabled=(
+                    self.settings.power_recalibration_duration_enabled
+                    and bool(self.workoutWidget.workout.steps)
                 ),
                 age=self.settings.profile_age,
                 weight_kg=self.settings.profile_weight_kg,
@@ -874,11 +877,9 @@ class MainWindow(QMainWindow):
                 level=profile_level_key_from_norm(
                     self.settings.profile_level_norm
                 ),
-                intensity=(step.intensity if step is not None else None),
-                duration_seconds=(
-                    step.duration_seconds if step is not None else 0.0
-                ),
-                spm=(step.spm if step is not None else 0.0),
+                intensity=None,
+                duration_seconds= 0.0,
+                spm= 0.0,
             )
         )
 
@@ -981,42 +982,40 @@ class MainWindow(QMainWindow):
         )
 
         #
-        # Workout / Replay
+        # Workout : temps piloté par le modèle
         #
 
-        replay_completed = False
-
-        if (
-            USE_REPLAY
-            and self.workoutWidget.replay_mode
-        ):
-            
-            self.workoutWidget.update_replay_time(
+        if self.workoutWidget.replay_mode:
+            self.workoutWidget.update_model_time(
                 rowerdata.elapsed_time
             )
 
-            replay_completed = (
-                self.workoutWidget.workout_elapsed
-                >= self.workoutWidget.total_time
+        elif self.workoutWidget.running:
+            self.workoutWidget.update_model_time(
+                rowerdata.elapsed_time
             )
-
-        self._update_settings_action()
 
         #
         # Workout Split
         #
 
-        if (
-            self.workoutWidget.started
-            or replay_completed
-        ):
+        if self.workoutWidget.model_start_elapsed is not None:
 
-            self.workoutSplitCalculator.update(
-                workout_elapsed=(
-                    self.workoutWidget.workout_elapsed
-                ),
-                distance=rowerdata.distance,
+            start_elapsed = (
+                self.workoutWidget.model_start_elapsed
             )
+
+            if start_elapsed is not None:
+                samples = self.state.distance_samples_since(
+                    self._workout_split_last_sample_index
+                )
+
+                if samples:
+                    self.workoutSplitCalculator.update_samples(
+                        samples=samples,
+                        workout_start_elapsed=start_elapsed,
+                    )
+                    self._workout_split_last_sample_index = samples[-1][0]
 
         #
         # Liste des splits
@@ -1170,10 +1169,19 @@ class MainWindow(QMainWindow):
             self.workoutWidget.workout
         )
 
+        self._workout_split_last_sample_index = 0
+
         self.splitModeWorkout.setEnabled(True)
 
         self.workoutWidget.setVisible(True)
         self.metronome_container.setVisible(True)
+
+        self.state.rower.calculator.set_power_calibration_workout(
+            self.workoutWidget.workout,
+            start_elapsed=(
+                0.0 if replay_mode else None
+            ),
+        )
 
         self._apply_split_mode_preference()
 
@@ -1251,6 +1259,7 @@ class MainWindow(QMainWindow):
         self.workoutWidget.reset()
 
         self.workoutSplitCalculator.reset()
+        self._workout_split_last_sample_index = 0
 
         self.workoutWidget.setVisible(False)
         self.metronome_container.setVisible(False)
@@ -1261,6 +1270,8 @@ class MainWindow(QMainWindow):
 
         if self.logger is not None:
             self.logger.set_workout_file(None)
+
+        self.state.rower.calculator.set_power_calibration_workout(None)
 
         self._apply_split_mode_preference()
 
@@ -1306,8 +1317,9 @@ class MainWindow(QMainWindow):
         old_language_setting = self.settings.language
 
         dialog = SettingsDialog(
-            self.settings,
-            self,
+            settings= self.settings,
+            curr_user= self.user_manager.get_current_user(),
+            parent= self,
         )
 
         if dialog.exec() != QDialog.Accepted:

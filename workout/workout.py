@@ -1,5 +1,9 @@
 from workout.step import WorkoutStep
 
+# Cannot use a simple "from setup.utils import clamp_to_zero"
+# because of a circular dependency between this file and utils.py.
+import setup.utils as utils
+
 # =============================================================================
 class Workout:
 
@@ -26,3 +30,28 @@ class Workout:
         self.field = "Placeholder Field"
         self.steps.clear()
         self.filename = None
+
+    # -------------------------------------------------------------------------
+    def find_step(
+        self,
+        elapsed_time: float,
+    ) -> tuple[int, float] | None:
+
+        if not self.steps:
+            return None
+
+        remaining = utils.clamp_to_zero(float(elapsed_time))
+        last_index = len(self.steps) - 1
+
+        for index, step in enumerate(self.steps):
+
+            duration = utils.clamp_to_zero(
+                float(step.duration_seconds)
+            )
+
+            if remaining < duration or index == last_index:
+                return index, min(remaining, duration)
+
+            remaining -= duration
+
+        return None

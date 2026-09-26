@@ -12,10 +12,14 @@
 # (not the raw average).
 
 from collections import deque
+from dataclasses import replace
 
 from rowers.power_calibration import WorkoutPowerCalibration
 from rowers.power_calib_data import PowerCalibrationContext
 
+from workout.workout import Workout
+
+from setup.utils import clamp_to_zero
 from engine.calc import (
     calc_delta, calc_deltatime,
     calc_average,
@@ -32,7 +36,7 @@ from engine.calc import (
     calc_work_per_stroke,
 )
 
-# -------------------------------------------------------------------------
+# =============================================================================
 class MerachQ1SCalc:
 
     # Frottements : Coefficient Concept2 est 2.8.
@@ -49,6 +53,7 @@ class MerachQ1SCalc:
     CALORIES_CALIB:float = 1.1639
     CALORIES_PER_WATT:float = 3.4
 
+    # ------------------------------------------------------------------
     def __init__(self, settings) -> None:
 
         self.settings = settings
@@ -57,6 +62,8 @@ class MerachQ1SCalc:
             machine_scale=WorkoutPowerCalibration.POWER_SCALE
         )
         self.power_calibration_context = PowerCalibrationContext()
+        self.power_calibration_workout: Workout | None = None
+        self.power_calibration_workout_start_elapsed: float | None = None
 
         self.stroke_times = deque(maxlen=self.CADENCE_WINDOW)
         self.cadence_history = deque(maxlen=self.CADENCE_SMOOTHING)
@@ -83,6 +90,61 @@ class MerachQ1SCalc:
         self.splits: list = []
 
     # -------------------------------------------------------------------------
+    def _power_calibration_context_for_elapsed(
+        self,
+        elapsed_time: float,
+        raw_stroke_rate: float,
+    ) -> PowerCalibrationContext:
+
+        context = self.power_calibration_context
+
+        if (
+            not context.workout_enabled
+            or self.power_calibration_workout is None
+        ):
+            return replace(
+                context,
+                spm=raw_stroke_rate,
+            )
+
+        if self.power_calibration_workout_start_elapsed is None:
+            return replace(
+                context,
+                intensity=None,
+                duration_seconds=0.0,
+                spm=raw_stroke_rate,
+            )
+
+        workout_elapsed = clamp_to_zero(
+            calc_deltatime(
+                elapsed_time,
+                self.power_calibration_workout_start_elapsed
+            )
+        )
+
+        step_info = self.power_calibration_workout.find_step(
+            workout_elapsed
+        )
+
+        if step_info is None:
+            return replace(
+                context,
+                intensity=None,
+                duration_seconds=0.0,
+                spm=raw_stroke_rate,
+            )
+
+        step_index, step_elapsed = step_info
+        step = self.power_calibration_workout.steps[step_index]
+
+        return replace(
+            context,
+            intensity=step.intensity,
+            duration_seconds=step_elapsed,
+            spm=raw_stroke_rate,
+        )
+
+    # -------------------------------------------------------------------------
     def set_power_calibration_context(
         self,
         context: PowerCalibrationContext,
@@ -105,10 +167,25 @@ class MerachQ1SCalc:
         #
 
         raw_power = float(data.get("raw_power", 0.0))
-        power = self.power_calibration.calibrate(
-            raw_power=raw_power,
-            context=self.power_calibration_context,
+        raw_stroke_rate = float(
+            data.get("raw_stroke_rate", 0.0)
         )
+
+        power_calibration_context = (
+            self._power_calibration_context_for_elapsed(
+                elapsed_time=elapsed_time,
+                raw_stroke_rate=raw_stroke_rate,
+            )
+        )
+
+        p_calibration = self.power_calibration.calibrate_details( # self.power_calibration.calibrate(
+            raw_power=raw_power,
+            context=power_calibration_context,
+        )
+
+        self.last_calibration = p_calibration
+        
+        power = p_calibration.power
 
         #
         # Vitesse : recalculée à partir de power
@@ -259,6 +336,14 @@ class MerachQ1SCalc:
         data["power"] = power
         data["power_avg"] = power_avg
 
+        data["calibration_machine_power"] = p_calibration.machine_power
+        data["calibration_profile_factor"] = p_calibration.profile_factor
+        data["calibration_level_factor"] = p_calibration.level_factor
+        data["calibration_workout_factor"] = p_calibration.workout_factor
+        data["calibration_spm_factor"] = p_calibration.spm_factor
+        data["calibration_duration_factor"] = p_calibration.duration_factor
+        data["calibration_final_factor"] = p_calibration.final_factor
+
         return data
 
     # -----------------------------------------------------------------------------
@@ -328,6 +413,29 @@ class MerachQ1SCalc:
         cadence = calc_average(self.cadence_history)
 
         return delta_strokes, cadence_inst, cadence
+
+    # -----------------------------------------------------------------------------
+    def set_power_calibration_workout(
+        self,
+        workout: Workout | None,
+        start_elapsed: float | None = None,
+    ) -> None:
+
+        self.power_calibration_workout = workout
+        self.power_calibration_workout_start_elapsed = (
+            start_elapsed if workout is not None else None
+        )
+
+    # -------------------------------------------------------------------------
+    def set_power_calibration_workout_start_elapsed(
+        self,
+        elapsed_time: float,
+    ) -> None:
+
+        if self.power_calibration_workout is not None:
+            self.power_calibration_workout_start_elapsed = clamp_to_zero(
+                float(elapsed_time)
+            )
 
 
     # =========================================================================

@@ -11,7 +11,7 @@ import zipfile
 
 from pathlib import Path
 
-from setup.utils import clamp_neg
+from setup.utils import clamp_to_zero
 from setup.lang import get_text
 from setup.constants import (
     ALLOWED_REPLAY_EXT,
@@ -23,28 +23,27 @@ from setup.constants import (
 # =============================================================================
 class ReplaySource(ABC):
 
-    # -------------------------------------------------------------------------
     def __init__(
         self,
         filename: str,
         speed: float = 1.0,
     ) -> None:
 
-        self.filename = Path(filename)
+        self.filename: Path = Path(filename)
 
-        suffix = self.filename.suffix.lower()
+        suffix: str = self.filename.suffix.lower()
 
-        self.source_type = suffix.removeprefix(".")
+        self.source_type: str = suffix.removeprefix(".")
 
         if self.source_type not in ALLOWED_REPLAY_EXT:
             raise ValueError(
                 f"{get_text("ERR_REPLAY_UNSUPP_LOG")} : {self.filename.suffix}"
             )
 
-        self.speed = speed
+        self.speed: float = speed
 
         self._thread: threading.Thread | None = None
-        self._running = False
+        self._running: bool = False
 
     # -------------------------------------------------------------------------
     def start(self) -> None:
@@ -114,7 +113,7 @@ class ReplaySource(ABC):
     @staticmethod
     def csv_skip_row(csvfile, skipnb: int = 1) -> None:
 
-        _skipnb = clamp_neg(skipnb)
+        _skipnb = clamp_to_zero(skipnb)
 
         for _ in range(_skipnb):
             next(csvfile, None)

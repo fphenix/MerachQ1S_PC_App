@@ -268,33 +268,6 @@ def format_pace(seconds: float) -> str:
     return f"{minutes}:{secondes:02}"
 
 # -----------------------------------------------------------------------------
-# clamp negative values to 0
-def clamp_neg(value: int | float) -> int | float:
-    """ If value is <= 0, return 0, else return value """
-    return max(0, value)
-
-# -----------------------------------------------------------------------------
-# clamp values between min and max
-def clamp_between(value: int | float, minval: int | float, maxval: int | float) -> int | float:
-    """ 
-        If value is <= min, return min, 
-        else_if value >= max return max
-        else value
-    """
-    return max(minval, min(maxval, value))
-
-# -----------------------------------------------------------------------------
-# Linearly interpolate a point between two points
-def interpolate(
-        xval: int | float,
-        x0: int | float, y0: int | float,
-        x1: int | float, y1: int | float
-    ) -> float:
-        
-        tx = float(xval - x0) / float(x1 - x0)
-        return y0 + (tx * float(y1 - y0))
-
-# -----------------------------------------------------------------------------
 def format_time(seconds: float) -> str:
     """
     Convertit un temps en secondes vers le format h:mm:ss.
@@ -329,3 +302,55 @@ def format_duration(duration_seconds: float) -> str:
         return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
     return f"{minutes:02d}:{seconds:02d}"
+
+# -----------------------------------------------------------------------------
+# clamp negative values to 0
+def clamp_to_zero(value: int | float) -> int | float:
+    """ If value is <= 0, return 0, else return value """
+
+    return max(0, value)
+
+# -----------------------------------------------------------------------------
+# clamp values to a max
+def clamp_to_max(value: int | float, vmax: int | float) -> int | float:
+    """ If value is >= vmax, return vmax, else return value """
+
+    return min(vmax, value)
+
+# -----------------------------------------------------------------------------
+# clamp values to a min
+def clamp_to_min(value: int | float, vmin: int | float) -> int | float:
+    """ If value is <= vmin, return vmin, else return value """
+
+    return max(vmin, value)
+# -----------------------------------------------------------------------------
+# clamp values between min and max
+def clamp_between(value: int | float, minval: int | float, maxval: int | float) -> int | float:
+    """ 
+        If value is <= min, return min, 
+        else_if value >= max return max
+        else value
+    """
+    return max(minval, min(maxval, value))
+
+# -----------------------------------------------------------------------------
+# clamp values between min and max but on steps between
+def clamp_step(
+    value: int|float,
+    minimum: int|float,
+    maximum: int|float,
+    step: int|float,
+) -> int|float:
+
+    # clamp between min & max
+    value = clamp_between(
+        value,
+        minimum,
+        maximum
+    )
+
+    # ralign so the value snap on the
+    # closest subdivision based on step
+    return round(
+        value / step
+    ) * step

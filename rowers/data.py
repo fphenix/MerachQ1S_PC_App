@@ -2,8 +2,6 @@ from dataclasses import dataclass, field
 
 from setup.cnx_enum import CnxState
 
-from setup.lang import get_text
-
 # =============================================================================
 @dataclass(slots=True)
 class RowerData:
@@ -70,3 +68,13 @@ class RowerData:
     raw_resistance: int = 0                 # Rower resistance (number)
     raw_training_status: int = 0            # Rower training status (eg. FTMS code, 13=Manual Mode)
     raw_heart_rate: int = 0                 # Rower Heart rate (pulse/min) : Not available on Q1S)
+
+    # ------------------------------------------------------------
+
+    calibration_machine_power: float = 0.0
+    calibration_profile_factor: float = 1.0
+    calibration_level_factor: float = 1.0
+    calibration_workout_factor: float = 1.0
+    calibration_spm_factor: float = 1.0
+    calibration_duration_factor: float = 1.0
+    calibration_final_factor: float = 1.0

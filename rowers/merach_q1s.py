@@ -49,25 +49,32 @@ class MerachRower(RowerClient):
 
         super().__init__(self.MERACH_Q1S_ADDRESS, state, settings)
 
-        self.settings = settings
+        self.settings: Settings = settings
 
-        self.calculator = MerachQ1SCalc(settings= self.settings)
+        self.calculator: MerachQ1SCalc = MerachQ1SCalc(
+            settings= self.settings
+        )
 
         self._last_data: dict = {}
         
-        self._thread = None
-        self._running = False
+        self._thread: threading.Thread | None = None
+        self._running: bool = False
 
-        self._rower = None
+        self._rower: Rower | None = None
         
         self.reset()
 
-        # Le mapping traduit les noms de champs FTMS vers les
-        # noms génériques de la dataclass RowerData.
-        # Ces valeurs peuvent être ensuite recalculées sans
-        # être utilisées telles quelles.
-        # Les champs indiqués par un "(*)" sont ceux qui sont
-        # utilisés pour recalculer toutes les autres métriques.
+        self.map_raw()
+
+    # -------------------------------------------------------------------------
+    # Le mapping traduit les noms de champs FTMS vers les
+    # noms génériques de la dataclass RowerData.
+    # Ces valeurs peuvent être ensuite recalculées sans
+    # être utilisées telles quelles.
+    # Les champs indiqués par un "(*)" sont ceux qui sont
+    # utilisés pour recalculer toutes les autres métriques.
+    def map_raw(self):
+        
         self.raw_mapping = {
             "time_elapsed": "raw_elapsed_time",             # (*) temps de la session
             "stroke_count": "raw_stroke_count",             # (*) nombre de coups
@@ -145,6 +152,7 @@ class MerachRower(RowerClient):
             "elapsed_time": rowerdata.elapsed_time,         # temps/durée de la session
             "stroke_count": rowerdata.stroke_count,         # nombre de coups de la session
             "raw_power": rowerdata.raw_power,               # puissance instantanée
+            "raw_stroke_rate": rowerdata.raw_stroke_rate,   # cadence
         }
 
         # On passe ces données au calculateur qui va produire les
@@ -180,6 +188,28 @@ class MerachRower(RowerClient):
 
         rowerdata.power = data["power"]
         rowerdata.power_avg = data["power_avg"]
+
+        rowerdata.calibration_machine_power = (
+            data["calibration_machine_power"]
+        )
+        rowerdata.calibration_profile_factor = (
+            data["calibration_profile_factor"]
+        )
+        rowerdata.calibration_level_factor = (
+            data["calibration_level_factor"]
+        )
+        rowerdata.calibration_workout_factor = (
+            data["calibration_workout_factor"]
+        )
+        rowerdata.calibration_spm_factor = (
+            data["calibration_spm_factor"]
+        )
+        rowerdata.calibration_duration_factor = (
+            data["calibration_duration_factor"]
+        )
+        rowerdata.calibration_final_factor = (
+            data["calibration_final_factor"]
+        )
 
         return rowerdata
 

@@ -13,7 +13,7 @@ from setup.constants import (
     LOGGER_FLUSH_PERIOD,
     LOGGER_END_SESSION_TIMEOUT,
     LOGGER_FORMAT,
-    USE_REPLAY, REPLAY_FILE,
+    USE_REPLAY, REPLAY_FILE, REPLAY_SPEED,
     LOGGER_FORMAT_CSV,
     LOGGER_FORMAT_ZIP,
     FILE_ENCODING,
@@ -31,21 +31,21 @@ class CsvLogger:
         logs_dir: Path,
     ) -> None:
 
-        self.logs_dir = Path(logs_dir)
+        self.logs_dir: Path = Path(logs_dir)
 
-        self.rower_name = get_text("UNKNOWN_ROWER")
+        self.rower_name: str = get_text("UNKNOWN_ROWER")
 
         self._file = None
-        self.filename = None
-        self.log_format = LOGGER_FORMAT
+        self.filename: Path | None = None
+        self.log_format: str = LOGGER_FORMAT
         self.writer = None
-        self.workout_file = None
+        self.workout_file: str | None = None
 
-        self.packet = 0
+        self.packet: int = 0
 
-        self.last_pc_time = None
+        self.last_pc_time: float | None = None
 
-        self._has_data = False
+        self._has_data: bool = False
 
     # -------------------------------------------------------------------------
     def set_rower_name(self, name: str) -> None:
@@ -75,28 +75,16 @@ class CsvLogger:
 
         self._file = open(
             self.filename,
-            "w",
+            "w+",
             newline="",
             encoding=FILE_ENCODING,
         )
 
-        self.writer = csv.writer(self._file)
-
-        #
-        # Flush automatique
-        #
-
         self.last_flush_time = 0.0  # time.monotonic()
-
-        #
-        # Détection de fin de séance
-        #
 
         self.last_stroke_time = time.monotonic()
 
-        self.header()
-
-        self.flush()
+        self._write_header()
 
     # -------------------------------------------------------------------------
     def header(self) -> None:
@@ -105,7 +93,7 @@ class CsvLogger:
         # Titre
         #
 
-        mode = f"Replay {REPLAY_FILE}" if USE_REPLAY else "Logger"
+        mode = f"Replay x{REPLAY_SPEED} {REPLAY_FILE}" if USE_REPLAY else "Logger"
 
         self.writer.writerow([
             f"{self.rower_name} PC {mode}",
@@ -129,6 +117,76 @@ class CsvLogger:
         self.writer.writerow(
             LogRecord.csv_header()
         )
+
+    # -------------------------------------------------------------------------
+    def _update_workout_header(self) -> None:
+        """Met à jour la ligne Workout du fichier de log."""
+
+        if self._file is None:
+            return
+
+        self.flush()
+
+        self._file.seek(0)
+
+        rows = list(csv.reader(self._file))
+
+        if len(rows) < 2:
+            return
+
+        rows[1] = [
+            "Workout",
+            self.workout_file or "None Loaded",
+        ]
+
+        self._file.seek(0)
+        self._file.truncate()
+
+        writer = csv.writer(self._file)
+        writer.writerows(rows)
+
+        self.flush()
+
+    # -------------------------------------------------------------------------
+    def _write_header(self) -> None:
+        """Réécrit l'en-tête en conservant les données déjà enregistrées."""
+
+        if self._file is None:
+            return
+
+        self._file.flush()
+
+        #
+        # Si des données existent déjà, on les conserve.
+        #
+        if self._has_data:
+            self._file.seek(0)
+
+            content = self._file.read()
+
+            self._file.seek(0)
+            self._file.truncate()
+
+            self.writer = csv.writer(self._file)
+
+            self.header()
+
+            self._file.write(
+                content.split("\n", 3)[-1]
+            )
+
+        #
+        # Fichier nouvellement créé.
+        #
+        else:
+            self._file.seek(0)
+            self._file.truncate()
+
+            self.writer = csv.writer(self._file)
+
+            self.header()
+
+        self.flush()
 
     # -------------------------------------------------------------------------
     def flush(self) -> None:
@@ -298,17 +356,7 @@ class CsvLogger:
             except ValueError:
                 self.workout_file = str(path)
 
-        # Rien à réécrire si le fichier n'est pas ouvert
-        # ou si des données ont déjà été enregistrées.
-        if self._file is None or self._has_data:
+        if self._file is None:
             return
 
-        # Le logger vient juste de créer son fichier :
-        # on peut refaire proprement l'en-tête.
-        self._file.seek(0)
-        self._file.truncate()
-
-        self.writer = csv.writer(self._file)
-
-        self.header()
-        self.flush()
+        self._update_workout_header()

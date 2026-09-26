@@ -17,7 +17,7 @@ class StatusWidget(QWidget):
         
         super().__init__()
 
-        self.title = title
+        self.title: str = title
 
         self.init_tables()
 

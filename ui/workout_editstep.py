@@ -47,6 +47,12 @@ class WorkoutStepEditor(QWidget):
 
         self._create_ui()
 
+        self.set_connexions()
+
+        self.update_duration_range()
+
+    # -------------------------------------------------------------------------
+    def set_connexions(self):
         self.duration_value.valueChanged.connect(
             lambda value: self.duration_changed.emit()
         )
@@ -58,8 +64,6 @@ class WorkoutStepEditor(QWidget):
         self.duration_unit.currentTextChanged.connect(
             lambda text: self.duration_changed.emit()
         )
-
-        self.update_duration_range()
 
     # -------------------------------------------------------------------------
     def _create_ui(self) -> None:
@@ -107,7 +111,7 @@ class WorkoutStepEditor(QWidget):
         self.duration_value = QDoubleSpinBox()
         self.duration_value.setFixedWidth(self.DURATION_WIDTH)
         self.duration_value.setDecimals(2)
-        self.duration_value.setSingleStep(0.5)
+        self.duration_value.setSingleStep(1.0)
         self.duration_value.setValue(1.0)
 
         layout.addWidget(
@@ -293,8 +297,9 @@ class WorkoutStepEditor(QWidget):
         if unit is None:
             unit = self.duration_unit.currentText()
 
-        minimum, maximum = DURATION_RANGES[unit]
+        minimum, maximum, step = DURATION_RANGES[unit]
         self.duration_value.setRange(minimum, maximum)
+        self.duration_value.setSingleStep(step)
 
     # -------------------------------------------------------------------------
     def set_duration_seconds(self, duration_seconds: float) -> None:

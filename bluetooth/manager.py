@@ -17,8 +17,8 @@ class BluetoothManager:
 
     def __init__(self) -> None:
 
-        self.initial_state = None
-        self.radio = None
+        self.initial_state: RadioState | None = None
+        self.radio: Radio | None = None
 
     # -------------------------------------------------------------------------
     async def initialize(self) -> None:

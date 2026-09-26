@@ -24,6 +24,8 @@ class Settings:
 
     power_recalibration_profile_enabled: bool = False
     power_recalibration_workout_enabled: bool = False
+    power_recalibration_spm_enabled: bool = False
+    power_recalibration_duration_enabled: bool = False
 
     profile_age: float = DEFAULT_PROFILE_AGE
     profile_weight_kg: float = DEFAULT_PROFILE_WEIGHT

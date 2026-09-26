@@ -49,11 +49,7 @@ class AnalyzerWindow(QMainWindow):
 
         super().__init__(parent)
 
-        self.filename = Path(filename)
-
-        self.setWindowTitle(
-            f"{get_text("ANALYZER_TITLE")} - {self.filename.name}"
-        )
+        self.filename: Path = Path(filename)
 
         self.df = self.load_log(
             self.filename
@@ -69,7 +65,7 @@ class AnalyzerWindow(QMainWindow):
         self.rax = None
         self.checkbtn = None
 
-        self.create_ui()
+        self._create_ui()
 
         self.plots = self.create_plot_definitions()
 
@@ -80,7 +76,11 @@ class AnalyzerWindow(QMainWindow):
         )
 
     # -------------------------------------------------------------------------
-    def create_ui(self) -> None:
+    def _create_ui(self) -> None:
+
+        self.setWindowTitle(
+            f"{get_text("ANALYZER_TITLE")} - {self.filename.name}"
+        )
 
         self.figure = Figure(
             figsize=(12, 12)

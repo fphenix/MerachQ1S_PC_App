@@ -15,7 +15,7 @@ import time
 import traceback
 
 from setup.lang import get_text
-from setup.utils import echoerr, clamp_neg
+from setup.utils import echoerr, clamp_to_zero
 
 from setup.cnx_enum import CnxState
 
@@ -41,10 +41,10 @@ class ReplayQ1S(ReplaySource):
         super().__init__(filename, speed)
 
         # RowState reference
-        self.state = state
+        self.state: RowState = state
 
         # Le vrai modèle Q1S est utilisé pendant le replay.
-        self.rower = rower
+        self.rower: MerachRower = rower
 
     # ------------------------------------------------------------------
     # Abstracted in parent class
@@ -106,7 +106,7 @@ class ReplayQ1S(ReplaySource):
 
                     if self.speed > 0.0:
                         time.sleep(
-                            clamp_neg(
+                            clamp_to_zero(
                                 delta_elapsed / self.speed
                             )
                         )

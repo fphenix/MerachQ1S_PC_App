@@ -10,8 +10,8 @@ class Language:
 
     def __init__(self, language: str) -> None:
 
-        self.language = language.lower()
-        self._texts = self._load()
+        self.language: str = language.lower()
+        self._texts: dict[str, str] = self._load()
 
     # -------------------------------------------------------------------------
     def _load(self) -> dict[str, str]:

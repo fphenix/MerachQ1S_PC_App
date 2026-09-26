@@ -10,7 +10,7 @@ class RowerClient(ABC):
 
     def __init__(self, address: str, state, settings) -> None:
         
-        self.address = address
+        self.address: str = address
         self.state = state
 
         self.settings = settings

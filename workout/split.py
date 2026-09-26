@@ -3,7 +3,10 @@ from engine.calc import (
     calc_deltatime,
     calc_delta,
 )
-from setup.utils import clamp_neg
+from setup.utils import (
+    clamp_to_zero,
+    clamp_between,
+)
 
 from setup.settings import Settings
 from workout.workout import Workout
@@ -49,7 +52,7 @@ class WorkoutSplitCalculator:
         self.current_step = 0
 
         self._step_start_elapsed = 0.0
-        self._step_start_distance = clamp_neg(distance)
+        self._step_start_distance = clamp_to_zero(distance)
 
         self._previous_elapsed = 0.0
         self._previous_distance = self._step_start_distance
@@ -69,9 +72,9 @@ class WorkoutSplitCalculator:
         if not self.workout.steps:
             return
 
-        workout_elapsed = clamp_neg(workout_elapsed)
+        workout_elapsed = clamp_to_zero(workout_elapsed)
 
-        distance = clamp_neg(distance)
+        distance = clamp_to_zero(distance)
 
         step_index, _step_elapsed = (
             self._find_step(workout_elapsed)
@@ -143,7 +146,7 @@ class WorkoutSplitCalculator:
             current_step.duration_seconds,
         )
 
-        current_distance = clamp_neg(
+        current_distance = clamp_to_zero(
             calc_delta(distance, self._step_start_distance)
         )
 
@@ -160,6 +163,24 @@ class WorkoutSplitCalculator:
         self._previous_elapsed = workout_elapsed
 
         self._previous_distance = distance
+
+    # -------------------------------------------------------------------------
+    def update_samples(
+        self,
+        samples: list[tuple[int, float, float]],
+        workout_start_elapsed: float,
+    ) -> None:
+
+        for _, model_elapsed, distance in samples:
+            workout_elapsed = calc_deltatime(
+                model_elapsed,
+                workout_start_elapsed,
+            )
+
+            self.update(
+                workout_elapsed=workout_elapsed,
+                distance=distance,
+            )
 
     # -------------------------------------------------------------------------
     def _ensure_split(
@@ -183,9 +204,9 @@ class WorkoutSplitCalculator:
 
         split = self.splits[index]
 
-        split.elapsed = clamp_neg(elapsed)
+        split.elapsed = clamp_to_zero(elapsed)
 
-        split.distance = clamp_neg(distance)
+        split.distance = clamp_to_zero(distance)
 
         if split.distance > 0.0:
 
@@ -257,9 +278,10 @@ class WorkoutSplitCalculator:
             target_elapsed, self._previous_elapsed
         ) / delta_elapsed
 
-        ratio = min(
+        ratio = clamp_between(
+            ratio,
+            0.0,
             1.0,
-            clamp_neg(ratio),
         )
 
         return (

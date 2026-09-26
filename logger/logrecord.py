@@ -61,6 +61,14 @@ CSV_FIELDS = [
     ("Raw_Resistance", "raw_resistance"),
     ("Raw_Training_Status", "raw_training_status"),
     ("Raw_Heart_Rate", "raw_heart_rate"),
+
+    ("Calibration_Machine_Power", "calib_machine_power"),
+    ("Calibration_Profile_Factor", "calib_profile_factor"),
+    ("Calibration_Level_Factor", "calib_level_factor"),
+    ("Calibration_Workout_Factor", "calib_workout_factor"),
+    ("Calibration_SPM_Factor", "calib_spm_factor"),
+    ("Calibration_Duration_Factor", "calib_duration_factor"),
+    ("Calibration_Final_Factor", "calib_final_factor"),
 ]
 
 # =============================================================================
@@ -128,6 +136,16 @@ class LogRecord:
     raw_resistance: int = 0             # Raw Resistance
     raw_training_status: int = 0        # Raw Training Status
     raw_heart_rate: int = 0             # Raw Heart Rate
+
+    # Power recalibration
+
+    calib_machine_power: float = 0.0
+    calib_profile_factor: float = 0.0
+    calib_level_factor: float = 0.0
+    calib_workout_factor: float = 0.0
+    calib_spm_factor: float = 0.0
+    calib_duration_factor: float = 0.0
+    calib_final_factor: float = 0.0
 
     # -------------------------------------------------------------------------
     @classmethod

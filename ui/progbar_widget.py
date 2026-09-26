@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QProgressBar,
 )
 
+from setup.utils import clamp_between
 from setup.lang import get_text
 
 # =============================================================================
@@ -45,14 +46,14 @@ class GradientGauge(QFrame):
         if len(set(zones)) != 5:
             raise ValueError(get_text("ERR_PBAR_5PTS_DIFF"))
 
-        self.zones = sorted(zones)
+        self.zones: list[float] = sorted(zones)
 
-        self.minimum = min(self.zones)
-        self.maximum = max(self.zones)
+        self.minimum: float = min(self.zones)
+        self.maximum: float = max(self.zones)
 
-        self.inverted = inverted
+        self.inverted: bool = inverted
 
-        self.decimals = decimals
+        self.decimals: int = decimals
 
         self._create_ui()
 
@@ -100,9 +101,10 @@ class GradientGauge(QFrame):
     # -------------------------------------------------------------------------
     def set_value(self, value: float) -> None:
 
-        value = max(
+        value = clamp_between(
+            float(value),
             self.minimum,
-            min(self.maximum, float(value)),
+            self.maximum
         )
 
         ratio = (

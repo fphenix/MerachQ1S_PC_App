@@ -11,13 +11,13 @@ from PySide6.QtWidgets import (
     QComboBox,
     QSlider,
     QVBoxLayout,
-    QHBoxLayout,
     QGridLayout,
     QLabel,
     QWidget,
 )
 
 from setup.lang import get_text
+from setup.utils import clamp_to_zero
 from setup.settings import Settings
 from setup.settings_utils import profile_level_key_from_norm
 from setup.constants import (
@@ -43,18 +43,23 @@ class SettingsDialog(QDialog):
     def __init__(
         self,
         settings: Settings,
+        curr_user: str,
         parent=None,
     ) -> None:
 
         super().__init__(parent)
 
-        self.settings = settings
+        self.settings: Settings = settings
+
+        self.curr_user: str = curr_user
 
         self._create_ui()
 
     # ------------------------------------------------------------------
     def _create_ui(self) -> None:
         self.setWindowTitle(get_text("SETTINGS"))
+
+        self.curr_user_label = QLabel(self.curr_user)
 
         # Language
 
@@ -139,11 +144,25 @@ class SettingsDialog(QDialog):
             self.settings.power_recalibration_profile_enabled
         )
 
+        self.spm_recalibration_check = QCheckBox(
+            get_text("CHECK_POWER_SPM_RECAL")
+        )
+        self.spm_recalibration_check.setChecked(
+            self.settings.power_recalibration_spm_enabled
+        )
+
         self.workout_recalibration_check = QCheckBox(
             get_text("CHECK_POWER_WORKOUT_RECAL")
         )
         self.workout_recalibration_check.setChecked(
             self.settings.power_recalibration_workout_enabled
+        )
+
+        self.duration_recalibration_check = QCheckBox(
+            get_text("CHECK_POWER_WO_DUR_RECAL")
+        )
+        self.duration_recalibration_check.setChecked(
+            self.settings.power_recalibration_duration_enabled
         )
 
         self.age_spinbox = QDoubleSpinBox()
@@ -168,7 +187,7 @@ class SettingsDialog(QDialog):
         self.sex_combo.addItem(get_text(f"PROFILE_SEX_M"), "M")
         self.sex_combo.addItem(get_text(f"PROFILE_SEX_F"), "F")
         index = self.sex_combo.findData(self.settings.profile_sex)
-        self.sex_combo.setCurrentIndex(max(0, index))
+        self.sex_combo.setCurrentIndex(clamp_to_zero(index))
 
         # Niveau : valeur continue 0..1, avec quatre repères visuels.
         self.level_slider = QSlider(Qt.Horizontal)
@@ -215,6 +234,11 @@ class SettingsDialog(QDialog):
         form = QFormLayout(self)
 
         form.addRow(
+            f"{get_text("MENU_USER")} :",
+            self.curr_user_label,
+        )
+
+        form.addRow(
             f"{get_text("SETTINGS_LANG")} :",
             self.language_combo,
         )
@@ -239,8 +263,16 @@ class SettingsDialog(QDialog):
             self.profile_recalibration_check,
         )
         form.addRow(
+            f"{get_text("CHECK_POWER_SPM_TITLE")} :",
+            self.spm_recalibration_check,
+        )
+        form.addRow(
             f"{get_text('CHECK_POWER_WORKOUT_TITLE')} :",
             self.workout_recalibration_check,
+        )
+        form.addRow(
+            f"      ●  {get_text('CHECK_POWER_WO_DUR_TITLE')} :",
+            self.duration_recalibration_check,
         )
 
         form.addRow(f"{get_text("PROFILE_AGE")} :", self.age_spinbox)
@@ -298,8 +330,14 @@ class SettingsDialog(QDialog):
         settings.power_recalibration_profile_enabled = (
             self.profile_recalibration_check.isChecked()
         )
+        settings.power_recalibration_spm_enabled = (
+            self.spm_recalibration_check.isChecked()
+        )
         settings.power_recalibration_workout_enabled = (
             self.workout_recalibration_check.isChecked()
+        )
+        settings.power_recalibration_duration_enabled = (
+            self.duration_recalibration_check.isChecked()
         )
 
         settings.profile_age = self.age_spinbox.value()

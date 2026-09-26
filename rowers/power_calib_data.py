@@ -13,9 +13,13 @@ from setup.constants import (
 @dataclass(frozen=True)
 class PowerCalibrationContext:
 
+    # Power calibration base on Profile and/or Workout:
     profile_enabled: bool = False
     workout_enabled: bool = False
+    spm_correction_enabled: bool = False
+    duration_correction_enabled: bool = False
 
+    # Profile:
     age: float = float(DEFAULT_PROFILE_AGE) # years
     weight_kg: float = DEFAULT_PROFILE_WEIGHT # kg
     height_cm: float = DEFAULT_PROFILE_HEIGHT # cm
@@ -27,7 +31,21 @@ class PowerCalibrationContext:
 
     intensity: str | None = None # "R", "E", "N", "F" or "M"
     duration_seconds: float = 0.0 # seconds
+    step_elapsed_seconds: float = 0.0 # seconds
+    spm: float = 0.0 # strokes per minutes
 
     # TODO: Maybe to remove later:
     level: str = DEFAULT_PROFILE_LEVEL
-    spm: float = 0.0 # strokes per minutes
+
+# ==============================================================================
+from dataclasses import dataclass
+@dataclass
+class PowerCalibrationResult:
+    machine_power: float
+    profile_factor: float
+    level_factor: float
+    workout_factor: float
+    spm_factor: float
+    duration_factor: float
+    final_factor: float
+    power: float

@@ -22,6 +22,11 @@ class UserManager:
         self.load()
 
     # ------------------------------------------------------------------
+    def get_current_user(self) -> str:
+
+        return self.current_user
+
+    # ------------------------------------------------------------------
     def load(self) -> None:
 
         if not USERS_CONFIG_FILE.exists():
@@ -129,22 +134,6 @@ class UserManager:
         return user_dir
 
     # ------------------------------------------------------------------
-    @staticmethod
-    def safe_name(name: str) -> str:
-
-        name = name.strip()
-
-        name = re.sub(
-            r'[<>:"/\\|?*]',
-            "_",
-            name,
-        )
-
-        name = name.rstrip(". ")
-
-        return name or DEFAULT_USER_NAME
-
-    # ------------------------------------------------------------------
     def user_dir(
         self,
         name: str | None = None,
@@ -211,3 +200,20 @@ class UserManager:
         self.save()
 
         return True
+
+    # ------------------------------------------------------------------
+    @staticmethod
+    def safe_name(name: str) -> str:
+
+        name = name.strip()
+
+        name = re.sub(
+            r'[<>:"/\\|?*]',
+            "_",
+            name,
+        )
+
+        name = name.rstrip(". ")
+
+        return name or DEFAULT_USER_NAME
+

@@ -1,10 +1,11 @@
 from threading import Lock
+from collections import deque
 from copy import deepcopy
 
 from engine.snapshot import Snapshot
 
 from engine.calc import calc_delta, calc_deltatime
-from setup.utils import clamp_neg
+from setup.utils import clamp_to_zero
 
 from rowers.data import RowerData
 
@@ -18,21 +19,32 @@ class RowState:
 
         self._lock = Lock()
 
-        self.source = None
-        self.rower = None
+        self.source = None # MerachRower | ReplayQ1S | None
+        self.rower = None # MerachRower | None
 
         self.curr_rowerdata = RowerData()
 
-        self._last_time = None
-        self._elapsed_offset = 0.0
-        self._stroke_offset = 0
+        self._last_time: float | None = None
+        self._elapsed_offset: float = 0.0
+        self._stroke_offset: int = 0
 
-        self.delta_strokes = 0
-        self.stroke_event = False
+        self.delta_strokes: int = 0
+        self.stroke_event: bool = False
 
         self.logger: CsvLogger | None = None
 
-        self._session_rebase_pending = False
+        self._session_rebase_pending: bool = False
+
+        self._distance_history = deque(maxlen=10000)
+        self._distance_history_index: int = 0
+
+    # -------------------------------------------------------------------------
+    def set_source(self, source):
+        self.source = source
+
+    # -------------------------------------------------------------------------
+    def set_rower(self, rower):
+        self.rower = rower
 
     # -------------------------------------------------------------------------
     def reset_session(self) -> None:
@@ -50,6 +62,8 @@ class RowState:
 
             self._last_time = None
             self._session_rebase_pending = True
+            self._distance_history.clear()
+            self._distance_history_index = 0
 
             self.curr_rowerdata = RowerData(
                 connection=connection,
@@ -87,14 +101,14 @@ class RowState:
             # for elapsed_time and stroke_count we want the value
             # minus the "New Session" offset (offset is 0 for first
             # session). We also clamp it to 0 if it ever goes negative.
-            elapsed_time = clamp_neg(
+            elapsed_time = clamp_to_zero(
                 calc_deltatime(
                     new_rowerdata.raw_elapsed_time, 
                     self._elapsed_offset
                 )
             )
 
-            stroke_count = clamp_neg(
+            stroke_count = clamp_to_zero(
                 calc_delta(
                     new_rowerdata.raw_stroke_count,
                     self._stroke_offset
@@ -105,7 +119,7 @@ class RowState:
                 delta_elapsed = 0.0
 
             else:
-                delta_elapsed = clamp_neg(
+                delta_elapsed = clamp_to_zero(
                     calc_deltatime(elapsed_time, self._last_time)
                 )
 
@@ -128,6 +142,15 @@ class RowState:
 
             self.delta_strokes = self.curr_rowerdata.delta_strokes
             self.stroke_event = self.curr_rowerdata.stroke_event
+
+            self._distance_history_index += 1
+            self._distance_history.append(
+                (
+                    self._distance_history_index,
+                    elapsed_time,
+                    self.curr_rowerdata.distance,
+                )
+            )
 
             #
             # Logger
@@ -205,9 +228,34 @@ class RowState:
                     raw_resistance=self.curr_rowerdata.raw_resistance,
                     raw_training_status=self.curr_rowerdata.raw_training_status,
                     raw_heart_rate=self.curr_rowerdata.raw_heart_rate,
+
+                    #
+                    # Power Calibration
+                    #
+
+                    calib_machine_power= self.curr_rowerdata.calibration_machine_power,
+                    calib_profile_factor= self.curr_rowerdata.calibration_profile_factor,
+                    calib_level_factor= self.curr_rowerdata.calibration_level_factor,
+                    calib_workout_factor= self.curr_rowerdata.calibration_workout_factor,
+                    calib_spm_factor= self.curr_rowerdata.calibration_spm_factor,
+                    calib_duration_factor= self.curr_rowerdata.calibration_duration_factor,
+                    calib_final_factor= self.curr_rowerdata.calibration_final_factor,
                 )
 
                 self.logger.log(record)
+
+    # -------------------------------------------------------------------------
+    def distance_samples_since(
+        self,
+        index: int = 0,
+    ) -> list[tuple[int, float, float]]:
+
+        with self._lock:
+            return [
+                sample
+                for sample in self._distance_history
+                if sample[0] > index
+            ]
 
     # -------------------------------------------------------------------------
     def snapshot(self) -> Snapshot:

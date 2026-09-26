@@ -32,16 +32,16 @@ class WorkoutPlotWindow(QMainWindow):
         
         super().__init__(parent)
 
-        self.filename = Path(
+        self.filename: Path = Path(
             filename
         )
 
-        self.create_ui()
+        self._create_ui()
 
         self.load_file()
 
     # -------------------------------------------------------------------------
-    def create_ui(self) -> None:
+    def _create_ui(self) -> None:
 
         self.setWindowTitle(
             get_text("PLOT_TITLE")

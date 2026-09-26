@@ -14,7 +14,9 @@ from PySide6.QtWidgets import (
 from setup.lang import get_text
 from setup.utils import (
     format_pace, format_time,
-    clamp_neg,
+    clamp_to_zero,
+    clamp_to_max,
+    clamp_between,
 )
 from setup.settings import Settings
 from setup.constants import (
@@ -50,10 +52,10 @@ class SplitListWidget(QFrame):
         self.setFrameShape(QFrame.Box)
         self.setLineWidth(2)
 
-        self.settings = settings
-        self.title = title
+        self.settings: Settings = settings
+        self.title: str = title
 
-        self.split_length = (
+        self.split_length: float = (
             self.settings.split_length
             if self.settings is not None
             else DEFAULT_SPLIT_LENGTH
@@ -61,11 +63,10 @@ class SplitListWidget(QFrame):
 
         # True tant que l'utilisateur n'a pas repris le contrôle
         # de la scrollbar.
-        self._follow_tail = True
+        self._follow_tail: bool = True
 
-        self._last_label = None
-        self._display_mode = None
-        self._last_workout_step = None
+        self._display_mode: str | None = None
+        self._last_workout_step: int | None = None
         self._split_labels: list = []
         self._split_columns: list = []
 
@@ -212,9 +213,9 @@ class SplitListWidget(QFrame):
         scrollbar = self.scroll.horizontalScrollBar()
 
         scrollbar.setValue(
-            min(
+            clamp_to_max(
                 x,
-                scrollbar.maximum(),
+                scrollbar.maximum()
             )
         )
 
@@ -231,7 +232,6 @@ class SplitListWidget(QFrame):
 
         self._split_labels.clear()
         self._split_columns.clear()
-        self._last_label = None
 
     # -------------------------------------------------------------------------
     def _ensure_label_count(self, count: int) -> None:
@@ -338,7 +338,7 @@ class SplitListWidget(QFrame):
         # Création des labels manquants.
         self._ensure_label_count(new_count)
 
-        update_from = clamp_neg(
+        update_from = clamp_to_zero(
             min(update_from, new_count - 1)
         )
 
@@ -355,7 +355,7 @@ class SplitListWidget(QFrame):
         if target_index is None:
             target_index = new_count - 1
 
-        self._scroll_target_index = clamp_neg(
+        self._scroll_target_index = clamp_to_zero(
             min(target_index, new_count - 1)
         )
 
@@ -411,7 +411,7 @@ class SplitListWidget(QFrame):
         #
         # Nouvelle ligne : l'ancien dernier perd "en cours"
         # et le nouveau dernier devient courant.
-        update_from = clamp_neg(old_count - 1)
+        update_from = clamp_to_zero(old_count - 1)
 
         self._set_lines(
             lines,
@@ -501,9 +501,10 @@ class SplitListWidget(QFrame):
                     else 0.0
                 )
 
-                progress = min(
-                    100.0,
-                    clamp_neg(progress),
+                progress = clamp_between(
+                    progress,
+                    0.0,
+                    100.0
                 )
 
                 extra = f"{progress:.0f}%"

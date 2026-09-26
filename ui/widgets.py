@@ -47,9 +47,9 @@ class MetricWidget(QFrame):
 
         super().__init__()
 
-        self.title = title
-        self.unit = unit
-        self.gauge = gauge
+        self.title: str = title
+        self.unit: str = unit
+        self.gauge: GradientGauge | None = gauge
 
         self._create_ui()
 

@@ -1,3 +1,4 @@
+from matplotlib import pyplot
 from matplotlib.backends.backend_qtagg import (
     FigureCanvasQTAgg as FigureCanvas,
 )
@@ -150,6 +151,7 @@ class WorkoutPlotWidget(FigureCanvas):
 
         current_time = 0.0
         previous_spm = None
+        parts_set: set[str] = set()
 
         for step in workout.steps:
 
@@ -171,6 +173,23 @@ class WorkoutPlotWidget(FigureCanvas):
                 solid_capstyle="round",
                 zorder=2,
             )
+
+            if step.part:
+                parts_set.add(step.part)
+
+                ax.annotate(
+                    step.part,  # get_text(f"PART_DICT_{step.part}"),
+                    xy=(
+                        (x0 + x1) / 2.0,
+                        step.spm,
+                    ),
+                    xytext=(0, 6),
+                    textcoords="offset points",
+                    ha="center",
+                    va="bottom",
+                    fontsize=10,
+                    zorder=3,
+                )
 
             if previous_spm is not None:
 
@@ -218,49 +237,38 @@ class WorkoutPlotWidget(FigureCanvas):
                 pad=10,
             )
 
-        legend = [
+        handle_intensity = [
             Line2D(
-                [0],
-                [0],
-                color=INTENSITY_COLORS["M"],
-                lw=4,
-                label="M",
-            ),
-            Line2D(
-                [0],
-                [0],
-                color=INTENSITY_COLORS["F"],
-                lw=4,
-                label="F",
-            ),
-            Line2D(
-                [0],
-                [0],
-                color=INTENSITY_COLORS["N"],
-                lw=4,
-                label="N",
-            ),
-            Line2D(
-                [0],
-                [0],
-                color=INTENSITY_COLORS["E"],
-                lw=4,
-                label="E",
-            ),
-            Line2D(
-                [0],
-                [0],
-                color=INTENSITY_COLORS["R"],
-                lw=4,
-                label="R",
-            ),
+                [0], [0],
+                color=color, lw=4,
+                label=label,
+            ) for intensity, color in INTENSITY_COLORS.items()
+            if (label := get_text(f"INTENSITY_DICT_{intensity}"))
         ]
 
-        ax.legend(
-            handles=legend,
+        intensity_legend = ax.legend(
+            handles=handle_intensity,
             loc="upper right",
-            title="Zones",
+            title=get_text("INTENSITY"),
         )
+
+        ax.add_artist(intensity_legend)
+
+        if parts_set:
+            handle_part = [
+                Line2D(
+                    [], [],
+                    color="none",
+                    marker="", linestyle="",
+                    label=f"{part.upper()} : {get_text(f"PART_DICT_{part.upper()}")}",
+                ) for part in sorted(parts_set)
+            ]
+
+            ax.legend(
+                handles=handle_part,
+                loc="upper center",
+                title=get_text("BODY_PART"),
+            )
 
         self.figure.tight_layout(
             rect=[0, 0, 1, 0.93]

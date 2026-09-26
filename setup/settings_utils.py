@@ -1,9 +1,8 @@
 from pathlib import Path
 import json
-from typing import Any
 from dataclasses import asdict
 
-from setup.utils import clamp_between
+from setup.utils import clamp_between, clamp_step
 from setup.constants import (
     DEFAULT_LANGUAGE,
     LANGUAGES,
@@ -52,23 +51,6 @@ def profile_level_key_from_norm(level_norm: float) -> str:
     if value < PROFILE_LEVELS_THRESHOLDS["A"]:
         return PROFILE_LEVELS_KEYS[2]
     return PROFILE_LEVELS_KEYS[3]
-
-# =============================================================================
-def clamp_step(
-    value,
-    minimum,
-    maximum,
-    step,
-) -> Any:
-
-    value = max(
-        minimum,
-        min(maximum, value),
-    )
-
-    return round(
-        value / step
-    ) * step
 
 # =============================================================================
 def load_settings(settings_file: Path) -> Settings:
@@ -160,8 +142,14 @@ def load_settings(settings_file: Path) -> Settings:
             power_recalibration_profile_enabled=bool(
                 data.get("power_recalibration_profile_enabled", False)
             ),
+            power_recalibration_spm_enabled=bool(
+                data.get("power_recalibration_spm_enabled", False)
+            ),
             power_recalibration_workout_enabled=bool(
                 data.get("power_recalibration_workout_enabled", False)
+            ),
+            power_recalibration_duration_enabled=bool(
+                data.get("power_recalibration_duration_enabled", False)
             ),
             profile_age= profile_age,
             profile_weight_kg=profile_weight_kg,

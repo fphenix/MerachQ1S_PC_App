@@ -1,6 +1,6 @@
 from pathlib import Path
 
-VERSION: str = "4.7"
+VERSION: str = "4.8"
 
 GUI_REFRESH_MS   = 100 # milliseconds
 WORKOUT_TIMER_MS = 20 # milliseconds
@@ -10,8 +10,12 @@ WINDOW_HEIGHT = 700 # pixels
 WINDOW_TO_SCREEN_LEFT_MARGIN = 35 # pixels
 WINDOW_TO_SCREEN_TOP_MARGIN = 0.33 # 0.33 = 33% of the margin at the top, 66% at the bottom
 
-MAIN_FONT = "Consolas"
+MAIN_FONT  = "Consolas"
 TITLE_FONT = "Segoe UI"
+
+BIG_FONT_SIZE          = 22 # point
+AVERAGE_FONT_SIZE      = 16 # point
+SMALL_FONT_SIZE        = 12 # point
 
 WIDGET_TITLE_FONT_SIZE = 11 # point
 WIDGET_VALUE_FONT_SIZE = 28 # point
@@ -96,8 +100,8 @@ LOGGER_FLUSH_PERIOD: float = 5.0 # seconds
 LOGGER_END_SESSION_TIMEOUT: float = 10.0 # seconds
 
 # LOGGER_FORMAT choisi de créer un .csv OU un .zip contenant un .csv
-LOGGER_FORMAT_CSV = "csv"
-LOGGER_FORMAT_ZIP = "zip"
+LOGGER_FORMAT_CSV: str = "csv"
+LOGGER_FORMAT_ZIP: str = "zip"
 LOGGER_FORMAT = LOGGER_FORMAT_ZIP
 
 ALLOWED_REPLAY_EXT: list[str] = [
@@ -124,7 +128,8 @@ ALLOWED_REPLAY_EXT: list[str] = [
 # * False : (Mode Normal) BT vient du rameur ou
 # * True  : (Mode Dvp/Debug) BT émulé en rejouant une session loggée précédente.
 USE_REPLAY: bool = False
-USE_REPLAY_WORKOUT: bool = False
+
+USE_REPLAY_WORKOUT: bool = True and USE_REPLAY
 
 # Le fichier REPLAY_FILE peut être:
 # * un .csv
@@ -183,10 +188,9 @@ WORKOUT_HEIGHT = WINDOW_HEIGHT # pixels
 WORKOUT_EDIT_WIDTH  = 1200  # pixels
 WORKOUT_EDIT_HEIGHT =  800  # pixels
 
-TITLE_FONT_SIZE = 24 # point
-BIG_FONT_SIZE   = 22 # point
-LIST_FONT_SIZE  = 14 # point
-INFO_FONT_SIZE  = 18 # point
+WORKOUT_TITLE_FONT_SIZE = 24 # point
+WORKOUT_LIST_FONT_SIZE  = 14 # point
+WORKOUT_INFO_FONT_SIZE  = 18 # point
 
 LIST_WIDTH = 220  # pixels
 BAR_HEIGHT = 28   # pixels
@@ -226,9 +230,9 @@ DURATION_UNITS: dict[str, int] = {
     "h": 3600,
 }
 
-# min and max
-DURATION_RANGES: dict[str, tuple[int|float, int]] = {
-    "sec": (1, 3600),
-    "min": (0.01, 120),
-    "h":   (0.01, 2),
+# min, max and step
+DURATION_RANGES: dict[str, tuple[int|float, int, float]] = {
+    "sec": (1, 3600, 1.0),
+    "min": (0.01, 120, 0.5),
+    "h":   (0.01, 2, 0.5),
 }

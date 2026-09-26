@@ -52,20 +52,36 @@
         "en": "Stopped"
     },
     "CHECK_POWER_PROFILE_RECAL": {
-        "fr": "Recalibrer le power avec le profil",
-        "en": "Recalibrate the power based on the profile"
+        "fr": "Recalibrer le power avec le Profil",
+        "en": "Recalibrate the power based on the Profile"
+    },
+    "CHECK_POWER_SPM_RECAL": {
+        "fr": "Recalibrer le power avec la Cadence",
+        "en": "Recalibrate the power based on the Cadence"
     },
     "CHECK_POWER_WORKOUT_RECAL": {
-        "fr": "Recalibrer le power avec l'intensité du workout",
-        "en": "Recalibrate the power based on the expected intensity from the workout"
+        "fr": "Recalibrer le power avec l'intensité du Workout",
+        "en": "Recalibrate the power based on the expected intensity from the Workout"
+    },
+    "CHECK_POWER_WO_DUR_RECAL": {
+        "fr": "Recalibrer le power avec la durée de l'étape dans le Workout",
+        "en": "Recalibrate the power based on the duration of the step in the Workout"
     },
     "CHECK_POWER_PROFILE_TITLE": {
         "fr": "Recal. Puissance par Profil",
         "en": "Power Profile Recal."
     },
+    "CHECK_POWER_SPM_TITLE": {
+        "fr": "Recal. Puissance par Cadence",
+        "en": "Power Cadence Recal."
+    },
     "CHECK_POWER_WORKOUT_TITLE": {
         "fr": "Recal. Puissance par Workout",
         "en": "Power Workout Recal."
+    },
+    "CHECK_POWER_WO_DUR_TITLE": {
+        "fr": "et par Durée d'étape",
+        "en": "and by step Duration"
     },
     "COMMENT": {
         "fr": "Commentaire",
@@ -656,7 +672,7 @@
         "fr": "Démarrage dans",
         "en": "Starts in"
     },
-    "TEMPLATE": {
+    "ZZZ_TEMPLATE": {
         "fr": "Fr Template",
         "en": "En Template"
     }
