@@ -1,0 +1,27 @@
+WORKOUT: WarmUpTech
+FIELD: WarmUp, Techinque
+INFO: vers l'avant, bras tendu, pousser jambes
+120 18 F L
+INFO: posser jambes, pivot corps garder bras tendus
+120 18 F LC
+INFO: bras tendu faire des pivots arrière+avant
+120 18 F C
+INFO: pivot, puis ramener bras, relacher épaules et pivot avant
+120 18 F AC
+INFO: vers l'arrière, bras uniquement tirer, puis relâcher épaules pour bras tendus
+120 18 F A
+INFO: coups de rame complet
+120 18 F
+INFO: vers l'arrière, bras uniquement tirer, puis relâcher épaules pour bras tendus
+120 18 F A
+INFO: pivot, puis ramener bras, relacher épaules et pivot avant
+120 18 F AC
+INFO: bras tendu faire des pivots arrière+avant
+120 18 F C
+INFO: posser jambes, pivot corps garder bras tendus
+120 18 F LC
+INFO: vers l'avant, bras tendu, pousser jambes
+120 18 F L
+INFO: coups de rame complet
+120 18 F
+60 22 M
