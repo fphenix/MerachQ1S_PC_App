@@ -80,8 +80,8 @@ class WorkoutWidget(QFrame):
         self.started: bool = False
         self.workout_elapsed: float = 0.0
 
-        self.beat_phase: float = 0.0
-        self.last_elapsed: float = 0.0
+        self.metronome_anchor_elapsed: float = 0.0
+        self.metronome_anchor_time: float = time.perf_counter()
         self.last_tick: float = time.perf_counter()
 
         self._create_ui()
@@ -114,8 +114,8 @@ class WorkoutWidget(QFrame):
         self.started = False
         self.workout_elapsed = 0.0
 
-        self.beat_phase = 0.0
-        self.last_elapsed = 0.0
+        self.metronome_anchor_elapsed = 0.0
+        self.metronome_anchor_time = time.perf_counter()
         self.last_tick = time.perf_counter()
 
         self.step_list.clear()
@@ -515,8 +515,6 @@ class WorkoutWidget(QFrame):
 
         elapsed = calc_deltatime(now, self.last_tick)
 
-        self.last_elapsed = elapsed
-
         self.last_tick = now
 
         #
@@ -550,15 +548,7 @@ class WorkoutWidget(QFrame):
 
         if self.running:
 
-            # Le temps du workout est piloté par le modèle
-            # (Q1S ou Replay), pas par le QTimer du GUI.
-            # Le timer ne sert ici qu'au compte à rebours et au
-            # rafraîchissement de l'affichage.
-
-            if self.model_start_elapsed is not None:
-                self._update_from_model_elapsed(
-                    self.model_start_elapsed + self.workout_elapsed
-                )
+            self.update_progress()
 
     # ------------------------------------------------------------------
     def start_step(self) -> None:
@@ -583,6 +573,8 @@ class WorkoutWidget(QFrame):
         self.started = True
 
         self.metronome_bar.setValue(0)
+        self.metronome_anchor_elapsed = 0.0
+        self.metronome_anchor_time = time.perf_counter()
 
         self.state_label.setText(
             get_text("WORKOUT_RUNNING")
@@ -602,15 +594,16 @@ class WorkoutWidget(QFrame):
 
         cycle = 60.0 / step.spm
 
-        self.beat_phase += (
-            self.last_elapsed
+        elapsed = (
+            self.metronome_anchor_elapsed
+            + calc_deltatime(
+                time.perf_counter(),
+                self.metronome_anchor_time
+            )
         )
 
-        if self.beat_phase >= cycle:
-            self.beat_phase -= cycle
-
         progress = (
-            self.beat_phase / cycle
+            (elapsed % cycle) / cycle
         )
 
         self.metronome_bar.setValue(
@@ -740,10 +733,23 @@ class WorkoutWidget(QFrame):
 
         step = self.workout.steps[new_step]
 
+        new_step, step_elapsed = step_info
+
+        step_changed = new_step != self.current_step
+
+        if step_changed:
+            self._select_step(new_step)
+
+        step = self.workout.steps[new_step]
+
         self.step_elapsed = min(
             step.duration_seconds,
             step_elapsed,
         )
+
+        if step_changed:
+            self.metronome_anchor_elapsed = self.step_elapsed
+            self.metronome_anchor_time = time.perf_counter()
 
         self.step_remaining_time = clamp_to_zero(
             calc_deltatime(
@@ -762,7 +768,6 @@ class WorkoutWidget(QFrame):
         self.running = True
         self.started = True
 
-        self.update_progress()
         self.update_labels()
 
     # ------------------------------------------------------------------
@@ -794,8 +799,6 @@ class WorkoutWidget(QFrame):
             self.step_list.currentItem(),
             QListWidget.ScrollHint.PositionAtCenter,
         )
-
-        self.beat_phase = 0.0
 
     # ------------------------------------------------------------------
     def _update_current_step_visuals(self) -> None:
