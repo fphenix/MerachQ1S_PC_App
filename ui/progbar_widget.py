@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QProgressBar,
 )
 
-from setup.utils import clamp_between
+from setup.utils import clamp_between, interpolate_color
 from setup.lang import get_text
 
 # =============================================================================
@@ -186,7 +186,7 @@ class GradientGauge(QFrame):
             if value <= v2:
                 ratio = ( (value - v1) / (v2 - v1) )
                 # retourne la couleur
-                return self._interpolate_color(
+                return interpolate_color(
                     self.ZONES_COLOR[idx_color1],
                     self.ZONES_COLOR[idx_color2],
                     ratio,
@@ -195,33 +195,3 @@ class GradientGauge(QFrame):
         # sinon on est hors zone (et au dessus) alors retourne la dernière
         # couleur dans la liste.
         return self.ZONES_COLOR[-1] if not self.inverted else self.ZONES_COLOR[0]
-
-    # -------------------------------------------------------------------------
-    # Trouve la couleur intermédiaire entre color1 et color2
-    # en fonction du ratio.
-    @staticmethod
-    def _interpolate_color(
-        color1: str,
-        color2: str,
-        ratio: float,
-    ) -> str:
-
-        from PySide6.QtGui import QColor
-
-        c1 = QColor(color1)
-        c2 = QColor(color2)
-
-        r = int(
-            c1.red()
-            + (c2.red() - c1.red()) * ratio
-        )
-        g = int(
-            c1.green()
-            + (c2.green() - c1.green()) * ratio
-        )
-        b = int(
-            c1.blue()
-            + (c2.blue() - c1.blue()) * ratio
-        )
-
-        return f"#{r:02x}{g:02x}{b:02x}"

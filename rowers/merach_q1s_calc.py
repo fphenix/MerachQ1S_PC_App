@@ -19,10 +19,13 @@ from rowers.power_calib_data import PowerCalibrationContext
 
 from workout.workout import Workout
 
-from setup.utils import clamp_to_zero
-from engine.calc import (
-    calc_delta, calc_deltatime,
+from setup.utils import (
+    calc_delta,
+    calc_deltatime,
     calc_average,
+    clamp_to_zero,
+)
+from engine.calc import (
     calc_speed_avg,
     calc_power_avg,
     calc_cadence_from_strokes,

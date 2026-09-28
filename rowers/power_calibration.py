@@ -1,7 +1,10 @@
 import math
 
-from setup.utils import clamp_between, clamp_to_zero
-from engine.calc import interpolate
+from setup.utils import (
+    clamp_between,
+    clamp_to_zero,
+    interpolate,
+)
 from setup.constants import (
     MIN_PROFILE_WEIGHT, MAX_PROFILE_WEIGHT,
     MIN_PROFILE_HEIGHT, MAX_PROFILE_HEIGHT,
@@ -62,10 +65,8 @@ class WorkoutPowerCalibration:
             )
 
         # Suppression de l'effet SPM artificiel du Q1S
-        if (
-            context.workout_enabled
-            and context.spm_correction_enabled
-        ):
+        if context.spm_correction_enabled:
+
             rawpower = self.remove_q1s_spm_effect(
                 raw_power=rawpower,
                 spm=context.spm,
@@ -131,6 +132,7 @@ class WorkoutPowerCalibration:
             power=power,
         )
 
+    '''
     # -----------------------------------------------------------------------------
     # Evidence-backed reference points used by the first version of the model.
     #
@@ -138,7 +140,6 @@ class WorkoutPowerCalibration:
     # rowers: ~76% (60 min), ~85% (6k), 100% (2k), ~153% (60 s), ~173% (10 s).
     # These are deliberately kept here, in one place, so the model can be tuned
     # without touching the Q1S calculator.
-    '''
     DURATION_POWER_RATIOS = (
         (10.0, 1.73),
         (60.0, 1.53),
@@ -356,7 +357,7 @@ class WorkoutPowerCalibration:
     PROFILE_REFERENCE_AGE = 40.0
 
     # ------------------------------------------------------------------
-    # OLDDER CALCULATION WAS:
+    # OLDER CALCULATION WAS:
     #    # Age: Seiler et al. reported approximately 3% power loss per decade
     #    # from 24-50 and ~7% per decade from 50-74 in indoor-rowing data.
     #    age = max(18.0, float(context.age))

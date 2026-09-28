@@ -7,7 +7,7 @@ import os
 import time
 
 from setup.lang import get_text
-from setup.utils import echo
+from setup.utils import echo, calc_deltatime
 from setup.constants import (
     VERSION,
     LOGGER_FLUSH_PERIOD,
@@ -18,8 +18,6 @@ from setup.constants import (
     LOGGER_FORMAT_ZIP,
     FILE_ENCODING,
 )
-
-from engine.calc import calc_deltatime
 
 from logger.logrecord import LogRecord
 

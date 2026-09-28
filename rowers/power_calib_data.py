@@ -31,11 +31,7 @@ class PowerCalibrationContext:
 
     intensity: str | None = None # "R", "E", "N", "F" or "M"
     duration_seconds: float = 0.0 # seconds
-    step_elapsed_seconds: float = 0.0 # seconds
     spm: float = 0.0 # strokes per minutes
-
-    # TODO: Maybe to remove later:
-    level: str = DEFAULT_PROFILE_LEVEL
 
 # ==============================================================================
 from dataclasses import dataclass

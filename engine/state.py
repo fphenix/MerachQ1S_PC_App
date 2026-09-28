@@ -4,8 +4,11 @@ from copy import deepcopy
 
 from engine.snapshot import Snapshot
 
-from engine.calc import calc_delta, calc_deltatime
-from setup.utils import clamp_to_zero
+from setup.utils import (
+    clamp_to_zero,
+    calc_delta,
+    calc_deltatime,
+)
 
 from rowers.data import RowerData
 

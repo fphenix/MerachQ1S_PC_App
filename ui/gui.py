@@ -31,8 +31,8 @@ from setup.utils import (
     load_workout,
 )
 from setup.settings_utils import (
-    save_settings, load_settings,
-    profile_level_key_from_norm,
+    save_settings,
+    load_settings,
 )
 from setup.constants import (
     GUI_REFRESH_MS,
@@ -491,10 +491,6 @@ class MainWindow(QMainWindow):
 
             self.logger.start()
 
-            self.state.set_logger(
-                self.logger
-            )
-
         self._rebuild_user_menu()
 
     # -------------------------------------------------------------------------
@@ -609,10 +605,6 @@ class MainWindow(QMainWindow):
             )
 
             self.logger.start()
-
-            self.state.set_logger(
-                self.logger
-            )
 
         #
         # Actualise le menu.
@@ -784,6 +776,13 @@ class MainWindow(QMainWindow):
     # -------------------------------------------------------------------------
     def new_session(self) -> None:
 
+        if USE_REPLAY and self.state.source is not None:
+            self.state.source.stop()
+
+        # --------------------------------------------------------------
+        # Stop Logger
+        # --------------------------------------------------------------
+
         if self.logger is not None:
             self.logger.flush()
             self.logger.stop()
@@ -811,7 +810,6 @@ class MainWindow(QMainWindow):
 
             if self.logger is not None:
                 self.logger.start()
-                self.state.set_logger(self.logger) # TODO: Toujours besoin de ça?????
 
             self.state.source.restart()
 
@@ -836,7 +834,6 @@ class MainWindow(QMainWindow):
 
             if self.logger is not None:
                 self.logger.start()
-                self.state.set_logger(self.logger) # TODO : Toujours besoin de ça?????
 
         self.refresh()
 
@@ -871,9 +868,6 @@ class MainWindow(QMainWindow):
                 height_cm=self.settings.profile_height_cm,
                 sex=self.settings.profile_sex,
                 level_norm=self.settings.profile_level_norm,
-                level=profile_level_key_from_norm(
-                    self.settings.profile_level_norm
-                ),
                 intensity=None,
                 duration_seconds= 0.0,
                 spm= 0.0,

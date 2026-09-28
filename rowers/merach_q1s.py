@@ -18,8 +18,10 @@ from bleak import BleakScanner
 from pyftms.client.machines.rower import Rower
 
 from setup.lang import get_text
-from setup.utils import echo, echoerr
-from engine.calc import calc_deltatime
+from setup.utils import (
+    echo, echoerr,
+    calc_deltatime,
+)
 
 from setup.cnx_enum import CnxState
 from setup.settings import Settings

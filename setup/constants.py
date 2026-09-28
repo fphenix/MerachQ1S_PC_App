@@ -1,6 +1,6 @@
 from pathlib import Path
 
-VERSION: str = "4.9"
+VERSION: str = "4.10b"
 
 GUI_REFRESH_MS   = 100 # milliseconds
 WORKOUT_TIMER_MS = 20 # milliseconds
@@ -61,8 +61,6 @@ USERS_CONFIG_FILE: Path = CONFIG_DIR / "users.json"
 
 SETTINGS_FILE_NAME: str = "settings.json"
 LOGS_DIR_NAME: str = "logs"
-
-print(BASE_DIR)
 
 FILE_ENCODING: str = "utf-8"
 FILE_ENCODING_BOM: str = "utf-8-sig"

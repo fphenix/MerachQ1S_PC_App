@@ -1,63 +1,6 @@
-from collections import deque
-
 from statistics import mean, stdev
-from setup.utils import clamp_to_zero, clamp_to_min
 
-# -----------------------------------------------
-# Universal calc functions
-# -----------------------------------------------
-
-# -----------------------------------------------------------------------------
-# Linearly interpolate a point between two points
-def interpolate(
-        xval: int | float,
-        x0: int | float, y0: int | float,
-        x1: int | float, y1: int | float
-    ) -> float:
-        
-        tx = float(xval - x0) / float(x1 - x0)
-        return y0 + (tx * float(y1 - y0))
-
-# -----------------------------------------------------------------------------
-# return the average in a deque
-# both values must be in the same unit
-def calc_average(values: deque) -> float:
-    return sum(values) / len(values)
-
-# -----------------------------------------------------------------------------
-# delta = curr - prev
-# both values must be in the same unit
-def calc_delta(curr: int|float, prev: int|float) -> int|float:
-    return curr - prev
-
-# -----------------------------------------------------------------------------
-# deltatime = curr - prev
-# both values must be float
-def calc_deltatime(curr: float, prev: float) -> float:
-    return curr - prev
-
-# -----------------------------------------------------------------------------
-# generic metric average : metric / per_unit
-# returns 0.0 if the per_unit is negative or null
-def calc_metric_avg(metric: float, per_unit: int|float) -> float:
-    return (
-            metric / float(per_unit)
-            if float(per_unit) > 0.0
-            else 0.0
-        )
-
-# -----------------------------------------------------------------------------
-# Calcule de l'Indice de Masse Corporelle (IMC)
-# or BMI (Body Mass Index)
-def bmi(
-    weight_kg: float,
-    height_cm: float,
-) -> float:
-    
-    height_m = clamp_to_min(float(height_cm) / 100.0, 0.01)
-    weight = clamp_to_zero(float(weight_kg))
-
-    return weight / (height_m * height_m)
+from setup.utils import calc_metric_avg
 
 # --------------------------------------------------------
 # Metrics

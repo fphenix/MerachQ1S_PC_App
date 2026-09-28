@@ -1,11 +1,10 @@
-from engine.calc import (
-    calc_full_split,
-    calc_deltatime,
-    calc_delta,
-)
+from engine.calc import calc_full_split
+
 from setup.utils import (
     clamp_to_zero,
     clamp_between,
+    calc_deltatime,
+    calc_delta,
 )
 
 from setup.settings import Settings
@@ -76,9 +75,19 @@ class WorkoutSplitCalculator:
 
         distance = clamp_to_zero(distance)
 
-        step_index, _step_elapsed = (
-            self._find_step(workout_elapsed)
+        #OLD_TO_REVOVE
+        # step_index, _step_elapsed = (
+        #    self._find_step(workout_elapsed)
+        #)
+
+        step_info = self.workout.find_step(
+            workout_elapsed
         )
+
+        if step_info is None:
+            return
+
+        step_index, _step_elapsed = step_info
 
         # -------------------------------------------------------------
         # Première donnée
@@ -219,39 +228,6 @@ class WorkoutSplitCalculator:
         else:
 
             split.pace = 0.0
-
-    # -------------------------------------------------------------------------
-    def _find_step(
-        self,
-        elapsed: float,
-    ) -> tuple[int, float]:
-
-        remaining = elapsed
-
-        last_index = (
-            len(self.workout.steps) - 1
-        )
-
-        for index, step in enumerate(
-            self.workout.steps
-        ):
-
-            duration = step.duration_seconds
-
-            if (
-                remaining < duration
-                or index == last_index
-            ):
-                return index, remaining
-
-            remaining -= duration
-
-        return (
-            last_index,
-            self.workout.steps[
-                last_index
-            ].duration_seconds,
-        )
 
     # -------------------------------------------------------------------------
     def _interpolate_distance(

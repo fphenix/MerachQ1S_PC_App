@@ -22,8 +22,9 @@ from setup.utils import (
     clamp_to_zero,
     clamp_between,
     is_between,
+    fractional_progress,
+    calc_deltatime,
 )
-from engine.calc import calc_deltatime
 from setup.settings import Settings
 from setup.constants import (
     WORKOUT_TIMER_MS,
@@ -44,6 +45,7 @@ from setup.constants import (
     WORKOUT_INFO_FONT_SIZE,
     MAIN_FONT,
     WORKOUTS_DIR,
+    REPLAY_SPEED,
 )
 
 from workout.workout import Workout
@@ -432,8 +434,6 @@ class WorkoutWidget(QFrame):
 
         self.workout = workout
 
-        self.model_start_elapsed = None
-
         self.step_list.clear()
 
         for i, step in enumerate(
@@ -449,8 +449,6 @@ class WorkoutWidget(QFrame):
                 f"{step.spm:>3} {get_text("SPM_UNIT")}   "
                 f"{step.intensity_text}"
             )
-
-        self.replay_mode = replay_mode
 
         self._reset_runtime_state(
             replay_mode=replay_mode,
@@ -490,7 +488,10 @@ class WorkoutWidget(QFrame):
 
         self.last_tick = time.perf_counter()
 
-        if not self.replay_mode:
+        if (
+            not self.replay_mode
+            or REPLAY_SPEED == 1.0
+        ):
             self.timer.start(int(WORKOUT_TIMER_MS))
 
         return True
@@ -573,9 +574,6 @@ class WorkoutWidget(QFrame):
     # ------------------------------------------------------------------
     def update_progress(self) -> None:
 
-        if not self.running:
-            return
-
         step = self.workout.steps[
             self.current_step
         ]
@@ -590,8 +588,9 @@ class WorkoutWidget(QFrame):
             )
         )
 
-        progress = (
-            (elapsed % cycle) / cycle
+        progress = fractional_progress(
+            elapsed,
+            cycle
         )
 
         self.metronome_bar.setValue(
@@ -621,7 +620,7 @@ class WorkoutWidget(QFrame):
 
         warning_color = (
             WARNING_TIME_COLOR
-            if self.step_remaining_time < WORKOUT_WARNING_TIME
+            if self.step_remaining_time <= WORKOUT_WARNING_TIME
             else TEXT_COLOR
         )
 
@@ -728,23 +727,48 @@ class WorkoutWidget(QFrame):
         if step_info is None:
             return
 
-        new_step, step_elapsed = step_info
+        # We need to keep the metronome visual continuity even
+        # when we change step (ie. we want the bar to keep
+        # progressing and avoid the bar jumping back to 0
+        # whatever value it had at that point, even when we
+        # change step).
 
+        new_step, step_elapsed = step_info
         step_changed = new_step != self.current_step
 
         if step_changed:
+            now = time.perf_counter()
+
+            if self.current_step >= 0:
+                previous_step = self.workout.steps[self.current_step]
+                previous_cycle = 60.0 / previous_step.spm
+                previous_elapsed = (
+                    self.metronome_anchor_elapsed
+                    + calc_deltatime(
+                        now,
+                        self.metronome_anchor_time,
+                    )
+                )
+                progress = fractional_progress(
+                    previous_elapsed,
+                    previous_cycle
+                )
+            else:
+                progress = 0.0
+
             self._select_step(new_step)
 
         step = self.workout.steps[new_step]
+
+        if step_changed:
+            new_cycle = 60.0 / step.spm
+            self.metronome_anchor_elapsed = progress * new_cycle
+            self.metronome_anchor_time = now
 
         self.step_elapsed = min(
             step.duration_seconds,
             step_elapsed,
         )
-
-        if step_changed:
-            self.metronome_anchor_elapsed = self.step_elapsed
-            self.metronome_anchor_time = time.perf_counter()
 
         self.step_remaining_time = clamp_to_zero(
             calc_deltatime(
@@ -798,7 +822,7 @@ class WorkoutWidget(QFrame):
     def _update_current_step_visuals(self) -> None:
 
         if (
-            self.current_step is None
+            self.current_step == -1
             or not self.workout.steps
             or not is_between(
                 self.current_step,

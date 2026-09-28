@@ -144,7 +144,7 @@ class ReplaySource(ABC):
 
         with zipfile.ZipFile(filename, "r") as archive:
 
-            # retreive all .csv from the archive (there should be one but only one)
+            # retrieve all .csv from the archive (there should be one but only one)
             ext = f".{LOGGER_FORMAT_CSV}"
             csv_names = [
                 name
