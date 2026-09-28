@@ -75,11 +75,6 @@ class WorkoutSplitCalculator:
 
         distance = clamp_to_zero(distance)
 
-        #OLD_TO_REVOVE
-        # step_index, _step_elapsed = (
-        #    self._find_step(workout_elapsed)
-        #)
-
         step_info = self.workout.find_step(
             workout_elapsed
         )
