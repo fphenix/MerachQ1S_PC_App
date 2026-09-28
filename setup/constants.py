@@ -1,6 +1,6 @@
 from pathlib import Path
 
-VERSION: str = "4.8c"
+VERSION: str = "4.9"
 
 GUI_REFRESH_MS   = 100 # milliseconds
 WORKOUT_TIMER_MS = 20 # milliseconds
@@ -177,10 +177,11 @@ DEFAULT_PROFILE_SEX: str = "M"
 # Workout
 # ----------------------------------------------------------------------
 
-DEFAULT_DELAY_SECONDS = 15
-MIN_DELAY_SECONDS = 0
-MAX_DELAY_SECONDS = 60
-DELAY_SECONDS_STEP = 5
+DEFAULT_DELAY_SECONDS: int = 15
+WORKOUT_WARNING_TIME: float = 10.0
+MIN_DELAY_SECONDS: int = 0
+MAX_DELAY_SECONDS: int = 60
+DELAY_SECONDS_STEP: int = 5
 
 WORKOUT_WIDTH  = 720 # pixels
 WORKOUT_HEIGHT = WINDOW_HEIGHT # pixels
@@ -203,6 +204,7 @@ BAR_BACKGROUND      = "#202020"
 MENU_SEL_BACKGROUND = "#505050"
 BAR_BORDER          = "#666666"
 BAR_COLOR           = "#00CC44"
+WARNING_TIME_COLOR  = "#FF4444"
 TEXT_COLOR          = "white"
 LISTTEXT_COLOR = TEXT_COLOR
 

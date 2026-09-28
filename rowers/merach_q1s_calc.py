@@ -400,7 +400,7 @@ class MerachQ1SCalc:
             self.stroke_times[-self.CADENCE_WINDOW],
         )
 
-        if delta_time <= 0:
+        if delta_time <= 0.0:
             return delta_strokes, 0.0, 0.0
 
         cadence_inst = self.q1s_calc_cadence_window(

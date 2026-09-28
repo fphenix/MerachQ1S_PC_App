@@ -729,10 +729,7 @@ class MainWindow(QMainWindow):
         # Workout actif
         #
 
-        workout_active = (
-            self.workoutWidget.running
-            or self.workoutWidget.started
-        )
+        workout_active = self.workoutWidget.running
 
         self.settings_action.setEnabled(
             not session_active
@@ -985,12 +982,10 @@ class MainWindow(QMainWindow):
         # Workout : temps piloté par le modèle
         #
 
-        if self.workoutWidget.replay_mode:
-            self.workoutWidget.update_model_time(
-                rowerdata.elapsed_time
-            )
-
-        elif self.workoutWidget.running:
+        if (
+            self.workoutWidget.replay_mode
+            or self.workoutWidget.running
+        ):
             self.workoutWidget.update_model_time(
                 rowerdata.elapsed_time
             )
@@ -1050,7 +1045,7 @@ class MainWindow(QMainWindow):
     def _edit_workout_dialog(self, workout= None) -> None:
 
         # Pas d'édition pendant une séance.
-        if self.workoutWidget.started:
+        if self.workoutWidget.running:
             QMessageBox.warning(
                 self,
                 get_text("WARNING"),
@@ -1295,10 +1290,7 @@ class MainWindow(QMainWindow):
                 rowerdata.elapsed_time > 0.0
             )
 
-        workout_active = (
-            self.workoutWidget.running
-            or self.workoutWidget.started
-        )
+        workout_active = self.workoutWidget.running
 
         return session_active or workout_active
 

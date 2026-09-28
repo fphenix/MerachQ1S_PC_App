@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from setup.utils import is_between
 from setup.lang import get_text
 from setup.constants import USE_REPLAY
 
@@ -70,7 +71,10 @@ class StatusWidget(QWidget):
     # -------------------------------------------------------------------------
     def _get_color(self, status) -> str:
         
-        if 0 <= status.value < len(self.STATUS_COLORS):
+        if is_between(
+            status.value, 0, len(self.STATUS_COLORS),
+            strict_min= False, strict_max= True
+        ):
             return self.STATUS_COLORS[status.value]
         
         return "#808080"
@@ -78,7 +82,10 @@ class StatusWidget(QWidget):
     # -------------------------------------------------------------------------
     def _get_text(self, status) -> str:
         
-        if 0 <= status.value < len(self.STATUS_COLORS):
+        if is_between(
+            status.value, 0, len(self.STATUS_COLORS),
+            strict_min= False, strict_max= True
+        ):
             return self.STATUS_TEXT[status.value]
         
         return "???"

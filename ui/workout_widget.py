@@ -21,11 +21,13 @@ from setup.utils import (
     format_duration,
     clamp_to_zero,
     clamp_between,
+    is_between,
 )
 from engine.calc import calc_deltatime
 from setup.settings import Settings
 from setup.constants import (
     WORKOUT_TIMER_MS,
+    WORKOUT_WARNING_TIME,
     BAR_HEIGHT,
     WORKOUT_LIST_FONT_SIZE,
     LIST_WIDTH,
@@ -36,6 +38,7 @@ from setup.constants import (
     BAR_BACKGROUND,
     BAR_COLOR,
     TEXT_COLOR, LISTTEXT_COLOR,
+    WARNING_TIME_COLOR,
     WORKOUT_TITLE_FONT_SIZE,
     BIG_FONT_SIZE,
     WORKOUT_INFO_FONT_SIZE,
@@ -66,23 +69,7 @@ class WorkoutWidget(QFrame):
 
         self.workout: Workout = Workout()
 
-        self.current_step: int = 0
-
-        self.countdown_active: bool = False
-        self.running: bool = False
-        self.replay_mode: bool = False
-
-        self.countdown_remaining: float = 0.0
-        self.total_remaining_time: float = 0.0
-        self.total_time: float = 0.0
-        self.step_remaining_time: float = 0.0
-
-        self.started: bool = False
-        self.workout_elapsed: float = 0.0
-
-        self.metronome_anchor_elapsed: float = 0.0
-        self.metronome_anchor_time: float = time.perf_counter()
-        self.last_tick: float = time.perf_counter()
+        self._reset_runtime_state()
 
         self._create_ui()
 
@@ -90,7 +77,6 @@ class WorkoutWidget(QFrame):
         self.timer.timeout.connect(
             self.update_timer
         )
-        self.model_start_elapsed: float | None = None
 
     # ------------------------------------------------------------------
     def reset(self) -> None:
@@ -99,24 +85,7 @@ class WorkoutWidget(QFrame):
 
         self.workout = Workout()
 
-        self.current_step = 0
-
-        self.countdown_active = False
-        self.running = False
-        self.replay_mode = False
-
-        self.countdown_remaining = 0.0
-        self.total_remaining_time = 0.0
-        self.total_time = 0.0
-        self.step_remaining_time = 0.0
-        self.step_elapsed = 0.0
-
-        self.started = False
-        self.workout_elapsed = 0.0
-
-        self.metronome_anchor_elapsed = 0.0
-        self.metronome_anchor_time = time.perf_counter()
-        self.last_tick = time.perf_counter()
+        self._reset_runtime_state()
 
         self.step_list.clear()
 
@@ -132,6 +101,39 @@ class WorkoutWidget(QFrame):
         self.intensity_label.setPalette(palette)
 
         self.info_label.clear()
+
+    # ------------------------------------------------------------------
+    def _reset_runtime_state(
+        self,
+        replay_mode: bool = False,
+    ) -> None:
+
+        self.current_step: int = -1 if replay_mode else 0
+
+        self.replay_mode: bool = replay_mode
+        self.countdown_active: bool = not replay_mode
+        self.running: bool = False
+
+        self.countdown_remaining: float = (
+            self.settings.delay_seconds
+            if not replay_mode
+            else 0.0
+        )
+
+        self.total_remaining_time: float = 0.0
+        self.total_time: float = 0.0
+        self.step_remaining_time: float = 0.0
+        self.step_elapsed: float = 0.0
+
+        self.workout_elapsed: float = 0.0
+        self.model_start_elapsed: float | None = None
+
+        self.metronome_anchor_elapsed: float = 0.0
+        self.metronome_anchor_time: float = (
+            time.perf_counter()
+        )
+
+        self.last_tick: float = time.perf_counter()
 
     # ------------------------------------------------------------------
     def _default_label_text(self) -> None:
@@ -450,31 +452,16 @@ class WorkoutWidget(QFrame):
 
         self.replay_mode = replay_mode
 
-        self.current_step = -1 if replay_mode else 0
-
-        self.countdown_active = not replay_mode
-
-        self.running = False
-        self.started = False
-
-        self.workout_elapsed = 0.0
-
-        self.countdown_remaining = (
-            self.settings.delay_seconds
-            if not replay_mode
-            else 0.0
+        self._reset_runtime_state(
+            replay_mode=replay_mode,
         )
 
         self.total_time = workout.total_seconds
         self.total_remaining_time = self.total_time
 
-        self.step_remaining_time = 0.0
-        self.step_elapsed = 0.0
-
         self.metronome_bar.setValue(0)
 
         self.title_label.setText(workout.title)
-
         self.field_label.setText(workout.field)
 
         self.state_label.setText(
@@ -537,7 +524,9 @@ class WorkoutWidget(QFrame):
 
                 self.state_label.setText(
                     f"{get_text("WORKOUT_STARTS_IN")}"
+                    f"<span style='color: {WARNING_TIME_COLOR};'>"
                     f" {format_time(self.countdown_remaining)}"
+                    f"</span>"
                 )
 
             return
@@ -570,7 +559,6 @@ class WorkoutWidget(QFrame):
         )
 
         self.running = True
-        self.started = True
 
         self.metronome_bar.setValue(0)
         self.metronome_anchor_elapsed = 0.0
@@ -631,12 +619,20 @@ class WorkoutWidget(QFrame):
             )
         )
 
+        warning_color = (
+            WARNING_TIME_COLOR
+            if self.step_remaining_time < WORKOUT_WARNING_TIME
+            else TEXT_COLOR
+        )
+
         self.exercise_label.setText(
             f"{get_text("WORKOUT")} "
             f"{self.current_step + 1}/"
             f"{len(self.workout.steps)}  -  "
             f"{get_text("TIME")} : "
+            f"<span style='color: {warning_color};'>"
             f"{format_time(self.step_remaining_time)}"
+            f"</span>"
         )
 
         self.rate_label.setText(
@@ -673,7 +669,6 @@ class WorkoutWidget(QFrame):
     def finish_workout(self) -> None:
 
         self.running = False
-        self.started = False
         self.timer.stop()
 
         self.metronome_bar.setValue(
@@ -684,6 +679,13 @@ class WorkoutWidget(QFrame):
 
         self.state_label.setText(
             f"{get_text("WORKOUT_COMPLETE")} !"
+        )
+
+        self.total_label.setText(
+            f"{get_text("TOTAL_TIME")} : "
+            + format_time(
+                self.total_time
+            )
         )
 
         self.exercise_label.clear()
@@ -728,13 +730,6 @@ class WorkoutWidget(QFrame):
 
         new_step, step_elapsed = step_info
 
-        if new_step != self.current_step:
-            self._select_step(new_step)
-
-        step = self.workout.steps[new_step]
-
-        new_step, step_elapsed = step_info
-
         step_changed = new_step != self.current_step
 
         if step_changed:
@@ -766,7 +761,6 @@ class WorkoutWidget(QFrame):
         )
 
         self.running = True
-        self.started = True
 
         self.update_labels()
 
@@ -806,9 +800,11 @@ class WorkoutWidget(QFrame):
         if (
             self.current_step is None
             or not self.workout.steps
-            or not (
-                0 <= self.current_step
-                < len(self.workout.steps)
+            or not is_between(
+                self.current_step,
+                minimum= 0,
+                maximum= len(self.workout.steps),
+                strict_min= False, strict_max= True
             )
         ):
             return

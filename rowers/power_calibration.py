@@ -21,59 +21,7 @@ class WorkoutPowerCalibration:
     # de 90-120W!). On va le calibrer grâce à cette valeur:
     POWER_SCALE:float = 3.6
 
-    # -----------------------------------------------------------------------------
-    # Evidence-backed reference points used by the first version of the model.
-    #
-    # Jensen/World Rowing reports mean power ratios relative to 2k power for elite
-    # rowers: ~76% (60 min), ~85% (6k), 100% (2k), ~153% (60 s), ~173% (10 s).
-    # These are deliberately kept here, in one place, so the model can be tuned
-    # without touching the Q1S calculator.
-    '''
-    DURATION_POWER_RATIOS = (
-        (10.0, 1.73),
-        (60.0, 1.53),
-        (120.0, 1.30),
-        (300.0, 1.10),
-        (600.0, 1.00),
-        (3600.0, 0.76),
-    )
-
-    DURATION_INTENSITY_EXPONENTS = {
-        "R": 0.0,
-        "E": 0.0,
-        "N": 0.0,
-        "F": 0.5,
-        "M": 1.0,
-    }
-    '''
-
-    # -----------------------------------------------------------------------------
-    # Points issus de la relation observée dans Seiler et al. pour le paramètre age.
-    # Le modèle reste continu entre les points.
-    AGE_RATIOS = (
-        (24.0, 1.000),
-        (50.0, 0.923),
-        (74.0, 0.776),
-    )
-
-    # -----------------------------------------------------------------------------
-    # Workout intensity is interpreted as the intended effort relative to the
-    # duration-based reference power.  R/E are recovery/easy work, N is the
-    # reference effort, F is hard work and M is maximal/very hard work.
-    # These are deliberately modest multipliers: the duration model supplies the
-    # physiological scale, while the workout intensity moves around it.
-    INTENSITY_FACTORS = {
-        "R": 0.30,
-        "E": 0.50,
-        "N": 1.00, # ref
-        "F": 1.50,
-        "M": 1.70,
-    }
-
     MAX_RECALIBRATION_FACTOR = 2.00
-
-    REFERENCE_SPM = 24.0
-    SPM_FACTOR_EXPONENT = 0.30
 
     # ------------------------------------------------------------------
     def __init__(self, machine_scale: float = POWER_SCALE) -> None:
@@ -183,6 +131,32 @@ class WorkoutPowerCalibration:
             power=power,
         )
 
+    # -----------------------------------------------------------------------------
+    # Evidence-backed reference points used by the first version of the model.
+    #
+    # Jensen/World Rowing reports mean power ratios relative to 2k power for elite
+    # rowers: ~76% (60 min), ~85% (6k), 100% (2k), ~153% (60 s), ~173% (10 s).
+    # These are deliberately kept here, in one place, so the model can be tuned
+    # without touching the Q1S calculator.
+    '''
+    DURATION_POWER_RATIOS = (
+        (10.0, 1.73),
+        (60.0, 1.53),
+        (120.0, 1.30),
+        (300.0, 1.10),
+        (600.0, 1.00),
+        (3600.0, 0.76),
+    )
+
+    DURATION_INTENSITY_EXPONENTS = {
+        "R": 0.0,
+        "E": 0.0,
+        "N": 0.0,
+        "F": 0.5,
+        "M": 1.0,
+    }
+    '''
+
     # ------------------------------------------------------------------
     @staticmethod
     def duration_factor(
@@ -254,6 +228,20 @@ class WorkoutPowerCalibration:
         return points[-1][1]
     '''
 
+    # -----------------------------------------------------------------------------
+    # Workout intensity is interpreted as the intended effort relative to the
+    # duration-based reference power.  R/E are recovery/easy work, N is the
+    # reference effort, F is hard work and M is maximal/very hard work.
+    # These are deliberately modest multipliers: the duration model supplies the
+    # physiological scale, while the workout intensity moves around it.
+    INTENSITY_FACTORS = {
+        "R": 0.30,
+        "E": 0.50,
+        "N": 1.00, # ref
+        "F": 1.50,
+        "M": 1.60,
+    }
+
     # ------------------------------------------------------------------
     @staticmethod
     def workout_factor(context: PowerCalibrationContext) -> float:
@@ -276,6 +264,10 @@ class WorkoutPowerCalibration:
             intensity,
             1.0,
         )
+
+    # ------------------------------------------------------------------
+    REFERENCE_SPM = 24.0
+    SPM_FACTOR_EXPONENT = 0.30
 
     # ------------------------------------------------------------------
     @staticmethod
@@ -352,17 +344,16 @@ class WorkoutPowerCalibration:
     # athletes with similar fat-free mass / aerobic capacity.
     # ------------------------------------------------------------------
 
+    # -----------------------------------------------------------------------------
+    # Points issus de la relation observée dans Seiler et al. pour le paramètre age.
+    # Le modèle reste continu entre les points.
+    AGE_RATIOS = (
+        (24.0, 1.000),
+        (50.0, 0.923),
+        (74.0, 0.776),
+    )
+
     PROFILE_REFERENCE_AGE = 40.0
-    PROFILE_REFERENCE_HEIGHT = 180.0
-    PROFILE_REFERENCE_WEIGHT = 75.0
-
-    HEIGHT_EXPONENT = 0.35
-    WEIGHT_EXPONENT = 0.23
-
-    FEMALE_FACTOR = 0.90
-
-    PROFILE_FACTOR_MIN = 0.55
-    PROFILE_FACTOR_MAX = 1.30
 
     # ------------------------------------------------------------------
     # OLDDER CALCULATION WAS:
@@ -390,6 +381,10 @@ class WorkoutPowerCalibration:
         return WorkoutPowerCalibration.AGE_RATIOS[-1][1]
 
     # ------------------------------------------------------------------
+    PROFILE_REFERENCE_HEIGHT = 180.0
+    HEIGHT_EXPONENT = 0.35
+
+    # ------------------------------------------------------------------
     # Coefficient volontairement conservateur dans cette V1 :
     # les études démontrent l'association taille/performance,
     # mais ne fournissent pas une loi adulte universelle
@@ -409,6 +404,10 @@ class WorkoutPowerCalibration:
         return (height / reference) ** exponent
 
     # ------------------------------------------------------------------
+    PROFILE_REFERENCE_WEIGHT = 75.0
+    WEIGHT_EXPONENT = 0.23
+
+    # ------------------------------------------------------------------
     # Body-mass scaling: rowing-ergometer performance has been modelled
     # with a mass exponent around 0.23. Keep it normalized to 75 kg.
     @staticmethod
@@ -426,6 +425,9 @@ class WorkoutPowerCalibration:
         return (weight / reference) ** exponent
 
     # ------------------------------------------------------------------
+    FEMALE_FACTOR = 0.90
+
+    # ------------------------------------------------------------------
     # OLD CALCULATION WAS:    
     #    # Sex: the 2003 rowing study found roughly a 9-10% slower 2k time for
     #    # women at similar height/mass. Convert speed ratio to power ratio:
@@ -437,6 +439,10 @@ class WorkoutPowerCalibration:
     def sex_factor(is_male: bool) -> float:
 
         return 1.00 if is_male else WorkoutPowerCalibration.FEMALE_FACTOR
+
+    # ------------------------------------------------------------------
+    PROFILE_FACTOR_MIN = 0.55
+    PROFILE_FACTOR_MAX = 1.30
 
     # ------------------------------------------------------------------
     @staticmethod

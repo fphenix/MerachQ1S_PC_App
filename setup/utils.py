@@ -172,13 +172,20 @@ def load_workout(filename) -> Workout:
                     get_text("WO_FILE_EXP_DATA_TYPE")
                 )
 
-            if duration_seconds <= 0.0 or duration_seconds > 7200.0:
+            if not is_between(
+                duration_seconds, 0.0, 7200.0,
+                strict_min=True,
+                strict_max=False
+            ):
                 raise ValueError(
                     f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
                     get_text("WO_FILE_EXP_DURATION")
                 )
 
-            if spm <= 0 or spm > 50:
+            if not is_between(
+                spm, 0, 50,
+                strict_min=True, strict_max=False
+            ):
                 raise ValueError(
                     f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
                     get_text("WO_FILE_EXP_SPM")
@@ -257,7 +264,7 @@ def format_pace(seconds: float) -> str:
         89.9  -> 1:30
     """
 
-    if seconds <= 0:
+    if seconds < 0.0:
         return "--:--"
 
     total = int(round(seconds))
@@ -277,7 +284,7 @@ def format_time(seconds: float) -> str:
         89.9  -> 0:01:30
     """
     
-    if seconds <= 0:
+    if seconds <= 0.0:
         return "--:--:--"
     
     total = int(round(seconds))
@@ -354,3 +361,28 @@ def clamp_step(
     return round(
         value / step
     ) * step
+
+# -----------------------------------------------------------------------------
+# Returns a boolean answering the question:
+# "Is 'value' between 'minimum' and 'maximum' ?"
+# By default the lower and upper bounds are not strict
+# (i.e value may be equal to minimum or to maximum).
+# However the strict_min and strict_max boolean
+# can be used to change the behavior at the boundaries.
+def is_between(
+    value: int|float,
+    minimum: int|float,
+    maximum: int|float,
+    strict_min: bool = False,
+    strict_max: bool = False
+) -> bool:
+    
+    return (
+            (strict_min and (minimum < value))
+            or 
+            (not strict_min and (minimum <= value))
+        ) and (
+            (strict_max and (value < maximum))
+            or
+            (not strict_max and (value <= maximum))
+    )
