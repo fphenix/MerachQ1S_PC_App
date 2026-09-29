@@ -1,4 +1,3 @@
-from matplotlib import pyplot
 from matplotlib.backends.backend_qtagg import (
     FigureCanvasQTAgg as FigureCanvas,
 )

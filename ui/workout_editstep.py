@@ -38,7 +38,7 @@ class WorkoutStepEditor(QWidget):
     COMMENT_WIDTH = 220
     BUTTON_WIDTH = 28
 
-    duration_changed = Signal()
+    sig_duration_changed = Signal()
 
     # -------------------------------------------------------------------------
     def __init__(self, parent=None) -> None:
@@ -47,22 +47,23 @@ class WorkoutStepEditor(QWidget):
 
         self._create_ui()
 
-        self.set_connexions()
+        self._set_connexions()
 
-        self.update_duration_range()
+        self._update_duration_range()
 
     # -------------------------------------------------------------------------
-    def set_connexions(self):
+    def _set_connexions(self) -> None:
+        
         self.duration_value.valueChanged.connect(
-            lambda value: self.duration_changed.emit()
+            lambda value: self.sig_duration_changed.emit()
         )
 
         self.duration_unit.currentTextChanged.connect(
-            self.update_duration_range
+            self._update_duration_range
         )
 
         self.duration_unit.currentTextChanged.connect(
-            lambda text: self.duration_changed.emit()
+            lambda text: self.sig_duration_changed.emit()
         )
 
     # -------------------------------------------------------------------------
@@ -292,7 +293,7 @@ class WorkoutStepEditor(QWidget):
         )
 
     # -------------------------------------------------------------------------
-    def update_duration_range(self, unit: str | None = None) -> None:
+    def _update_duration_range(self, unit: str | None = None) -> None:
         
         if unit is None:
             unit = self.duration_unit.currentText()
@@ -302,7 +303,7 @@ class WorkoutStepEditor(QWidget):
         self.duration_value.setSingleStep(step)
 
     # -------------------------------------------------------------------------
-    def set_duration_seconds(self, duration_seconds: float) -> None:
+    def _set_duration_seconds(self, duration_seconds: float) -> None:
         """Set the duration using the most natural unit."""
 
         if duration_seconds % 3600 == 0:
@@ -316,7 +317,7 @@ class WorkoutStepEditor(QWidget):
             value = duration_seconds
 
         self.duration_unit.setCurrentText(unit)
-        self.update_duration_range(unit)
+        self._update_duration_range(unit)
         self.duration_value.setValue(value)
 
     # -------------------------------------------------------------------------
@@ -337,7 +338,7 @@ class WorkoutStepEditor(QWidget):
         comment: str | None = None,
     ) -> None:
 
-        self.set_duration_seconds(duration_seconds)
+        self._set_duration_seconds(duration_seconds)
 
         self.cpm_box.setValue(spm)
 

@@ -73,7 +73,9 @@ class SplitListWidget(QFrame):
         # QTimer
         self._scroll_timer = QTimer(self)
         self._scroll_timer.setSingleShot(True)
-        self._scroll_timer.timeout.connect(self._scroll_to_target)
+        self._scroll_timer.timeout.connect(
+            self._callback_scroll_to_target
+        )
 
         self._create_ui()
 
@@ -145,11 +147,11 @@ class SplitListWidget(QFrame):
         scrollbar = self.scroll.horizontalScrollBar()
 
         scrollbar.sliderPressed.connect(
-            self._stop_following
+            self._callback_stop_following
         )
 
         scrollbar.sliderReleased.connect(
-            self._check_following
+            self._callback_check_following
         )
 
         # ---------------------------------------------------------------------
@@ -164,7 +166,7 @@ class SplitListWidget(QFrame):
         layout.addWidget(self.scroll, 1)
 
     # ----------------------------------------------------------------------
-    def _stop_following(self) -> None:
+    def _callback_stop_following(self) -> None:
         """
         L'utilisateur commence à manipuler la scrollbar.
 
@@ -174,7 +176,7 @@ class SplitListWidget(QFrame):
         self._follow_tail = False
 
     # ----------------------------------------------------------------------
-    def _check_following(self) -> None:
+    def _callback_check_following(self) -> None:
         """
         Si l'utilisateur relâche la scrollbar tout à droite,
         on considère qu'il souhaite reprendre le suivi automatique.
@@ -186,7 +188,7 @@ class SplitListWidget(QFrame):
             self._follow_tail = True
 
     # ----------------------------------------------------------------------
-    def _scroll_to_target(self) -> None:
+    def _callback_scroll_to_target(self) -> None:
         """Positionne la vue sur le dernier split."""
 
         if not self._follow_tail:

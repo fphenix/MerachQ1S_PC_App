@@ -32,6 +32,8 @@ class WorkoutPowerCalibration:
         self.machine_scale: float = machine_scale
 
     # ------------------------------------------------------------------
+    # Ancienne interface qui ne sort que power
+    # calibrate_details est utilisée à la place pour logger tous les facteurs.
     def calibrate(
         self,
         raw_power: float,
@@ -67,7 +69,7 @@ class WorkoutPowerCalibration:
         # Suppression de l'effet SPM artificiel du Q1S
         if context.spm_correction_enabled:
 
-            rawpower = self.remove_q1s_spm_effect(
+            rawpower = self._remove_q1s_spm_effect(
                 raw_power=rawpower,
                 spm=context.spm,
             )
@@ -83,24 +85,24 @@ class WorkoutPowerCalibration:
         # If selected (settings), calibrate the power based on the Profile info.
         if context.profile_enabled:
             
-            factor_profile = self.profile_factor(context)
-            factor_level = self.level_factor(context.level_norm)
+            factor_profile = self._profile_factor(context)
+            factor_level = self._level_factor(context.level_norm)
 
         # Correction based on Cadence
         if context.spm_correction_enabled:
 
-            factor_spm = self.spm_factor(context.spm)
+            factor_spm = self._spm_factor(context.spm)
 
         # If selected (settings), calibrate the power based on the Workout phases.
         if (
             context.workout_enabled
             and context.intensity is not None
         ):
-            factor_workout = self.workout_factor(context)
+            factor_workout = self._workout_factor(context)
 
             if context.duration_correction_enabled:
 
-               factor_duration = self.duration_factor(
+               factor_duration = self._duration_factor(
                     context.duration_seconds,
                     context.intensity,
                 )
@@ -160,7 +162,7 @@ class WorkoutPowerCalibration:
 
     # ------------------------------------------------------------------
     @staticmethod
-    def duration_factor(
+    def _duration_factor(
         duration_seconds: float,
         intensity: str | None,
     ) -> float:
@@ -245,7 +247,7 @@ class WorkoutPowerCalibration:
 
     # ------------------------------------------------------------------
     @staticmethod
-    def workout_factor(context: PowerCalibrationContext) -> float:
+    def _workout_factor(context: PowerCalibrationContext) -> float:
         """
         Facteur de calibration lié à l'intensité demandée
         par l'étape courante du workout.
@@ -272,7 +274,7 @@ class WorkoutPowerCalibration:
 
     # ------------------------------------------------------------------
     @staticmethod
-    def remove_q1s_spm_effect(
+    def _remove_q1s_spm_effect(
         raw_power: float,
         spm: float,
     ) -> float:
@@ -300,7 +302,7 @@ class WorkoutPowerCalibration:
 
     # ------------------------------------------------------------------
     @staticmethod
-    def spm_factor(spm: float) -> float:
+    def _spm_factor(spm: float) -> float:
         """
         Correction physiologique liée à la cadence.
 
@@ -357,7 +359,7 @@ class WorkoutPowerCalibration:
     PROFILE_REFERENCE_AGE = 40.0
 
     # ------------------------------------------------------------------
-    # OLDER CALCULATION WAS:
+    # OLD CALCULATION WAS:
     #    # Age: Seiler et al. reported approximately 3% power loss per decade
     #    # from 24-50 and ~7% per decade from 50-74 in indoor-rowing data.
     #    age = max(18.0, float(context.age))
@@ -368,7 +370,7 @@ class WorkoutPowerCalibration:
     #            factor *= pow(0.97, 2.6) * pow(0.93, (age - 50.0) / 10.0)
     # NEW CALCULATION IS:
     @staticmethod
-    def age_factor(age: float) -> float:
+    def _age_factor(age: float) -> float:
 
         age = clamp_between(float(age), 24.0, 90.0)
 
@@ -391,7 +393,7 @@ class WorkoutPowerCalibration:
     # mais ne fournissent pas une loi adulte universelle
     # "watts = f(taille)" utilisable telle quelle. Référence = 180 cm.
     @staticmethod
-    def height_factor(height_cm: float) -> float:
+    def _height_factor(height_cm: float) -> float:
 
         height = clamp_between(
             float(height_cm),
@@ -412,7 +414,7 @@ class WorkoutPowerCalibration:
     # Body-mass scaling: rowing-ergometer performance has been modelled
     # with a mass exponent around 0.23. Keep it normalized to 75 kg.
     @staticmethod
-    def weight_factor(weight_kg: float) -> float:
+    def _weight_factor(weight_kg: float) -> float:
 
         weight = clamp_between(
             float(weight_kg),
@@ -437,7 +439,7 @@ class WorkoutPowerCalibration:
     #        factor *= 0.73
     # NEW CALCULATION IS:
     @staticmethod
-    def sex_factor(is_male: bool) -> float:
+    def _sex_factor(is_male: bool) -> float:
 
         return 1.00 if is_male else WorkoutPowerCalibration.FEMALE_FACTOR
 
@@ -447,7 +449,7 @@ class WorkoutPowerCalibration:
 
     # ------------------------------------------------------------------
     @staticmethod
-    def profile_factor(context: PowerCalibrationContext) -> float:
+    def _profile_factor(context: PowerCalibrationContext) -> float:
         """
         Physical potential associated with the user profile.
 
@@ -457,28 +459,28 @@ class WorkoutPowerCalibration:
         Training level is deliberately NOT included here.
         """
 
-        factor_age = WorkoutPowerCalibration.age_factor(
+        factor_age = WorkoutPowerCalibration._age_factor(
             float(context.age)
         )
-        age_reference = WorkoutPowerCalibration.age_factor(
+        age_reference = WorkoutPowerCalibration._age_factor(
             WorkoutPowerCalibration.PROFILE_REFERENCE_AGE
         )
 
-        factor_height = WorkoutPowerCalibration.height_factor(
+        factor_height = WorkoutPowerCalibration._height_factor(
             float(context.height_cm)
         )
-        height_reference = WorkoutPowerCalibration.height_factor(
+        height_reference = WorkoutPowerCalibration._height_factor(
             WorkoutPowerCalibration.PROFILE_REFERENCE_HEIGHT
         )
 
-        factor_weight = WorkoutPowerCalibration.weight_factor(
+        factor_weight = WorkoutPowerCalibration._weight_factor(
             float(context.weight_kg)
         )
-        weight_reference = WorkoutPowerCalibration.weight_factor(
+        weight_reference = WorkoutPowerCalibration._weight_factor(
             WorkoutPowerCalibration.PROFILE_REFERENCE_WEIGHT
         )
 
-        factor_sex = WorkoutPowerCalibration.sex_factor(
+        factor_sex = WorkoutPowerCalibration._sex_factor(
             is_male= (context.sex.upper() == "M")
         )
  
@@ -518,7 +520,7 @@ class WorkoutPowerCalibration:
 
     # ------------------------------------------------------------------
     @staticmethod
-    def sigmoid(value: float) -> float:
+    def _sigmoid(value: float) -> float:
 
         sigmoid_low = WorkoutPowerCalibration.LEVEL_SIGMOID_LOW
         sigmoid_high = WorkoutPowerCalibration.LEVEL_SIGMOID_HIGH
@@ -545,14 +547,14 @@ class WorkoutPowerCalibration:
     # not universal wattage classes. A fixed multiplier here would be an
     # arbitrary assumption.
     @staticmethod
-    def level_factor(level: float) -> float:
+    def _level_factor(level: float) -> float:
 
         level = clamp_between(float(level), 0.0, 1.0)
 
         # The application's reference level is 0.33.
         # Normalize it to exactly 1.0.
-        reference = WorkoutPowerCalibration.sigmoid(
+        reference = WorkoutPowerCalibration._sigmoid(
             DEFAULT_PROFILE_NORM_LEVEL
         )
 
-        return WorkoutPowerCalibration.sigmoid(level) / reference
+        return WorkoutPowerCalibration._sigmoid(level) / reference

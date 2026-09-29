@@ -83,7 +83,7 @@ class ReplaySource(ABC):
         self.start()
 
     # ------------------------------------------------------------------
-    def iter_rows(self) -> Iterator[dict[str, str]]:
+    def _iter_rows(self) -> Iterator[dict[str, str]]:
         """
         Retourne les lignes du replay sous forme de dictionnaires.
 
@@ -111,7 +111,7 @@ class ReplaySource(ABC):
 
     # ------------------------------------------------------------------
     @staticmethod
-    def csv_skip_row(csvfile, skipnb: int = 1) -> None:
+    def _csv_skip_row(csvfile, skipnb: int = 1) -> None:
 
         _skipnb = clamp_to_zero(skipnb)
 
@@ -132,7 +132,7 @@ class ReplaySource(ABC):
             
             # Les 2 premières lignes du fichier ne font pas partie
             # des données CSV. La ligne 3 contient le header.
-            ReplaySource.csv_skip_row(csvfile, skipnb= 2)
+            ReplaySource._csv_skip_row(csvfile, skipnb= 2)
 
             yield from csv.DictReader(csvfile)
 
@@ -173,7 +173,7 @@ class ReplaySource(ABC):
 
                 try:
                     # Les 2 premières lignes sont des métadonnées et peuvent être passées.
-                    ReplaySource.csv_skip_row(text_file, skipnb= 2)
+                    ReplaySource._csv_skip_row(text_file, skipnb= 2)
 
                     yield from csv.DictReader(text_file)
                 finally:

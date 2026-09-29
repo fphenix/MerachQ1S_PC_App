@@ -66,7 +66,7 @@ class MerachRower(RowerClient):
         
         self.reset()
 
-        self.map_raw()
+        self._map_raw()
 
     # -------------------------------------------------------------------------
     # Le mapping traduit les noms de champs FTMS vers les
@@ -75,7 +75,7 @@ class MerachRower(RowerClient):
     # être utilisées telles quelles.
     # Les champs indiqués par un "(*)" sont ceux qui sont
     # utilisés pour recalculer toutes les autres métriques.
-    def map_raw(self):
+    def _map_raw(self) -> None:
         
         self.raw_mapping = {
             "time_elapsed": "raw_elapsed_time",             # (*) temps de la session

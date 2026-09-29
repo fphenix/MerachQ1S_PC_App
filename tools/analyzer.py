@@ -1,10 +1,12 @@
 from typing import Any
+import csv
 from io import BytesIO
 from pathlib import Path
 import zipfile
 
 import pandas as pd
 
+from matplotlib.axes._axes import Axes
 from matplotlib.backends.backend_qtagg import (
     FigureCanvasQTAgg as FigureCanvas,
 )
@@ -34,6 +36,7 @@ from setup.constants import (
     LOGGER_FORMAT_CSV,
     LOGGER_FORMAT_ZIP,
     ANALYZER_SHOW_CHECKBUTTONS,
+    FILE_ENCODING_BOM,
 )
 
 from engine.calc import calc_stats
@@ -51,28 +54,31 @@ class AnalyzerWindow(QMainWindow):
 
         self.filename: Path = Path(filename)
 
-        self.df = self.load_log(
+        self.workout_filename: str | None = None
+
+        self.df: pd.DataFrame = self._load_log(
             self.filename
         )
 
-        self.expanded_plot = None
+        self.expanded_plot: int | None = None
 
         self.ax: list = []
-        self.line_split_calc = None
-        self.line_split_avg = None
-        self.line_raw_split = None
-        self.line_raw_split_avg = None
-        self.rax = None
-        self.checkbtn = None
+        self.line_split_calc: list | None = None
+        self.line_split_avg: list | None = None
+        self.line_raw_split: list | None = None
+        self.line_raw_split_avg: list | None = None
+
+        self.rax: Axes | None = None
+        self.checkbtn: CheckButtons | None = None
 
         self._create_ui()
 
-        self.plots = self.create_plot_definitions()
+        self.plots: list = self._create_plot_definitions()
 
-        self.draw_all_plots()
+        self._draw_all_plots()
 
         self.stats_widget.setPlainText(
-            self.build_stats_text()
+            self._build_stats_text()
         )
 
     # -------------------------------------------------------------------------
@@ -140,11 +146,11 @@ class AnalyzerWindow(QMainWindow):
 
         self.canvas.mpl_connect(
             "button_press_event",
-            self.plot_click,
+            self._callback_plot_click,
         )
 
     # -------------------------------------------------------------------------
-    def load_log(
+    def _load_log(
         self,
         filename: str | Path,
     ) -> pd.DataFrame:
@@ -158,14 +164,14 @@ class AnalyzerWindow(QMainWindow):
 
         suffix = path.suffix.lower()[1:]
 
+        csv_ret_data = None
+        csv_data = None
+
         if suffix == LOGGER_FORMAT_CSV:
 
-            return pd.read_csv(
-                path,
-                skiprows=2,
-            )
+            csv_data = path.read_bytes()
 
-        if suffix == LOGGER_FORMAT_ZIP:
+        elif suffix == LOGGER_FORMAT_ZIP:
 
             with zipfile.ZipFile(
                 path,
@@ -187,23 +193,42 @@ class AnalyzerWindow(QMainWindow):
                         f"{path.name} {get_text("ERR_ZIP_ONLY_1_FILE")}"
                     )
 
-                csv_data = archive.read(
-                    csv_files[0]
-                )
+                csv_data = archive.read(csv_files[0])
 
-            return pd.read_csv(
+        if csv_data is not None:
+
+            # La 2e ligne du csv Log contient par exemple :
+            # Workout,"None Loaded" ou Workout,"workouts/filename.wo"
+            lines = csv_data.decode(FILE_ENCODING_BOM).splitlines()
+
+            self.workout_filename = None
+
+            if len(lines) >= 2:
+
+                row = next(csv.reader([lines[1]]), [])
+
+                if len(row) >= 2 and row[0] == "Workout":
+                    workout_value = row[1]
+
+                    if workout_value != "None Loaded":
+                        self.workout_filename = Path(workout_value).name
+
+            csv_ret_data = pd.read_csv(
                 BytesIO(csv_data),
                 skiprows=2,
             )
+
+        if csv_ret_data is not None:
+            return csv_ret_data
 
         raise ValueError(
             f"{get_text("ERR_WRONG_LOG_FORMAT")} : {suffix}"
         )
 
     # -------------------------------------------------------------------------
-    def create_plot_definitions(self) -> list[dict[str, Any]]:
+    def _create_plot_definitions(self) -> list[dict[str, Any]]:
 
-        t = self.df["Elapsed"]
+        t = self.df["Elapsed"] / 60.0 # convert in minutes
 
         return [
             {
@@ -295,7 +320,7 @@ class AnalyzerWindow(QMainWindow):
         self.canvas.draw_idle()
 
     # -------------------------------------------------------------------------
-    def create_checkbuttons(self) -> None:
+    def _create_checkbuttons(self) -> None:
 
         if not ANALYZER_SHOW_CHECKBUTTONS:
             self.rax = None
@@ -338,7 +363,7 @@ class AnalyzerWindow(QMainWindow):
             self.checkbtn = None
 
     # -------------------------------------------------------------------------
-    def draw_plot(self, plot, axis) -> list:
+    def _draw_plot(self, plot, axis) -> list:
 
         lines: list = []
 
@@ -347,6 +372,10 @@ class AnalyzerWindow(QMainWindow):
         y = plot["y"]
 
         for j in range(len(title)):
+
+            if y[j] not in self.df.columns:
+                print(f"{get_text("WARN_ANALYZER_COL_NOT_FOUND")}: {y[j]}")
+                continue
 
             linestyle = (
                 plot["linestyle"][j]
@@ -378,7 +407,7 @@ class AnalyzerWindow(QMainWindow):
         return lines
     
     # -------------------------------------------------------------------------
-    def draw_all_plots(self) -> None:
+    def _draw_all_plots(self) -> None:
 
         self.figure.clear()
 
@@ -399,6 +428,7 @@ class AnalyzerWindow(QMainWindow):
         self.line_split_avg = None
         self.line_raw_split = None
         self.line_raw_split_avg = None
+
         self.rax = None
         self.checkbtn = None
 
@@ -406,7 +436,7 @@ class AnalyzerWindow(QMainWindow):
 
             plot_id = plot["id"]
 
-            lines = self.draw_plot(
+            lines = self._draw_plot(
                 plot,
                 self.ax[plot_id],
             )
@@ -425,7 +455,7 @@ class AnalyzerWindow(QMainWindow):
                 elif field_name == "Raw_Split_Avg":
                     self.line_raw_split_avg = line
 
-        self.create_checkbuttons()
+        self._create_checkbuttons()
 
         self.figure.subplots_adjust(
             left=0.08,
@@ -442,7 +472,7 @@ class AnalyzerWindow(QMainWindow):
         self.canvas.draw_idle()
 
     # -------------------------------------------------------------------------
-    def draw_single_plot(self, plot_id) -> None:
+    def _draw_single_plot(self, plot_id) -> None:
 
         self.figure.clear()
 
@@ -460,7 +490,7 @@ class AnalyzerWindow(QMainWindow):
 
         plot = self.plots[plot_id]
 
-        lines = self.draw_plot(
+        lines = self._draw_plot(
             plot,
             self.ax[0],
         )
@@ -489,7 +519,7 @@ class AnalyzerWindow(QMainWindow):
         self.canvas.draw_idle()
 
     # -------------------------------------------------------------------------
-    def plot_click(self, event) -> None:
+    def _callback_plot_click(self, event) -> None:
 
         if event.inaxes is None:
             return
@@ -497,7 +527,7 @@ class AnalyzerWindow(QMainWindow):
         if self.expanded_plot is not None:
 
             self.expanded_plot = None
-            self.draw_all_plots()
+            self._draw_all_plots()
             return
 
         for plot in self.plots:
@@ -507,17 +537,26 @@ class AnalyzerWindow(QMainWindow):
             if event.inaxes is self.ax[plot_id]:
 
                 self.expanded_plot = plot_id
-                self.draw_single_plot(plot_id)
+                self._draw_single_plot(plot_id)
 
                 return
             
     # -------------------------------------------------------------------------
-    def build_stats_text(self) -> str:
+    def _build_stats_text(self) -> str:
 
         df = self.df
 
         lines = [
             "========== SESSION ==========",
+        ]
+
+        if self.workout_filename is not None:
+            lines.extend([
+                f"Workout : {self.workout_filename}",
+                "",
+            ])
+
+        lines.extend([
             f"{get_text("STATS_DURATION")} : {format_time(df['Elapsed'].iloc[-1])}",
             f"{get_text("STATS_DISTANCE")} : {df['Distance'].iloc[-1]:.1f} m",
             f"{get_text("STATS_STROKES")} : {int(df['Stroke_Count'].iloc[-1])}",
@@ -528,7 +567,7 @@ class AnalyzerWindow(QMainWindow):
             f"{get_text("STATS_AVG_CADENCE")} : {df['Cadence_Avg'].iloc[-1]:.1f} spm",
             "=============================",
             "",
-        ]
+        ])
 
         power_stats = calc_stats(
             df["Power_Recalibrated"].tolist(),

@@ -1,6 +1,7 @@
 from pathlib import Path
 
-VERSION: str = "4.10b"
+VERSION: str = "4.11"
+COPYRIGHT_YEAR = "2026"
 
 GUI_REFRESH_MS   = 100 # milliseconds
 WORKOUT_TIMER_MS = 20 # milliseconds

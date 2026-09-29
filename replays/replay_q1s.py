@@ -90,7 +90,7 @@ class ReplayQ1S(ReplaySource):
 
             first_row = True
 
-            for row in self.iter_rows():
+            for row in self._iter_rows():
 
                 if not self._running:
                     break

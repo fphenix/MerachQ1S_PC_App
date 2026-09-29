@@ -20,12 +20,12 @@ class StatusWidget(QWidget):
 
         self.title: str = title
 
-        self.init_tables()
+        self._init_tables()
 
         self._create_ui()
 
     # ------------------------------------------------------------------
-    def init_tables(self) -> None:
+    def _init_tables(self) -> None:
 
         self.STATUS_TEXT = [
             get_text("CNX_CONNECTED"),

@@ -393,13 +393,13 @@ def is_between(
 # -----------------------------------------------------------------------------
 # Linearly interpolate a point between two points
 def interpolate(
-        xval: int | float,
-        x0: int | float, y0: int | float,
-        x1: int | float, y1: int | float
-    ) -> float:
+    xval: int | float,
+    x0: int | float, y0: int | float,
+    x1: int | float, y1: int | float
+) -> float:
         
-        tx = float(xval - x0) / float(x1 - x0)
-        return y0 + (tx * float(y1 - y0))
+    tx = float(xval - x0) / float(x1 - x0)
+    return y0 + (tx * float(y1 - y0))
 
 # -------------------------------------------------------------------------
 # Trouve la couleur intermédiaire entre color1 et color2

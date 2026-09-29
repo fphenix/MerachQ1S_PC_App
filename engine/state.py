@@ -42,11 +42,11 @@ class RowState:
         self._distance_history_index: int = 0
 
     # -------------------------------------------------------------------------
-    def set_source(self, source):
+    def set_source(self, source) -> None:
         self.source = source
 
     # -------------------------------------------------------------------------
-    def set_rower(self, rower):
+    def set_rower(self, rower) -> None:
         self.rower = rower
 
     # -------------------------------------------------------------------------

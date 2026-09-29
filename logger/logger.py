@@ -85,7 +85,7 @@ class CsvLogger:
         self._write_header()
 
     # -------------------------------------------------------------------------
-    def header(self) -> None:
+    def _header(self) -> None:
 
         #
         # Titre
@@ -167,7 +167,7 @@ class CsvLogger:
 
             self.writer = csv.writer(self._file)
 
-            self.header()
+            self._header()
 
             self._file.write(
                 content.split("\n", 3)[-1]
@@ -182,7 +182,7 @@ class CsvLogger:
 
             self.writer = csv.writer(self._file)
 
-            self.header()
+            self._header()
 
         self.flush()
 
@@ -201,7 +201,7 @@ class CsvLogger:
         self.last_flush_time = time.monotonic()
 
     # -------------------------------------------------------------------------
-    def periodic_flush(self) -> None:
+    def _periodic_flush(self) -> None:
         """
         Flush périodique.
         """
@@ -252,7 +252,7 @@ class CsvLogger:
         # Flush périodique
         #
 
-        self.periodic_flush()
+        self._periodic_flush()
 
     # -------------------------------------------------------------------------
     def next_packet(self) -> tuple[int, float, float]:

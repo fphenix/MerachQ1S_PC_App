@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QDialog,
     QInputDialog,
+    QToolButton,
 )
 
 from setup.lang import get_text
@@ -35,6 +36,7 @@ from setup.settings_utils import (
     load_settings,
 )
 from setup.constants import (
+    VERSION, COPYRIGHT_YEAR,
     GUI_REFRESH_MS,
     WINDOW_WIDTH, WINDOW_HEIGHT,
     WORKOUT_WIDTH, WORKOUT_HEIGHT,
@@ -93,17 +95,17 @@ class MainWindow(QMainWindow):
         self._apply_split_mode_preference()
 
         self.timer = QTimer(self)
-        self.timer.timeout.connect(self.refresh)
+        self.timer.timeout.connect(self._refresh)
         self.timer.start(GUI_REFRESH_MS)
 
-        self.refresh()
+        self._refresh()
 
     # ------------------------------------------------------------------
     def _create_ui(self) -> None:
         
         self.setWindowTitle(f"{get_text("WINDOW_TITLE")} : {self.state.rower.NAME}")
 
-        self.create_menu()
+        self._create_menu()
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -252,7 +254,7 @@ class MainWindow(QMainWindow):
         )
 
         self.splitModeGroup.idClicked.connect(
-            self.set_split_mode
+            self._set_split_mode
         )
 
         # split widget
@@ -308,7 +310,7 @@ class MainWindow(QMainWindow):
         )
 
         self.resetButton.clicked.connect(
-            self.new_session
+            self._callback_new_session
         )
 
         self.splitModeLayout = QHBoxLayout()
@@ -356,8 +358,8 @@ class MainWindow(QMainWindow):
             False
         )
 
-        self.workoutWidget.workout_started.connect(
-            self._workout_started
+        self.workoutWidget.sig_workout_started.connect(
+            self._callback_workout_started
         )
 
         top_layout.addWidget(
@@ -415,7 +417,7 @@ class MainWindow(QMainWindow):
         self.metronome_container.setVisible(False)
 
     # -------------------------------------------------------------------------
-    def add_user(self) -> None:
+    def _callback_add_user(self) -> None:
 
         if not self._can_change_user():
             return
@@ -521,7 +523,7 @@ class MainWindow(QMainWindow):
 
             action.triggered.connect(
                 lambda checked=False, user=name:
-                    self.switch_user(user)
+                    self._callback_switch_user(user)
             )
 
             self.user_actions[name] = action
@@ -533,7 +535,7 @@ class MainWindow(QMainWindow):
         )
 
         add_action.triggered.connect(
-            self.add_user
+            self._callback_add_user
         )
 
     # -------------------------------------------------------------------------
@@ -551,7 +553,7 @@ class MainWindow(QMainWindow):
         return True
 
     # -------------------------------------------------------------------------
-    def switch_user(self, name: str) -> None:
+    def _callback_switch_user(self, name: str) -> None:
 
         if name == self.user_manager.current_user:
             return
@@ -613,7 +615,7 @@ class MainWindow(QMainWindow):
         self._rebuild_user_menu()
 
     # -------------------------------------------------------------------------
-    def create_menu(self) -> None:
+    def _create_menu(self) -> None:
 
         #
         # Users >
@@ -639,17 +641,23 @@ class MainWindow(QMainWindow):
         open_workout_action = workout_menu.addAction(
             get_text("MENU_WORKOUT_OPEN")
         )
-        open_workout_action.triggered.connect(self.open_workout_file)
+        open_workout_action.triggered.connect(
+            self._callback_open_workout_file
+        )
 
         create_workout_action = workout_menu.addAction(
             get_text("MENU_WORKOUT_CREATE")
         )
-        create_workout_action.triggered.connect(self.create_workout)
+        create_workout_action.triggered.connect(
+            self._callback_create_workout
+        )
 
         edit_workout_action = workout_menu.addAction(
             get_text("MENU_WORKOUT_EDIT")
         )
-        edit_workout_action.triggered.connect(self.edit_workout)
+        edit_workout_action.triggered.connect(
+            self._callback_edit_workout
+        )
 
         #
         # Tools >
@@ -666,7 +674,7 @@ class MainWindow(QMainWindow):
         )
 
         analyzer_action.triggered.connect(
-            self.open_analyzer
+            self._callback_open_analyzer
         )
 
         plot_wo_action = tools_menu.addAction(
@@ -674,7 +682,7 @@ class MainWindow(QMainWindow):
         )
 
         plot_wo_action.triggered.connect(
-            self.open_plot_wo
+            self._callback_open_plot_wo
         )
 
         #
@@ -691,7 +699,23 @@ class MainWindow(QMainWindow):
         )
 
         self.settings_action.triggered.connect(
-            self.open_settings
+            self._callback_open_settings
+        )
+
+        #
+        # About
+        #
+
+        about_button = QToolButton(self)
+        about_button.setText(get_text("MENU_ABOUT"))
+        about_button.setAutoRaise(True)
+        about_button.clicked.connect(
+            self._callback_show_about
+        )
+
+        self.menuBar().setCornerWidget(
+            about_button,
+            Qt.Corner.TopRightCorner,
         )
 
     # -------------------------------------------------------------------------
@@ -729,7 +753,7 @@ class MainWindow(QMainWindow):
         )
 
     # -------------------------------------------------------------------------
-    def _workout_started(self) -> None:
+    def _callback_workout_started(self) -> None:
 
         rowerdata = self.state.snapshot().rowerdata
 
@@ -740,7 +764,7 @@ class MainWindow(QMainWindow):
         self._workout_split_last_sample_index = 0
 
     # -------------------------------------------------------------------------
-    def set_split_mode(
+    def _set_split_mode(
         self,
         mode: int,
     ) -> None:
@@ -774,7 +798,7 @@ class MainWindow(QMainWindow):
                 )
 
     # -------------------------------------------------------------------------
-    def new_session(self) -> None:
+    def _callback_new_session(self) -> None:
 
         if USE_REPLAY and self.state.source is not None:
             self.state.source.stop()
@@ -791,7 +815,7 @@ class MainWindow(QMainWindow):
         # Ferme le workout courant.
         # --------------------------------------------------------------
 
-        self.close_workout()
+        self._close_workout()
 
         # --------------------------------------------------------------
         # Mode Replay
@@ -835,10 +859,10 @@ class MainWindow(QMainWindow):
             if self.logger is not None:
                 self.logger.start()
 
-        self.refresh()
+        self._refresh()
 
     # -------------------------------------------------------------------------
-    def refresh(self) -> None:
+    def _refresh(self) -> None:
         
         snapshot = self.state.snapshot()
 
@@ -1097,11 +1121,11 @@ class MainWindow(QMainWindow):
 
 
     # -------------------------------------------------------------------------
-    def create_workout(self) -> None:
+    def _callback_create_workout(self) -> None:
         self._edit_workout_dialog()
 
     # -------------------------------------------------------------------------
-    def edit_workout(self) -> None:
+    def _callback_edit_workout(self) -> None:
 
         filename, _ = QFileDialog.getOpenFileName(
             self,
@@ -1129,7 +1153,7 @@ class MainWindow(QMainWindow):
         self._edit_workout_dialog(workout)
 
     # -------------------------------------------------------------------------
-    def open_workout_file(self) -> None:
+    def _callback_open_workout_file(self) -> None:
 
         self.load_workout_file(
             filename=None,
@@ -1177,7 +1201,7 @@ class MainWindow(QMainWindow):
         return True
 
     # -------------------------------------------------------------------------
-    def open_analyzer(self) -> None:
+    def _callback_open_analyzer(self) -> None:
 
         filename, _ = QFileDialog.getOpenFileName(
             self,
@@ -1196,7 +1220,7 @@ class MainWindow(QMainWindow):
         self.analyzer_window.show()
 
     # -------------------------------------------------------------------------
-    def open_plot_wo(self) -> None:
+    def _callback_open_plot_wo(self) -> None:
 
         filename, _ = QFileDialog.getOpenFileName(
             self,
@@ -1227,7 +1251,9 @@ class MainWindow(QMainWindow):
             )
 
     # -------------------------------------------------------------------------
+    # Note: ceci est une méthode Qt, applelée à la fermeture du widget
     def closeEvent(self, event) -> None:
+
         # Arrête le moteur principal.
         if self.state.source is not None:
             self.state.source.stop()
@@ -1243,7 +1269,7 @@ class MainWindow(QMainWindow):
         event.accept()
 
     # -------------------------------------------------------------------------
-    def close_workout(self) -> None:
+    def _close_workout(self) -> None:
 
         self.workoutWidget.reset()
 
@@ -1289,7 +1315,7 @@ class MainWindow(QMainWindow):
         return session_active or workout_active
 
     # -------------------------------------------------------------------------
-    def open_settings(self) -> None:
+    def _callback_open_settings(self) -> None:
 
         if self._session_or_workout_active():
 
@@ -1351,4 +1377,20 @@ class MainWindow(QMainWindow):
         if button is not None:
             button.setChecked(True)
 
-        self.set_split_mode(mode_index)
+        self._set_split_mode(mode_index)
+
+    # -------------------------------------------------------------------------
+    def _callback_show_about(self) -> None:
+        info = (
+            f"{get_text("WINDOW_TITLE")}\n"
+            f"{get_text("ABOUT_INFO")}\n"
+            f"{get_text("VERSION")} {VERSION}\n"
+            f"{get_text("AUTHOR")}: fphenix (@ github)\n"
+            f"(c){str(COPYRIGHT_YEAR)}"
+        )
+
+        QMessageBox.information(
+            self,
+            f"{get_text("MENU_ABOUT")}: {get_text("WINDOW_TITLE")}",
+            info,
+        )

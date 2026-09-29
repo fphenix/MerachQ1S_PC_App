@@ -57,6 +57,7 @@ class SettingsDialog(QDialog):
 
     # ------------------------------------------------------------------
     def _create_ui(self) -> None:
+        
         self.setWindowTitle(get_text("SETTINGS"))
 
         self.curr_user_label = QLabel(self.curr_user)

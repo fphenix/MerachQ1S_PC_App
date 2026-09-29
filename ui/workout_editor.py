@@ -88,7 +88,7 @@ class WorkoutEditorDialog(QDialog):
             | QDialogButtonBox.StandardButton.Cancel
         )
 
-        buttons.accepted.connect(self.save)
+        buttons.accepted.connect(self._callback_save_wo)
         buttons.rejected.connect(self.reject)
 
         main_layout.addWidget(buttons)
@@ -110,20 +110,20 @@ class WorkoutEditorDialog(QDialog):
             self.status_bar
         )
 
-        self.update_total_time()
+        self._update_total_time()
 
         if self.workout is None:
             self.setWindowTitle(get_text("WO_CREATE_TITLE"))
             self.title_edit.setText(get_text("WO_CREATE_NEW"))
             self.field_edit.setText(get_text("FIELD"))
-            self.add_step()
+            self._add_step()
 
         else:
             self.setWindowTitle(get_text("WO_EDIT_TITLE"))
-            self.fetch_workout(self.workout)
+            self._fetch_workout(self.workout)
 
     # -------------------------------------------------------------------------
-    def update_total_time(self) -> None:
+    def _update_total_time(self) -> None:
 
         total = sum(
             editor.get_duration_seconds()
@@ -136,7 +136,7 @@ class WorkoutEditorDialog(QDialog):
         )
 
     # -------------------------------------------------------------------------
-    def add_step(self, after=None) -> WorkoutStepEditor:
+    def _add_step(self, after=None) -> WorkoutStepEditor:
 
         editor = WorkoutStepEditor()
 
@@ -149,24 +149,24 @@ class WorkoutEditorDialog(QDialog):
             self.steps_layout.insertWidget(index, editor)
 
         editor.remove_button.clicked.connect(
-            lambda checked=False, e=editor: self.remove_step(e)
+            lambda checked=False, e=editor: self._callback_remove_step(e)
         )
 
         editor.add_button.clicked.connect(
-            lambda checked=False, e=editor: self.add_step(e)
+            lambda checked=False, e=editor: self._add_step(e)
         )
 
-        editor.duration_changed.connect(
-            self.update_total_time
+        editor.sig_duration_changed.connect(
+            self._update_total_time
         )
 
-        self.update_step_numbers()
-        self.update_total_time()
+        self._update_step_numbers()
+        self._update_total_time()
 
         return editor
 
     # -------------------------------------------------------------------------
-    def remove_step(self, editor) -> None:
+    def _callback_remove_step(self, editor) -> None:
 
         # Toujours conserver au moins une étape.
         if len(self.step_editors) <= 1:
@@ -175,11 +175,11 @@ class WorkoutEditorDialog(QDialog):
         self.step_editors.remove(editor)
         editor.deleteLater()
 
-        self.update_step_numbers()
-        self.update_total_time()
+        self._update_step_numbers()
+        self._update_total_time()
 
     # -------------------------------------------------------------------------
-    def update_step_numbers(self) -> None:
+    def _update_step_numbers(self) -> None:
 
         for number, editor in enumerate(
             self.step_editors,
@@ -188,13 +188,13 @@ class WorkoutEditorDialog(QDialog):
             editor.set_step_number(number)
 
     # -------------------------------------------------------------------------
-    def fetch_workout(self, workout: Workout) -> None:
+    def _fetch_workout(self, workout: Workout) -> None:
 
         self.title_edit.setText(workout.title)
         self.field_edit.setText(workout.field)
 
         for step in workout.steps:
-            editor = self.add_step()
+            editor = self._add_step()
 
             editor.set_values(
                 duration_seconds= step.duration_seconds,
@@ -206,7 +206,7 @@ class WorkoutEditorDialog(QDialog):
             )
 
     # -------------------------------------------------------------------------
-    def build_workout_text(self) -> str:
+    def _build_workout_text(self) -> str:
 
         title = self.title_edit.text().strip()
         field = self.field_edit.text().strip()
@@ -245,9 +245,9 @@ class WorkoutEditorDialog(QDialog):
         return "\n".join(lines) + "\n"
 
     # -------------------------------------------------------------------------
-    def save_to_file(self) -> bool:
+    def _save_to_file(self) -> bool:
 
-        text = self.build_workout_text()
+        text = self._build_workout_text()
 
         title = self.title_edit.text().strip()
 
@@ -326,7 +326,7 @@ class WorkoutEditorDialog(QDialog):
         return True
 
     # -------------------------------------------------------------------------
-    def save(self) -> None:
+    def _callback_save_wo(self) -> None:
 
         title = self.title_edit.text().strip()
         field = self.field_edit.text().strip()
@@ -357,16 +357,7 @@ class WorkoutEditorDialog(QDialog):
             )
             return
 
-        if not self.save_to_file():
+        if not self._save_to_file():
             return
 
         self.accept()
-
-    # -------------------------------------------------------------------------
-    def workout_data(self) -> dict[str, str]:
-        return {
-            "title": self.title_edit.text().strip(),
-            "field": self.field_edit.text().strip(),
-            "text": self.build_workout_text(),
-        }
-    

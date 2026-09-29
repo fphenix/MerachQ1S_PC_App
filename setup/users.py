@@ -120,7 +120,7 @@ class UserManager:
         name: str,
     ) -> Path:
 
-        user_dir = USERS_DIR / self.safe_name(name)
+        user_dir = USERS_DIR / self._safe_name(name)
 
         user_dir.mkdir(
             parents=True,
@@ -134,7 +134,7 @@ class UserManager:
         return user_dir
 
     # ------------------------------------------------------------------
-    def user_dir(
+    def _user_dir(
         self,
         name: str | None = None,
     ) -> Path:
@@ -142,7 +142,7 @@ class UserManager:
         if name is None:
             name = self.current_user
 
-        return USERS_DIR / self.safe_name(name)
+        return USERS_DIR / self._safe_name(name)
 
     # ------------------------------------------------------------------
     def settings_file(
@@ -150,7 +150,7 @@ class UserManager:
         name: str | None = None,
     ) -> Path:
 
-        return self.user_dir(name) / SETTINGS_FILE_NAME
+        return self._user_dir(name) / SETTINGS_FILE_NAME
 
     # ------------------------------------------------------------------
     def logs_dir(
@@ -158,7 +158,7 @@ class UserManager:
         name: str | None = None,
     ) -> Path:
 
-        return self.user_dir(name) / LOGS_DIR_NAME
+        return self._user_dir(name) / LOGS_DIR_NAME
 
     # ------------------------------------------------------------------
     def add_user(
@@ -203,7 +203,7 @@ class UserManager:
 
     # ------------------------------------------------------------------
     @staticmethod
-    def safe_name(name: str) -> str:
+    def _safe_name(name: str) -> str:
 
         name = name.strip()
 
@@ -216,4 +216,3 @@ class UserManager:
         name = name.rstrip(". ")
 
         return name or DEFAULT_USER_NAME
-

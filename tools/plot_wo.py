@@ -38,7 +38,7 @@ class WorkoutPlotWindow(QMainWindow):
 
         self._create_ui()
 
-        self.load_file()
+        self._load_file()
 
     # -------------------------------------------------------------------------
     def _create_ui(self) -> None:
@@ -90,7 +90,7 @@ class WorkoutPlotWindow(QMainWindow):
         )
 
     # -------------------------------------------------------------------------
-    def load_file(self) -> None:
+    def _load_file(self) -> None:
 
         workout = load_workout(
             self.filename

@@ -53,7 +53,7 @@ from workout.workout import Workout
 # =============================================================================
 class WorkoutWidget(QFrame):
 
-    workout_started = Signal()
+    sig_workout_started = Signal()
 
     # ------------------------------------------------------------------
     def __init__(
@@ -77,7 +77,7 @@ class WorkoutWidget(QFrame):
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(
-            self.update_timer
+            self._callback_update_timer
         )
 
     # ------------------------------------------------------------------
@@ -497,7 +497,7 @@ class WorkoutWidget(QFrame):
         return True
 
     # ------------------------------------------------------------------
-    def update_timer(self) -> None:
+    def _callback_update_timer(self) -> None:
 
         now = time.perf_counter()
 
@@ -519,7 +519,7 @@ class WorkoutWidget(QFrame):
 
                 self.countdown_active = False
 
-                self.start_step()
+                self._start_step()
 
             else:
 
@@ -538,13 +538,13 @@ class WorkoutWidget(QFrame):
 
         if self.running:
 
-            self.update_progress()
+            self._update_progress()
 
     # ------------------------------------------------------------------
-    def start_step(self) -> None:
+    def _start_step(self) -> None:
 
         if self.current_step >= len(self.workout.steps):
-            self.finish_workout()
+            self._finish_workout()
             return
 
         step = self.workout.steps[
@@ -569,10 +569,10 @@ class WorkoutWidget(QFrame):
             get_text("WORKOUT_RUNNING")
         )
 
-        self.update_labels()
+        self._update_labels()
 
     # ------------------------------------------------------------------
-    def update_progress(self) -> None:
+    def _update_progress(self) -> None:
 
         step = self.workout.steps[
             self.current_step
@@ -598,7 +598,7 @@ class WorkoutWidget(QFrame):
         )
 
     # ------------------------------------------------------------------
-    def update_labels(self) -> None:
+    def _update_labels(self) -> None:
 
         if not self.running:
             return
@@ -665,7 +665,7 @@ class WorkoutWidget(QFrame):
             self.info_label.clear()
 
     # ------------------------------------------------------------------
-    def finish_workout(self) -> None:
+    def _finish_workout(self) -> None:
 
         self.running = False
         self.timer.stop()
@@ -705,7 +705,7 @@ class WorkoutWidget(QFrame):
             self.model_start_elapsed = clamp_to_zero(
                 float(elapsed_time)
             )
-            self.workout_started.emit()
+            self.sig_workout_started.emit()
 
         self.workout_elapsed = clamp_between(
             calc_deltatime(
@@ -717,7 +717,7 @@ class WorkoutWidget(QFrame):
         )
 
         if self.workout_elapsed >= self.total_time:
-            self.finish_workout()
+            self._finish_workout()
             return
 
         step_info = self.workout.find_step(
@@ -734,7 +734,7 @@ class WorkoutWidget(QFrame):
         # change step).
 
         new_step, step_elapsed = step_info
-        step_changed = new_step != self.current_step
+        step_changed = (new_step != self.current_step)
 
         if step_changed:
             now = time.perf_counter()
@@ -786,7 +786,7 @@ class WorkoutWidget(QFrame):
 
         self.running = True
 
-        self.update_labels()
+        self._update_labels()
 
     # ------------------------------------------------------------------
     def update_model_time(

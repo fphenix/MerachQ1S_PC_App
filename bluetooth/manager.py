@@ -24,7 +24,7 @@ class BluetoothManager:
     async def initialize(self) -> None:
 
         # get button
-        self.radio = await self.get_radiobtn_state()
+        self.radio = await self._get_radiobtn_state()
 
         # Sauvegarde de l'état initial
         self.initial_state = self.radio.state
@@ -34,7 +34,7 @@ class BluetoothManager:
             await self.turn_on()
 
     # -------------------------------------------------------------------------
-    async def get_radiobtn_state(self) -> Radio:
+    async def _get_radiobtn_state(self) -> Radio:
 
         radios = await Radio.get_radios_async()
 
