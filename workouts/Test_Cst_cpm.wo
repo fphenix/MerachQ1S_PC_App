@@ -1,5 +1,6 @@
 WORKOUT: Test_Cst_cpm
 FIELD: Catégorie
+# Ce test est l'un de ceux ayant permis de valider power_calibration.py
 120 24 R
 120 24 E
 120 24 N
