@@ -1,7 +1,15 @@
 {
+    "ABOUT_INFO": {
+        "fr": "Moniteur de Performance et Exercices pour rameur.",
+        "en": "Performance Monitor and Workouts for rower machines."
+    },
     "ANALYZER_TITLE": {
         "fr": "Analyseur",
         "en": "Analyzer"
+    },
+    "AUTHOR": {
+        "fr": "Auteur",
+        "en": "Author"
     },
     "AVG": {
         "fr": "moy",
@@ -264,6 +272,10 @@
         "fr": "Choisir un Log",
         "en": "Select a log"
     },
+    "MENU_ABOUT": {
+        "fr": "A Propos",
+        "en": "About"
+    },
     "MENU_SETTINGS": {
         "fr": "Réglages",
         "en": "Settings"
@@ -365,8 +377,8 @@
         "en": "Workout Viewer"
     },
     "PLOT_X_AXIS_TIME": {
-        "fr": "Temps (s)",
-        "en": "Time (s)"
+        "fr": "Temps (min)",
+        "en": "Time (min)"
     },
     "POWER": {
         "fr": "Puissance",
@@ -535,6 +547,14 @@
     "USER_NAME": {
         "fr": "Nom ou identifiant:",
         "en": "Name or username:"
+    },
+    "VERSION": {
+        "fr": "Version",
+        "en": "Version"
+    },
+    "WARN_ANALYZER_COL_NOT_FOUND": {
+        "fr": "La colonne suivante n'a pu être trouvée dans le log à analyser",
+        "en": "The following column could not be found in the log to analyze"
     },
     "WARN_CANT_EDIT_WO": {
         "fr": "Impossible de créer ou modifier un Workout pendant une séance.",
