@@ -60,7 +60,7 @@ class WorkoutWidget(QFrame):
         self,
         settings: Settings,
         metronome_bar: QProgressBar,
-        parent=None,
+        parent= None,
     ) -> None:
 
         super().__init__(parent)
@@ -438,9 +438,8 @@ class WorkoutWidget(QFrame):
 
         for i, step in enumerate(
             workout.steps,
-            start=1,
+            start= 1,
         ):
-
             formatted_duration = format_duration(step.duration_seconds)
 
             self.step_list.addItem(
@@ -451,7 +450,7 @@ class WorkoutWidget(QFrame):
             )
 
         self._reset_runtime_state(
-            replay_mode=replay_mode,
+            replay_mode,
         )
 
         self.total_time = workout.total_seconds

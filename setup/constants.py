@@ -1,15 +1,16 @@
 from pathlib import Path
 
-VERSION: str = "4.11"
-COPYRIGHT_YEAR = "2026"
+VERSION: str = "4.12"
+COPYRIGHT_YEAR: str | int = "2026"
 
 GUI_REFRESH_MS   = 100 # milliseconds
-WORKOUT_TIMER_MS = 20 # milliseconds
+WORKOUT_TIMER_MS =  20 # milliseconds
 
 WINDOW_WIDTH = 1100 # pixels
 WINDOW_HEIGHT = 700 # pixels
-WINDOW_TO_SCREEN_LEFT_MARGIN = 35 # pixels
-WINDOW_TO_SCREEN_TOP_MARGIN = 0.33 # 0.33 = 33% of the margin at the top, 66% at the bottom
+
+WINDOW_TO_SCREEN_LEFT_MARGIN: int  = 35 # pixels
+WINDOW_TO_SCREEN_TOP_MARGIN: float = 0.33 # 0.33 = 33% of the margin at the top, 66% at the bottom
 
 MAIN_FONT  = "Consolas"
 TITLE_FONT = "Segoe UI"
@@ -22,9 +23,10 @@ WIDGET_TITLE_FONT_SIZE = 11 # point
 WIDGET_VALUE_FONT_SIZE = 28 # point
 WIDGET_UNIT_FONT_SIZE  = 10 # point
 SPLIT_LIST_FONT_SIZE   = 12 # point
+WIDGET_SECONDARY_FONT_SIZE  = 12 # point
 
-DEFAULT_SPLIT_LENGTH  = 500.0 # meters
-MIN_SPLIT_LENGTH = 100   # meters
+DEFAULT_SPLIT_LENGTH: float = 500.0 # meters
+MIN_SPLIT_LENGTH =  100  # meters
 MAX_SPLIT_LENGTH = 2000  # meters
 SPLIT_LENGTH_STEP = 100  # meters
 
@@ -33,6 +35,8 @@ SPLIT_MODES_500M: str    = "500m"
 SPLIT_MODES_WORKOUT: str = "workout"
 
 DEFAULT_SPLIT_MODE: str = SPLIT_MODES_NORMAL
+
+DEFAULT_PACE_ENABLED: bool = False
 
 SPLIT_MODES: list[str] = [
     SPLIT_MODES_NORMAL,
@@ -73,18 +77,18 @@ FILE_ENCODING_BOM: str = "utf-8-sig"
 ANALYZER_WIDTH  = 1400 # pixels
 ANALYZER_HEIGHT = 1000 # pixels
 
-ANALYZER_STATS_FONT_SIZE = 11 # point
+ANALYZER_STATS_FONT_SIZE =  11 # point
 ANALYZER_STATS_MIN_WIDTH = 260 # pixels
 ANALYZER_STATS_MAX_WIDTH = 320 # pixels
 
 PLOTWO_WIDTH  = 1300 # pixels
 PLOTWO_HEIGHT =  800 # pixels
 
-PLOTWO_CODE_FONT_SIZE = 12 # point
+PLOTWO_CODE_FONT_SIZE =  12 # point
 PLOTWO_CODE_MIN_WIDTH = 300 # pixels
 PLOTWO_CODE_MAX_WIDTH = 600 # pixels
 
-ANALYZER_SHOW_CHECKBUTTONS = False
+ANALYZER_SHOW_CHECKBUTTONS: bool = False
 
 # ----------------------------------------------------------------------
 # Logger
@@ -148,11 +152,11 @@ REPLAY_SPEED: float = 100.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x p
 
 DEFAULT_USER_NAME: str = "Default"
 
-MIN_PROFILE_AGE: int = 18 # years
+MIN_PROFILE_AGE: int =  18 # years
 MAX_PROFILE_AGE: int = 100 # years
 DEFAULT_PROFILE_AGE: int = 40 # years
 
-MIN_PROFILE_WEIGHT: float = 35.0 # kg
+MIN_PROFILE_WEIGHT: float =  35.0 # kg
 MAX_PROFILE_WEIGHT: float = 200.0 # kg
 DEFAULT_PROFILE_WEIGHT: float = 75.0 # kg
 
@@ -185,15 +189,15 @@ DELAY_SECONDS_STEP: int = 5
 WORKOUT_WIDTH  = 720 # pixels
 WORKOUT_HEIGHT = WINDOW_HEIGHT # pixels
 
-WORKOUT_EDIT_WIDTH  = 1200  # pixels
-WORKOUT_EDIT_HEIGHT =  800  # pixels
+WORKOUT_EDIT_WIDTH  = 1200 # pixels
+WORKOUT_EDIT_HEIGHT =  800 # pixels
 
 WORKOUT_TITLE_FONT_SIZE = 24 # point
 WORKOUT_LIST_FONT_SIZE  = 14 # point
 WORKOUT_INFO_FONT_SIZE  = 18 # point
 
 LIST_WIDTH = 220  # pixels
-BAR_HEIGHT = 28   # pixels
+BAR_HEIGHT =  28  # pixels
 
 METRONOME_MARGIN = 100  # pixels
 

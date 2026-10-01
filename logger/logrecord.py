@@ -3,7 +3,7 @@ from dataclasses import dataclass
 # Column Title, variable holding the data
 # Les valeurs "Raw_*"" viennent directement de la machine via 
 # le protocole BlueTooth utilisé (par exemple FTMS pour Merach Q1S)
-CSV_FIELDS = [
+CSV_FIELDS: list[tuple[str, str]] = [
     ("Packet", "packet"),
 
     ("PC_Time", "pc_time"),

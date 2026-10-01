@@ -22,9 +22,9 @@ class WorkoutPowerCalibration:
 
     # Power : le raw_power venant du Q1S semble beaucoup trop bas (30-35 au lieu
     # de 90-120W!). On va le calibrer grâce à cette valeur:
-    POWER_SCALE:float = 3.6
+    POWER_SCALE: float = 3.6
 
-    MAX_RECALIBRATION_FACTOR = 2.00
+    MAX_RECALIBRATION_FACTOR: float = 2.00
 
     # ------------------------------------------------------------------
     def __init__(self, machine_scale: float = POWER_SCALE) -> None:
@@ -56,22 +56,22 @@ class WorkoutPowerCalibration:
 
         if raw_power == 0.0:
             return PowerCalibrationResult(
-                machine_power=0.0,
-                profile_factor=1.0,
-                level_factor=1.0,
-                workout_factor=1.0,
-                spm_factor=1.0,
-                duration_factor=1.0,
-                final_factor=1.0,
-                power=0.0,
+                machine_power= 0.0,
+                profile_factor= 1.0,
+                level_factor= 1.0,
+                workout_factor= 1.0,
+                spm_factor= 1.0,
+                duration_factor= 1.0,
+                final_factor= 1.0,
+                power= 0.0,
             )
 
         # Suppression de l'effet SPM artificiel du Q1S
         if context.spm_correction_enabled:
 
             rawpower = self._remove_q1s_spm_effect(
-                raw_power=rawpower,
-                spm=context.spm,
+                raw_power= rawpower,
+                spm= context.spm,
             )
         
         machine_power = rawpower * self.machine_scale
@@ -124,14 +124,14 @@ class WorkoutPowerCalibration:
         power = machine_power * factor
 
         return PowerCalibrationResult(
-            machine_power=machine_power,
-            profile_factor=factor_profile,
-            level_factor=factor_level,
-            workout_factor=factor_workout,
-            spm_factor=factor_spm,
-            duration_factor=factor_duration,
-            final_factor=factor,
-            power=power,
+            machine_power= machine_power,
+            profile_factor= factor_profile,
+            level_factor= factor_level,
+            workout_factor= factor_workout,
+            spm_factor= factor_spm,
+            duration_factor= factor_duration,
+            final_factor= factor,
+            power= power,
         )
 
     '''
@@ -269,8 +269,8 @@ class WorkoutPowerCalibration:
         )
 
     # ------------------------------------------------------------------
-    REFERENCE_SPM = 24.0
-    SPM_FACTOR_EXPONENT = 0.30
+    REFERENCE_SPM: float = 24.0 # Stroke per minute
+    SPM_FACTOR_EXPONENT: float = 0.30
 
     # ------------------------------------------------------------------
     @staticmethod
@@ -350,13 +350,13 @@ class WorkoutPowerCalibration:
     # -----------------------------------------------------------------------------
     # Points issus de la relation observée dans Seiler et al. pour le paramètre age.
     # Le modèle reste continu entre les points.
-    AGE_RATIOS = (
+    AGE_RATIOS: list[tuple[float, float]] = [
         (24.0, 1.000),
         (50.0, 0.923),
         (74.0, 0.776),
-    )
+    ]
 
-    PROFILE_REFERENCE_AGE = 40.0
+    PROFILE_REFERENCE_AGE: float = 40.0 # years-old
 
     # ------------------------------------------------------------------
     # OLD CALCULATION WAS:
@@ -384,8 +384,8 @@ class WorkoutPowerCalibration:
         return WorkoutPowerCalibration.AGE_RATIOS[-1][1]
 
     # ------------------------------------------------------------------
-    PROFILE_REFERENCE_HEIGHT = 180.0
-    HEIGHT_EXPONENT = 0.35
+    PROFILE_REFERENCE_HEIGHT: float = 180.0 # centimeters
+    HEIGHT_EXPONENT: float = 0.35
 
     # ------------------------------------------------------------------
     # Coefficient volontairement conservateur dans cette V1 :
@@ -407,8 +407,8 @@ class WorkoutPowerCalibration:
         return (height / reference) ** exponent
 
     # ------------------------------------------------------------------
-    PROFILE_REFERENCE_WEIGHT = 75.0
-    WEIGHT_EXPONENT = 0.23
+    PROFILE_REFERENCE_WEIGHT: float = 75.0 # kg
+    WEIGHT_EXPONENT: float = 0.23
 
     # ------------------------------------------------------------------
     # Body-mass scaling: rowing-ergometer performance has been modelled
@@ -428,14 +428,14 @@ class WorkoutPowerCalibration:
         return (weight / reference) ** exponent
 
     # ------------------------------------------------------------------
-    FEMALE_FACTOR = 0.90
+    FEMALE_FACTOR: float = 0.90
 
     # ------------------------------------------------------------------
     # OLD CALCULATION WAS:    
     #    # Sex: the 2003 rowing study found roughly a 9-10% slower 2k time for
     #    # women at similar height/mass. Convert speed ratio to power ratio:
     #    # power is approximately proportional to speed^3.
-    #    if context.sex.upper() == "F":
+    #    if not context.is_male: # if Female
     #        factor *= 0.73
     # NEW CALCULATION IS:
     @staticmethod
@@ -444,8 +444,8 @@ class WorkoutPowerCalibration:
         return 1.00 if is_male else WorkoutPowerCalibration.FEMALE_FACTOR
 
     # ------------------------------------------------------------------
-    PROFILE_FACTOR_MIN = 0.55
-    PROFILE_FACTOR_MAX = 1.30
+    PROFILE_FACTOR_MIN: float = 0.55
+    PROFILE_FACTOR_MAX: float = 1.30
 
     # ------------------------------------------------------------------
     @staticmethod
@@ -481,7 +481,7 @@ class WorkoutPowerCalibration:
         )
 
         factor_sex = WorkoutPowerCalibration._sex_factor(
-            is_male= (context.sex.upper() == "M")
+            is_male= context.is_male
         )
  
         profile_factor = (
@@ -513,10 +513,10 @@ class WorkoutPowerCalibration:
     #   - diminishing returns at high levels.
     # ------------------------------------------------------------------
 
-    LEVEL_SIGMOID_LOW = 0.72
-    LEVEL_SIGMOID_HIGH = 1.28
-    LEVEL_SIGMOID_CENTER = 0.50
-    LEVEL_SIGMOID_STEEPNESS = 6.0
+    LEVEL_SIGMOID_LOW: float = 0.72
+    LEVEL_SIGMOID_HIGH: float = 1.28
+    LEVEL_SIGMOID_CENTER: float = 0.50
+    LEVEL_SIGMOID_STEEPNESS: float = 6.0
 
     # ------------------------------------------------------------------
     @staticmethod

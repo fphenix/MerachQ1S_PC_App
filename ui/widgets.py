@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QSizePolicy,
     QVBoxLayout,
+    QHBoxLayout,
 )
 
 from setup.constants import (
@@ -19,6 +20,7 @@ from setup.constants import (
     WIDGET_TITLE_FONT_SIZE,
     WIDGET_VALUE_FONT_SIZE,
     WIDGET_UNIT_FONT_SIZE,
+    WIDGET_SECONDARY_FONT_SIZE,
 )
 
 from ui.progbar_widget import GradientGauge
@@ -35,6 +37,7 @@ class MetricWidget(QFrame):
           spm
 
     En option on peut aussi ajouter une jauge.
+    En option une valeur secondaire peut être affichée.
     """
 
     # -------------------------------------------------------------------------
@@ -43,15 +46,29 @@ class MetricWidget(QFrame):
             title: str,
             unit: str = "",
             gauge: GradientGauge | None = None,
+            secondary_title: str | None = None,
+            secondary_unit: str | None = None
         ) -> None:
 
         super().__init__()
 
         self.title: str = title
+        self.secondary_title: str | None = secondary_title
+
         self.unit: str = unit
+        self.secondary_unit: str | None = secondary_unit
+
         self.gauge: GradientGauge | None = gauge
 
+        self.widget_shared: bool = (
+            secondary_unit is not None
+            and secondary_title is not None
+        )
+
         self._create_ui()
+
+        if self.widget_shared:
+            self.setSecondaryVisible(visible= True)
 
         self._scroll_target_index = None
 
@@ -100,10 +117,71 @@ class MetricWidget(QFrame):
         if self.gauge is not None:
             layout.addWidget(self.gauge)
 
+        #
+        # If squeeze the main metric in the widget
+        # we can insert a second metric
+        #
+
+        if self.widget_shared:
+
+            self.secondary_label = QLabel(
+                f"{self.secondary_title} :"
+            )
+            self.secondary_value_label = QLabel("--")
+            self.secondary_unit_label = QLabel(
+                self.secondary_unit
+            )
+
+            self.secondary_label.setAlignment(Qt.AlignRight)
+            self.secondary_value_label.setAlignment(Qt.AlignCenter)
+            self.secondary_unit_label.setAlignment(Qt.AlignLeft)
+
+            secondary_font = QFont(MAIN_FONT, WIDGET_SECONDARY_FONT_SIZE)
+            secondary_font.setBold(True)
+
+            secondary_unit_font = QFont(
+                TITLE_FONT,
+                WIDGET_UNIT_FONT_SIZE,
+            )
+
+            self.secondary_label.setFont(secondary_font)
+            self.secondary_value_label.setFont(secondary_font)
+            self.secondary_unit_label.setFont(secondary_unit_font)
+
+            secondary_layout = QHBoxLayout()
+            secondary_layout.setContentsMargins(0, 0, 0, 0)
+            secondary_layout.setSpacing(4)
+
+            secondary_layout.addWidget(self.secondary_label)
+            secondary_layout.addWidget(self.secondary_value_label)
+            secondary_layout.addWidget(self.secondary_unit_label)
+
+            layout.addLayout(secondary_layout)            
+
     # -------------------------------------------------------------------------
-    def setValue(self, textvalue, gaugevalue: int|float|None = None) -> None:
+    def setValue(
+        self,
+        textvalue: int|str,
+        gaugevalue: int|float|None = None,
+        secondary_textvalue: int|str | None = None,
+    ) -> None:
 
         self.value_label.setText(str(textvalue))
 
         if gaugevalue is not None:
             self.gauge.set_value(gaugevalue)
+
+        if secondary_textvalue is not None:
+            self.secondary_value_label.setText(
+                str(secondary_textvalue)
+            )   
+
+    # -------------------------------------------------------------------------
+    def setSecondaryVisible(
+        self,
+        visible: bool,
+    ) -> None:
+
+        self.secondary_label.setVisible(visible)
+        self.secondary_value_label.setVisible(visible)
+        self.secondary_unit_label.setVisible(visible)

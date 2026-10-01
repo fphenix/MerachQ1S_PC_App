@@ -27,7 +27,7 @@ class WorkoutPlotWindow(QMainWindow):
     def __init__(
         self,
         filename: str | Path,
-        parent=None,
+        parent= None,
     ) -> None:
         
         super().__init__(parent)
@@ -97,7 +97,7 @@ class WorkoutPlotWindow(QMainWindow):
         )
 
         source_code = self.filename.read_text(
-            encoding=FILE_ENCODING
+            encoding= FILE_ENCODING
         )
 
         self.plot.plot_workout(

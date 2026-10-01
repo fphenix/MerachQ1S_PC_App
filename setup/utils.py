@@ -13,7 +13,7 @@ from workout.workout import Workout
 from workout.step import WorkoutStep
 
 # -----------------------------------------------------------------------------
-def load_workout(filename) -> Workout:
+def load_workout(filename: str) -> Workout:
 
     workout = Workout(filename)
 
@@ -25,12 +25,12 @@ def load_workout(filename) -> Workout:
     with open(
         filename,
         "r",
-        encoding=FILE_ENCODING,
+        encoding= FILE_ENCODING,
     ) as rfile:
 
         for lineno, raw in enumerate(
             rfile,
-            start=1,
+            start= 1,
         ):
 
             line = raw.strip()
@@ -177,8 +177,8 @@ def load_workout(filename) -> Workout:
 
             if not is_between(
                 duration_seconds, 0.0, 7200.0,
-                strict_min=True,
-                strict_max=False
+                strict_min= True,
+                strict_max= False
             ):
                 raise ValueError(
                     f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
@@ -187,7 +187,7 @@ def load_workout(filename) -> Workout:
 
             if not is_between(
                 spm, 0, 50,
-                strict_min=True, strict_max=False
+                strict_min= True, strict_max= False
             ):
                 raise ValueError(
                     f"{get_text("WO_FILE_ERROR_LINE")} {lineno}: ",
@@ -258,7 +258,7 @@ def debug(*args, **kwargs) -> None:
     print("DBG", *args, **kwargs)
 
 # -----------------------------------------------------------------------------
-def format_pace(seconds: float) -> str:
+def format_split(seconds: float) -> str:
     """
     Convertit un temps en secondes vers le format m:ss.
 

@@ -19,7 +19,7 @@ class GradientGauge(QFrame):
     qu'une représentation visuelle de cette valeur.
     """
 
-    ZONES_COLOR = [
+    ZONES_COLOR: list[str] = [
         "#083daf",
         "#2f6fed",
         "#35b95c",

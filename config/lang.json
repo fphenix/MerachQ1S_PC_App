@@ -332,6 +332,10 @@
         "fr": "Nouvelle séance",
         "en": "New session"
     },
+    "PACE": {
+        "fr": "Allure",
+        "en": "Pace"
+    },
     "PART_DICT_O": {
         "fr": "Optionel",
         "en": "Optional"
@@ -465,11 +469,11 @@
         "en": "Speed"
     },
     "SPLIT": {
-        "fr": "Allure",
+        "fr": "Split",
         "en": "Split"
     },
     "SPLIT_CALC": {
-        "fr": "Allure calculée",
+        "fr": "Split calculé",
         "en": "Split calculated"
     },
     "SPLIT_CURRENT": {
@@ -481,11 +485,11 @@
         "en": "Split Mode"
     },
     "SPLIT_RAW_AVG": {
-        "fr": "Allure brute moy.",
+        "fr": "Split brut moy.",
         "en": "Split Raw average"
     },
     "SPLIT_RAW_INST": {
-        "fr": "Allure brute Inst.",
+        "fr": "Split brut Inst.",
         "en": "Split Raw Inst."
     },
     "SPM_UNIT": {

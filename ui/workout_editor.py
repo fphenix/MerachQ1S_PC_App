@@ -35,7 +35,7 @@ class WorkoutEditorDialog(QDialog):
     def __init__(
         self,
         workout: Workout | None = None,
-        parent=None,
+        parent= None,
     ) -> None:
 
         super().__init__(parent)
@@ -136,7 +136,7 @@ class WorkoutEditorDialog(QDialog):
         )
 
     # -------------------------------------------------------------------------
-    def _add_step(self, after=None) -> WorkoutStepEditor:
+    def _add_step(self, after: int|None = None) -> WorkoutStepEditor:
 
         editor = WorkoutStepEditor()
 
@@ -166,7 +166,7 @@ class WorkoutEditorDialog(QDialog):
         return editor
 
     # -------------------------------------------------------------------------
-    def _callback_remove_step(self, editor) -> None:
+    def _callback_remove_step(self, editor: WorkoutStepEditor) -> None:
 
         # Toujours conserver au moins une étape.
         if len(self.step_editors) <= 1:
@@ -183,7 +183,7 @@ class WorkoutEditorDialog(QDialog):
 
         for number, editor in enumerate(
             self.step_editors,
-            start=1,
+            start= 1,
         ):
             editor.set_step_number(number)
 
@@ -264,7 +264,7 @@ class WorkoutEditorDialog(QDialog):
                     original_filename.replace(backup)
                     original_filename.write_text(
                         text,
-                        encoding=FILE_ENCODING
+                        encoding= FILE_ENCODING
                     )
 
                 except OSError as exc:
@@ -289,7 +289,7 @@ class WorkoutEditorDialog(QDialog):
                 return False
 
             try:
-                filename.write_text(text, encoding=FILE_ENCODING)
+                filename.write_text(text, encoding= FILE_ENCODING)
     
             except OSError as exc:
                 QMessageBox.critical(
@@ -313,7 +313,7 @@ class WorkoutEditorDialog(QDialog):
             return False
 
         try:
-            filename.write_text(text, encoding=FILE_ENCODING)
+            filename.write_text(text, encoding= FILE_ENCODING)
 
         except OSError as exc:
             QMessageBox.critical(

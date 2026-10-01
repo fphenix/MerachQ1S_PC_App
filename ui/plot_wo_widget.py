@@ -9,28 +9,29 @@ from setup.constants import (
     INTENSITY_COLORS,
 )
 
+from workout.workout import Workout
 from setup.lang import get_text
 
 # =============================================================================
 class WorkoutPlotWidget(FigureCanvas):
 
-    VERTICAL_STYLE = "none"
+    VERTICAL_STYLE: str = "none"
 
-    LINE_WIDTH = 4
+    LINE_WIDTH: int = 4
 
-    Y_MIN = 14
-    Y_MAX = 40
+    Y_MIN: int = 14
+    Y_MAX: int = 40
 
     # ------------------------------------------------------------------
     def __init__(
         self,
-        parent=None,
+        parent= None,
     ) -> None:
 
         self.current_workout = None
 
         figure = Figure(
-            figsize=(10, 5)
+            figsize= (10, 5)
         )
 
         super().__init__(
@@ -77,7 +78,7 @@ class WorkoutPlotWidget(FigureCanvas):
     # -------------------------------------------------------------------------
     def plot_workout(
         self,
-        workout,
+        workout: Workout,
     ) -> None:
 
         self.current_workout = workout
@@ -124,16 +125,16 @@ class WorkoutPlotWidget(FigureCanvas):
 
         ax.grid(
             True,
-            which="major",
-            axis="both",
-            linewidth=1.0,
+            which= "major",
+            axis= "both",
+            linewidth= 1.0,
         )
 
         ax.grid(
             True,
-            which="minor",
-            axis="both",
-            linewidth=0.5,
+            which= "minor",
+            axis= "both",
+            linewidth= 0.5,
         )
 
         ax.set_xlabel(
@@ -167,10 +168,10 @@ class WorkoutPlotWidget(FigureCanvas):
             ax.plot(
                 [x0, x1],
                 [step.spm, step.spm],
-                color=color,
-                linewidth=self.LINE_WIDTH,
-                solid_capstyle="round",
-                zorder=2,
+                color= color,
+                linewidth= self.LINE_WIDTH,
+                solid_capstyle= "round",
+                zorder= 2,
             )
 
             if step.part:
@@ -178,16 +179,16 @@ class WorkoutPlotWidget(FigureCanvas):
 
                 ax.annotate(
                     step.part,  # get_text(f"PART_DICT_{step.part}"),
-                    xy=(
+                    xy= (
                         (x0 + x1) / 2.0,
                         step.spm,
                     ),
-                    xytext=(0, 6),
-                    textcoords="offset points",
-                    ha="center",
-                    va="bottom",
-                    fontsize=10,
-                    zorder=3,
+                    xytext= (0, 6),
+                    textcoords= "offset points",
+                    ha= "center",
+                    va= "bottom",
+                    fontsize= 10,
+                    zorder= 3,
                 )
 
             if previous_spm is not None:
@@ -212,10 +213,10 @@ class WorkoutPlotWidget(FigureCanvas):
                             previous_spm,
                             step.spm,
                         ],
-                        color=vcolor,
-                        linewidth=vwidth,
-                        solid_capstyle="round",
-                        zorder=1,
+                        color= vcolor,
+                        linewidth= vwidth,
+                        solid_capstyle= "round",
+                        zorder= 1,
                     )
 
             previous_spm = step.spm
@@ -224,31 +225,31 @@ class WorkoutPlotWidget(FigureCanvas):
 
         self.figure.suptitle(
             workout.title,
-            fontsize=16,
-            fontweight="bold",
+            fontsize= 16,
+            fontweight= "bold",
         )
 
         if workout.field:
 
             ax.set_title(
                 workout.field,
-                fontsize=11,
-                pad=10,
+                fontsize= 11,
+                pad= 10,
             )
 
         handle_intensity = [
             Line2D(
                 [0], [0],
-                color=color, lw=4,
-                label=label,
+                color= color, lw= 4,
+                label= label,
             ) for intensity, color in INTENSITY_COLORS.items()
             if (label := get_text(f"INTENSITY_DICT_{intensity}"))
         ]
 
         intensity_legend = ax.legend(
-            handles=handle_intensity,
-            loc="upper right",
-            title=get_text("INTENSITY"),
+            handles= handle_intensity,
+            loc= "upper right",
+            title= get_text("INTENSITY"),
         )
 
         ax.add_artist(intensity_legend)
@@ -257,20 +258,20 @@ class WorkoutPlotWidget(FigureCanvas):
             handle_part = [
                 Line2D(
                     [], [],
-                    color="none",
-                    marker="", linestyle="",
-                    label=f"{part.upper()} : {get_text(f"PART_DICT_{part.upper()}")}",
+                    color= "none",
+                    marker= "", linestyle= "",
+                    label= f"{part.upper()} : {get_text(f"PART_DICT_{part.upper()}")}",
                 ) for part in sorted(parts_set)
             ]
 
             ax.legend(
-                handles=handle_part,
-                loc="upper center",
-                title=get_text("BODY_PART"),
+                handles= handle_part,
+                loc= "upper center",
+                title= get_text("BODY_PART"),
             )
 
         self.figure.tight_layout(
-            rect=[0, 0, 1, 0.93]
+            rect= [0, 0, 1, 0.93]
         )
 
         self.draw()

@@ -44,7 +44,7 @@ class SettingsDialog(QDialog):
         self,
         settings: Settings,
         curr_user: str,
-        parent=None,
+        parent= None,
     ) -> None:
 
         super().__init__(parent)

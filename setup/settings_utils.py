@@ -16,6 +16,7 @@ from setup.constants import (
     SPLIT_LENGTH_STEP,
     DEFAULT_SPLIT_MODE,
     SPLIT_MODES,
+    DEFAULT_PACE_ENABLED,
     FILE_ENCODING,
     PROFILE_LEVELS_KEYS,
     PROFILE_LEVELS_THRESHOLDS,
@@ -62,7 +63,7 @@ def load_settings(settings_file: Path) -> Settings:
 
         with settings_file.open(
             "r",
-            encoding=FILE_ENCODING,
+            encoding= FILE_ENCODING,
         ) as jrfile:
 
             data = json.load(jrfile)
@@ -103,6 +104,10 @@ def load_settings(settings_file: Path) -> Settings:
         if split_mode not in SPLIT_MODES:
             split_mode = DEFAULT_SPLIT_MODE
 
+        pace_enabled = bool(
+            data.get("pace_enabled", DEFAULT_PACE_ENABLED)
+        )
+
         profile_sex = data.get("profile_sex", DEFAULT_PROFILE_SEX)
         if profile_sex not in ("M", "F"):
             profile_sex = DEFAULT_PROFILE_SEX
@@ -139,24 +144,25 @@ def load_settings(settings_file: Path) -> Settings:
             delay_seconds= delay_seconds,
             split_length= split_length,
             split_mode= split_mode,
-            power_recalibration_profile_enabled=bool(
+            pace_enabled= pace_enabled,
+            power_recalibration_profile_enabled= bool(
                 data.get("power_recalibration_profile_enabled", False)
             ),
-            power_recalibration_spm_enabled=bool(
+            power_recalibration_spm_enabled= bool(
                 data.get("power_recalibration_spm_enabled", False)
             ),
-            power_recalibration_workout_enabled=bool(
+            power_recalibration_workout_enabled= bool(
                 data.get("power_recalibration_workout_enabled", False)
             ),
-            power_recalibration_duration_enabled=bool(
+            power_recalibration_duration_enabled= bool(
                 data.get("power_recalibration_duration_enabled", False)
             ),
             profile_age= profile_age,
-            profile_weight_kg=profile_weight_kg,
-            profile_height_cm=profile_height_cm,
-            profile_sex=profile_sex,
-            profile_level_norm=profile_level_norm,
-            profile_level=profile_level,
+            profile_weight_kg= profile_weight_kg,
+            profile_height_cm= profile_height_cm,
+            profile_sex= profile_sex,
+            profile_level_norm= profile_level_norm,
+            profile_level= profile_level,
         )
 
     except (
@@ -175,17 +181,17 @@ def save_settings(
 ) -> None:
 
     settings_file.parent.mkdir(
-        parents=True,
-        exist_ok=True,
+        parents= True,
+        exist_ok= True,
     )
 
     with settings_file.open(
         "w",
-        encoding=FILE_ENCODING,
+        encoding= FILE_ENCODING,
     ) as wfile:
 
         json.dump(
             asdict(settings),
             wfile,
-            indent=4,
+            indent= 4,
         )

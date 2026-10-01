@@ -10,6 +10,8 @@ from setup.utils import (
     calc_deltatime,
 )
 
+from setup.cnx_enum import CnxState
+
 from rowers.data import RowerData
 
 from logger.logger import CsvLogger
@@ -69,11 +71,11 @@ class RowState:
             self._distance_history_index = 0
 
             self.curr_rowerdata = RowerData(
-                connection=connection,
+                connection= connection,
             )
 
     # -------------------------------------------------------------------------
-    def set_cnx_status(self, status) -> None:
+    def set_cnx_status(self, status: CnxState) -> None:
 
         with self._lock:
             self.curr_rowerdata.connection = status
@@ -170,67 +172,67 @@ class RowState:
 
                 record = LogRecord(
 
-                    packet=packet,
+                    packet= packet,
 
-                    pc_time=pc_time,
-                    delta_pc=delta_pc,
+                    pc_time= pc_time,
+                    delta_pc= delta_pc,
 
-                    elapsed_time=elapsed_time,
-                    delta_elapsed=delta_elapsed,
+                    elapsed_time= elapsed_time,
+                    delta_elapsed= delta_elapsed,
 
-                    power=self.curr_rowerdata.power,
-                    power_avg=self.curr_rowerdata.power_avg,
+                    power= self.curr_rowerdata.power,
+                    power_avg= self.curr_rowerdata.power_avg,
 
-                    stroke_count=stroke_count,
-                    delta_strokes=self.delta_strokes,
-                    stroke_event=self.stroke_event,
+                    stroke_count= stroke_count,
+                    delta_strokes= self.delta_strokes,
+                    stroke_event= self.stroke_event,
 
-                    speed=self.curr_rowerdata.speed,
-                    speed_avg=self.curr_rowerdata.speed_avg,
+                    speed= self.curr_rowerdata.speed,
+                    speed_avg= self.curr_rowerdata.speed_avg,
 
-                    distance=self.curr_rowerdata.distance,
+                    distance= self.curr_rowerdata.distance,
 
-                    cadence_inst=self.curr_rowerdata.cadence_inst,   # "Cadence_Inst" : cadence instantanée brute
-                    cadence=self.curr_rowerdata.cadence,             # "Cadence": cadence instantanée lissée
-                    cadence_avg=self.curr_rowerdata.cadence_avg,     # "Cadence_Avg": cadence moyenne sur la séance
+                    cadence_inst= self.curr_rowerdata.cadence_inst,   # "Cadence_Inst" : cadence instantanée brute
+                    cadence= self.curr_rowerdata.cadence,             # "Cadence": cadence instantanée lissée
+                    cadence_avg= self.curr_rowerdata.cadence_avg,     # "Cadence_Avg": cadence moyenne sur la séance
 
-                    split=self.curr_rowerdata.split_inst,
-                    split_avg=self.curr_rowerdata.split_avg,
+                    split= self.curr_rowerdata.split_inst,
+                    split_avg= self.curr_rowerdata.split_avg,
 
-                    distance_per_stroke=self.curr_rowerdata.distance_per_stroke,
-                    dist_per_stroke_avg=self.curr_rowerdata.dist_per_stroke_avg,
+                    distance_per_stroke= self.curr_rowerdata.distance_per_stroke,
+                    dist_per_stroke_avg= self.curr_rowerdata.dist_per_stroke_avg,
 
                     calories_rate= self.curr_rowerdata.calories_rate,
-                    calories=self.curr_rowerdata.calories,
+                    calories= self.curr_rowerdata.calories,
 
-                    work_j=self.curr_rowerdata.work_j,
-                    work_per_stroke=self.curr_rowerdata.work_per_stroke,
+                    work_j= self.curr_rowerdata.work_j,
+                    work_per_stroke= self.curr_rowerdata.work_per_stroke,
 
                     #
                     # Autres valeurs venant diretement du Rameur
                     #
 
-                    raw_elapsed_time=new_rowerdata.raw_elapsed_time,
-                    raw_distance=self.curr_rowerdata.raw_distance,
+                    raw_elapsed_time= new_rowerdata.raw_elapsed_time,
+                    raw_distance= self.curr_rowerdata.raw_distance,
 
-                    raw_stroke_count=new_rowerdata.raw_stroke_count,
+                    raw_stroke_count= new_rowerdata.raw_stroke_count,
 
-                    raw_stroke_rate=self.curr_rowerdata.raw_stroke_rate,
-                    raw_stroke_rate_avg=self.curr_rowerdata.raw_stroke_rate_avg,
+                    raw_stroke_rate= self.curr_rowerdata.raw_stroke_rate,
+                    raw_stroke_rate_avg= self.curr_rowerdata.raw_stroke_rate_avg,
 
-                    raw_power=self.curr_rowerdata.raw_power,
-                    raw_power_avg=self.curr_rowerdata.raw_power_avg,
+                    raw_power= self.curr_rowerdata.raw_power,
+                    raw_power_avg= self.curr_rowerdata.raw_power_avg,
 
-                    raw_split_inst=self.curr_rowerdata.raw_split_inst,
-                    raw_split_avg=self.curr_rowerdata.raw_split_avg,
+                    raw_split_inst= self.curr_rowerdata.raw_split_inst,
+                    raw_split_avg= self.curr_rowerdata.raw_split_avg,
 
-                    raw_calories=self.curr_rowerdata.raw_calories,
-                    raw_calories_hour=self.curr_rowerdata.raw_calories_hour,
-                    raw_calories_minute=self.curr_rowerdata.raw_calories_minute,
+                    raw_calories= self.curr_rowerdata.raw_calories,
+                    raw_calories_hour= self.curr_rowerdata.raw_calories_hour,
+                    raw_calories_minute= self.curr_rowerdata.raw_calories_minute,
 
-                    raw_resistance=self.curr_rowerdata.raw_resistance,
-                    raw_training_status=self.curr_rowerdata.raw_training_status,
-                    raw_heart_rate=self.curr_rowerdata.raw_heart_rate,
+                    raw_resistance= self.curr_rowerdata.raw_resistance,
+                    raw_training_status= self.curr_rowerdata.raw_training_status,
+                    raw_heart_rate= self.curr_rowerdata.raw_heart_rate,
 
                     #
                     # Power Calibration

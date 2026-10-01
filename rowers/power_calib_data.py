@@ -32,8 +32,13 @@ class PowerCalibrationContext:
     duration_seconds: float = 0.0 # seconds
     spm: float = 0.0 # strokes per minutes
 
+    # -------------------------------------------------------------------------
+    @property
+    def is_male(self) -> bool:
+        return (self.sex.upper() == "M")
+
+
 # ==============================================================================
-from dataclasses import dataclass
 @dataclass
 class PowerCalibrationResult:
     machine_power: float

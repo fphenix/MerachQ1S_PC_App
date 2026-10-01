@@ -11,6 +11,7 @@ from setup.constants import (
     DEFAULT_PROFILE_LEVEL,
     DEFAULT_PROFILE_SEX,
     DEFAULT_PROFILE_NORM_LEVEL,
+    DEFAULT_PACE_ENABLED,
 )
 
 # =============================================================================
@@ -21,6 +22,7 @@ class Settings:
     delay_seconds: int = DEFAULT_DELAY_SECONDS
     split_length: float = DEFAULT_SPLIT_LENGTH
     split_mode: str = DEFAULT_SPLIT_MODE
+    pace_enabled: bool = DEFAULT_PACE_ENABLED
 
     power_recalibration_profile_enabled: bool = False
     power_recalibration_workout_enabled: bool = False

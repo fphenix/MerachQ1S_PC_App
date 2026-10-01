@@ -11,7 +11,7 @@ Point d'entrée de l'application Merach PM (Performance Monitor).
 #
 # It uses pyftms 0-4-15 (for the Merach Q1S for exemple) but there is a bug in
 # <PythonLibDir>\site-packages\pyftms\client\backends\update.py
-# (In Windows <PythonLibDir> is C:\Users\<user>\AppData\Local\Programs\Python\Python313\Lib)
+# (In Windows, <PythonLibDir> is C:\Users\<user>\AppData\Local\Programs\Python\Python313\Lib)
 #
 # I had to modify the on_notify() method in the DataUpdater class of the 
 # PyFTMS 0.4.15 lib with the correction described in the PATCH.md file.
@@ -20,7 +20,6 @@ Point d'entrée de l'application Merach PM (Performance Monitor).
 import sys
 import asyncio
 
-from setup.users import UserManager
 from PySide6.QtWidgets import QApplication
 
 from setup.settings import Settings
@@ -34,6 +33,7 @@ from setup.constants import (
     USE_REPLAY_WORKOUT, REPLAY_WORKOUT_FILE,
 )
 from setup.utils import echo
+from setup.users import UserManager
 
 from engine.state import RowState
 from ui.gui import MainWindow
@@ -66,7 +66,7 @@ def main():
     init_language(settings.language)
 
     #
-    # Data source : BT or log file
+    # Data source : BT (Normal mode) or log file (Replay mode)
     #
 
     if not USE_REPLAY:
@@ -99,8 +99,8 @@ def main():
 
     #
     # Source des données : Bluetooth FTMS for Q1S 
-    #                      ou Replay Log ;
-    #                      (and later BLE for C2)
+    #                      (and later BLE for C2) ;
+    #                      ou Replay Log
     #
 
     if not USE_REPLAY:
@@ -124,7 +124,7 @@ def main():
     #
 
     logger = CsvLogger(
-        logs_dir=user_manager.logs_dir()
+        logs_dir= user_manager.logs_dir()
     )
     logger.set_rower_name(source.NAME)
     logger.start()
@@ -147,7 +147,7 @@ def main():
         WINDOW_HEIGHT,
     )
 
-    screen = QApplication.primaryScreen()
+    screen = app.primaryScreen()
     available = screen.availableGeometry()
 
     window.move(
@@ -162,10 +162,12 @@ def main():
 
     if USE_REPLAY and USE_REPLAY_WORKOUT:
 
-        if not window.load_workout_file(
-            filename=REPLAY_WORKOUT_FILE,
-            replay_mode=True,
-        ):
+        wo_file_loaded = window.load_workout_file(
+            filename= REPLAY_WORKOUT_FILE,
+            replay_mode= USE_REPLAY_WORKOUT,
+        )
+
+        if not wo_file_loaded:
             raise RuntimeError(
                 f"{get_text("ERR_REPLAY_WORKOUT")} : {REPLAY_WORKOUT_FILE}"
             )

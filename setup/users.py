@@ -46,7 +46,7 @@ class UserManager:
 
             with USERS_CONFIG_FILE.open(
                 "r",
-                encoding=FILE_ENCODING,
+                encoding= FILE_ENCODING,
             ) as rfile:
 
                 data = json.load(rfile)
@@ -95,13 +95,13 @@ class UserManager:
     def save(self) -> None:
 
         USERS_CONFIG_FILE.parent.mkdir(
-            parents=True,
-            exist_ok=True,
+            parents= True,
+            exist_ok= True,
         )
 
         with USERS_CONFIG_FILE.open(
             "w",
-            encoding=FILE_ENCODING,
+            encoding= FILE_ENCODING,
         ) as wfile:
 
             json.dump(
@@ -110,8 +110,8 @@ class UserManager:
                     "users": self.users,
                 },
                 wfile,
-                indent=4,
-                ensure_ascii=False,
+                indent= 4,
+                ensure_ascii= False,
             )
 
     # ------------------------------------------------------------------
@@ -123,12 +123,12 @@ class UserManager:
         user_dir = USERS_DIR / self._safe_name(name)
 
         user_dir.mkdir(
-            parents=True,
-            exist_ok=True,
+            parents= True,
+            exist_ok= True,
         )
 
         (user_dir / LOGS_DIR_NAME).mkdir(
-            exist_ok=True,
+            exist_ok= True,
         )
 
         return user_dir

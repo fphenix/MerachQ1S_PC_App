@@ -52,8 +52,8 @@ class ReplaySource(ABC):
 
         self._running = True
         self._thread = threading.Thread(
-            target=self._run,
-            daemon=True,
+            target= self._run,
+            daemon= True,
         )
         self._thread.start()
 
@@ -126,8 +126,8 @@ class ReplaySource(ABC):
 
         with filename.open(
             "r",
-            encoding=FILE_ENCODING_BOM,
-            newline="",
+            encoding= FILE_ENCODING_BOM,
+            newline= "",
         ) as csvfile:
             
             # Les 2 premières lignes du fichier ne font pas partie
@@ -167,8 +167,8 @@ class ReplaySource(ABC):
             with archive.open(csv_name, "r") as raw_file:
                 text_file = io.TextIOWrapper(
                     raw_file,
-                    encoding=FILE_ENCODING_BOM,
-                    newline="",
+                    encoding= FILE_ENCODING_BOM,
+                    newline= "",
                 )
 
                 try:

@@ -47,7 +47,7 @@ class AnalyzerWindow(QMainWindow):
     def __init__(
         self,
         filename: str | Path,
-        parent=None,
+        parent= None,
     ) -> None:
 
         super().__init__(parent)
@@ -215,7 +215,7 @@ class AnalyzerWindow(QMainWindow):
 
             csv_ret_data = pd.read_csv(
                 BytesIO(csv_data),
-                skiprows=2,
+                skiprows= 2,
             )
 
         if csv_ret_data is not None:
@@ -392,9 +392,9 @@ class AnalyzerWindow(QMainWindow):
             line, = axis.plot(
                 x,
                 self.df[y[j]],
-                label=title[j],
-                linewidth=linewidth,
-                linestyle=linestyle,
+                label= title[j],
+                linewidth= linewidth,
+                linestyle= linestyle,
             )
 
             lines.append((y[j], line))
@@ -413,10 +413,10 @@ class AnalyzerWindow(QMainWindow):
 
         self.ax = list(
             self.figure.subplots(
-                nrows=6,
-                ncols=1,
-                sharex=True,
-                gridspec_kw={
+                nrows= 6,
+                ncols= 1,
+                sharex= True,
+                gridspec_kw= {
                     "height_ratios": [
                         2, 2, 2, 3, 2, 1
                     ],
@@ -458,21 +458,21 @@ class AnalyzerWindow(QMainWindow):
         self._create_checkbuttons()
 
         self.figure.subplots_adjust(
-            left=0.08,
-            right=(
+            left= 0.08,
+            right= (
                 0.78
                 if ANALYZER_SHOW_CHECKBUTTONS
                 else 0.95
             ),
-            top=0.95,
-            bottom=0.06,
-            hspace=0.35,
+            top= 0.95,
+            bottom= 0.06,
+            hspace= 0.35,
         )
 
         self.canvas.draw_idle()
 
     # -------------------------------------------------------------------------
-    def _draw_single_plot(self, plot_id) -> None:
+    def _draw_single_plot(self, plot_id: int) -> None:
 
         self.figure.clear()
 
@@ -510,10 +510,10 @@ class AnalyzerWindow(QMainWindow):
                 self.line_raw_split_avg = line
 
         self.figure.subplots_adjust(
-            left=0.08,
-            right=0.95,
-            top=0.92,
-            bottom=0.08,
+            left= 0.08,
+            right= 0.95,
+            top= 0.92,
+            bottom= 0.08,
         )
 
         self.canvas.draw_idle()
@@ -571,17 +571,17 @@ class AnalyzerWindow(QMainWindow):
 
         power_stats = calc_stats(
             df["Power_Recalibrated"].tolist(),
-            minimum=1,
+            minimum= 1,
         )
 
         cadence_stats = calc_stats(
             df["Cadence"].tolist(),
-            minimum=1,
+            minimum= 1,
         )
 
         dps_stats = calc_stats(
             df["Distance_Per_Stroke"].tolist(),
-            minimum=0.1,
+            minimum= 0.1,
         )
 
         for stats, title in (

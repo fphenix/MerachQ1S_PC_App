@@ -8,6 +8,7 @@ from setup.constants import (
 # =============================================================================
 @dataclass
 class WorkoutStep:
+    """ Step : One line of Workout data """
 
     duration_seconds: float
     spm: int

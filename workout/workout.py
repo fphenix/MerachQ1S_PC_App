@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from workout.step import WorkoutStep
 
 # Cannot use a simple "from setup.utils import clamp_to_zero"
@@ -12,7 +14,7 @@ class Workout:
         self.title: str = "Placeholder Workout"
         self.field: str = "Placeholder Field"
         self.steps: list[WorkoutStep] = []
-        self.filename: str | None = filename
+        self.filename: Path | str | None = filename
 
     # -------------------------------------------------------------------------
     @property

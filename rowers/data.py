@@ -7,7 +7,7 @@ from setup.cnx_enum import CnxState
 class RowerData:
 
     connection: int = field(
-        default_factory=lambda: CnxState.SEEKING
+        default_factory= lambda: CnxState.SEEKING
     )
 
     delta_strokes: int = 0                  # nb of strokes between packets
@@ -32,8 +32,11 @@ class RowerData:
     split_inst: float = 0.0                 # time inst per 500m
     split_avg: float = 0.0                  # time average per 500m
 
+    pace_inst: float = 0.0                  # Pace Instantaneous (time per meter in s/m)
+    pace_avg: float = 0.0                   # Pace Average (time per meter in s/m)
+
     splits: list[list[float]] = field(
-        default_factory=list
+        default_factory= list
     )
 
     calories_rate: float = 0.0              # calories inst (kcal/s)

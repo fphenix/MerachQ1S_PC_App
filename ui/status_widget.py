@@ -14,7 +14,7 @@ from setup.cnx_enum import CnxState
 # =============================================================================
 class StatusWidget(QWidget):
 
-    def __init__(self, title="Bluetooth") -> None:
+    def __init__(self, title: str = "Bluetooth") -> None:
         
         super().__init__()
 
@@ -27,7 +27,7 @@ class StatusWidget(QWidget):
     # ------------------------------------------------------------------
     def _init_tables(self) -> None:
 
-        self.STATUS_TEXT = [
+        self.STATUS_TEXT: list[str] = [
             get_text("CNX_CONNECTED"),
             get_text("CNX_SEEKING"),
             get_text("CNX_DISCONNECTED"),
@@ -36,7 +36,7 @@ class StatusWidget(QWidget):
             get_text("CNX_REPLAY"),
         ]
 
-        self.STATUS_COLORS = [
+        self.STATUS_COLORS: list[str] = [
             "#3CB043", # CNX_CONNECTED
             "#F5B041", # CNX_SEEKING
             "#D64541", # CNX_DISCONNECTED
@@ -69,7 +69,7 @@ class StatusWidget(QWidget):
         self.set_status(CnxState.SEEKING)
 
     # -------------------------------------------------------------------------
-    def _get_color(self, status) -> str:
+    def _get_color(self, status: CnxState) -> str:
         
         if is_between(
             status.value, 0, len(self.STATUS_COLORS),
@@ -80,7 +80,7 @@ class StatusWidget(QWidget):
         return "#808080"
 
     # -------------------------------------------------------------------------
-    def _get_text(self, status) -> str:
+    def _get_text(self, status: CnxState) -> str:
         
         if is_between(
             status.value, 0, len(self.STATUS_COLORS),
@@ -110,7 +110,7 @@ class StatusWidget(QWidget):
         )
 
     # -------------------------------------------------------------------------
-    def set_status(self, status) -> None:
+    def set_status(self, status: CnxState) -> None:
 
         color = self._get_color(status)
         text  = self._get_text(status)

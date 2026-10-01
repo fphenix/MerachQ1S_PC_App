@@ -58,8 +58,8 @@ class CsvLogger:
         self._has_data = False
 
         self.logs_dir.mkdir(
-            parents=True,
-            exist_ok=True,
+            parents= True,
+            exist_ok= True,
         )
 
         logbasename = "replay" if USE_REPLAY else "session"
@@ -74,8 +74,8 @@ class CsvLogger:
         self._file = open(
             self.filename,
             "w+",
-            newline="",
-            encoding=FILE_ENCODING,
+            newline= "",
+            encoding= FILE_ENCODING,
         )
 
         self.last_flush_time = 0.0  # time.monotonic()
@@ -295,13 +295,13 @@ class CsvLogger:
 
             with zipfile.ZipFile(
                 zip_filename,
-                mode="w",
-                compression=zipfile.ZIP_DEFLATED,
+                mode= "w",
+                compression= zipfile.ZIP_DEFLATED,
             ) as archive:
                 
                 archive.write(
                     self.filename,
-                    arcname=self.filename.name,
+                    arcname= self.filename.name,
                 )
 
             self.filename.unlink() # unlink = remove

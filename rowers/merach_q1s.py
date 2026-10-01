@@ -30,6 +30,7 @@ from engine.state import RowState
 from rowers.rower import RowerClient
 from rowers.merach_q1s_calc import MerachQ1SCalc
 from rowers.data import RowerData
+from rowers.power_calib_data import PowerCalibrationContext
 
 # =============================================================================
 class MerachRower(RowerClient):
@@ -42,9 +43,9 @@ class MerachRower(RowerClient):
 
     # BlueTooth address of your Q1S Merach machine. Use a BT scanner to get it.
     # Adresse Bluetooth du rameur Merach Q1S. Utiliser un scanner BT pour l'obtenir
-    MERACH_Q1S_ADDRESS = "24:00:0C:A0:A2:E7"
+    MERACH_Q1S_ADDRESS: str = "24:00:0C:A0:A2:E7"
 
-    NAME = "Merach Q1S"
+    NAME: str = "Merach Q1S"
 
     # -------------------------------------------------------------------------
     def __init__(self, state: RowState, settings: Settings) -> None:
@@ -111,8 +112,8 @@ class MerachRower(RowerClient):
         self._running = True
 
         self._thread = threading.Thread(
-            target=self._thread_main,
-            daemon=True,
+            target= self._thread_main,
+            daemon= True,
         )
 
         self._thread.start()
@@ -124,7 +125,7 @@ class MerachRower(RowerClient):
         self._running = False
 
         if self._thread is not None:
-            self._thread.join(timeout=5)
+            self._thread.join(timeout= 5.0)
             self._thread = None
 
     # -------------------------------------------------------------------------
@@ -138,7 +139,11 @@ class MerachRower(RowerClient):
         self.calculator.reset()
 
     # -------------------------------------------------------------------------
-    def set_power_calibration_context(self, context) -> None:
+    def set_power_calibration_context(
+        self,
+        context: PowerCalibrationContext
+    ) -> None:
+
         self.calculator.set_power_calibration_context(context)
 
     # -------------------------------------------------------------------------
@@ -177,6 +182,9 @@ class MerachRower(RowerClient):
 
         rowerdata.speed = data["speed"]
         rowerdata.speed_avg = data["speed_avg"]
+
+        rowerdata.pace_inst = data["pace_inst"]
+        rowerdata.pace_avg = data["pace_avg"]
 
         rowerdata.split_inst = data["split_inst"]
         rowerdata.split_avg = data["split_avg"]
@@ -238,19 +246,19 @@ class MerachRower(RowerClient):
 
                 device = await BleakScanner.find_device_by_address(
                     self.address,
-                    timeout=5,
+                    timeout= 5.0,
                 )
 
                 if device is None:
 
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(2.0)
                     continue
 
                 echo(f"{get_text("CNX_CONNECTED")} : {device.address}")
 
                 self._rower = Rower(
                     device,
-                    on_ftms_event=self._on_ftms_event,
+                    on_ftms_event= self._on_ftms_event,
                 )
 
                 await self._rower.connect()

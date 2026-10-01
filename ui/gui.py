@@ -4,6 +4,8 @@ gui.py
 Fenêtre principale.
 """
 
+from pathlib import Path
+
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QActionGroup
 from PySide6.QtWidgets import (
@@ -23,11 +25,12 @@ from PySide6.QtWidgets import (
     QDialog,
     QInputDialog,
     QToolButton,
+    QCheckBox,
 )
 
 from setup.lang import get_text
 from setup.utils import (
-    format_pace,
+    format_split,
     format_time,
     load_workout,
 )
@@ -51,6 +54,12 @@ from setup.constants import (
 )
 from setup.cnx_enum import CnxState
 
+from engine.state import RowState
+from setup.settings import Settings
+from setup.users import UserManager
+from logger.logger import CsvLogger
+from workout.workout import Workout
+
 from ui.status_widget import StatusWidget
 from ui.widgets import MetricWidget
 from ui.split_widget import SplitListWidget
@@ -70,21 +79,21 @@ class MainWindow(QMainWindow):
 
     def __init__(
         self,
-        state,
-        settings,
-        user_manager,
-        logger,
+        state: RowState,
+        settings: Settings,
+        user_manager: UserManager,
+        logger: CsvLogger,
     ) -> None:
 
         super().__init__()
 
-        self.state = state
-        self.settings = settings
+        self.state: RowState = state
+        self.settings: Settings = settings
 
-        self.user_manager = user_manager
-        self.logger = logger
+        self.user_manager: UserManager = user_manager
+        self.logger: CsvLogger = logger
 
-        self._workout_editor_paused = False
+        self._workout_editor_paused: bool = False
 
         self._create_ui()
 
@@ -173,8 +182,10 @@ class MainWindow(QMainWindow):
             title= get_text("SPEED"),
             unit= f"m/s  /  {get_text("AVG")}",
             gauge= GradientGauge(
-                zones=[0, 2, 4, 6, 8], # 2 à 6 m/s est plus réaliste pour femme-débutante à homme-très-confirmé
+                zones= [0, 2, 4, 6, 8], # 2 à 6 m/s est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
+            secondary_title= get_text("PACE"),
+            secondary_unit= f"  s/m  /  {get_text("AVG")}",
         )
 
         self.strokeWidget = MetricWidget(
@@ -185,7 +196,7 @@ class MainWindow(QMainWindow):
             title= get_text("DPS"),
             unit= f"m/{get_text("STROKE").lower()}  /  {get_text("AVG")}",
             gauge= GradientGauge(
-                zones=[0, 5, 10, 15, 20], # 6 à 15 m/coup est plus réaliste pour femme-débutante à homme-très-confirmé
+                zones= [0, 5, 10, 15, 20], # 6 à 15 m/coup est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
         )
 
@@ -193,7 +204,7 @@ class MainWindow(QMainWindow):
             title= get_text("POWER"),
             unit= f"W  /  {get_text("AVG")}",
             gauge= GradientGauge(
-                zones=[0, 100, 200, 300, 400], # 60 à 350 W est plus réaliste pour femme-débutante à homme-très-confirmé
+                zones= [0, 100, 200, 300, 400], # 60 à 350 W est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
         )
 
@@ -201,7 +212,7 @@ class MainWindow(QMainWindow):
             title= get_text("CADENCE"),
             unit= f"{get_text("SPM_UNIT")}  /  {get_text("AVG")}",
             gauge= GradientGauge(
-                zones=[10, 20, 24, 30, 40], # 18 à 34 est plus réaliste pour h/f-débutant à h/f-très-confirmé
+                zones= [10, 20, 24, 30, 40], # 18 à 34 est plus réaliste pour h/f-débutant à h/f-très-confirmé
             ),
         )
 
@@ -209,7 +220,7 @@ class MainWindow(QMainWindow):
             title= get_text("SPLIT"),
             unit= f"mm:ss/500m  /  {get_text("AVG")}",
             gauge= GradientGauge(
-                zones=[80, 100, 130, 160, 200], # en sec/500m ; 2:55 à 1:45 mm:ss/500m est plus réaliste pour femme-débutante à homme-très-confirmé
+                zones= [80, 100, 130, 160, 200], # en sec/500m ; 2:55 à 1:45 mm:ss/500m est plus réaliste pour femme-débutante à homme-très-confirmé
                 inverted= True,
             ),
         )
@@ -221,7 +232,7 @@ class MainWindow(QMainWindow):
 
         # Split selector : radiobutton
 
-        splitMode_label   = QLabel(get_text("SPLIT_MODE_TITLE"))
+        splitMode_label = QLabel(get_text("SPLIT_MODE_TITLE"))
 
         self.splitModeNormal  = QRadioButton(SPLIT_MODES_NORMAL)
         self.splitMode500m    = QRadioButton(SPLIT_MODES_500M)
@@ -302,7 +313,10 @@ class MainWindow(QMainWindow):
         grid.addWidget(self.caloriesWidget,    3, 2) # row, column
 
         #
-        # Ligne 4 : Bouton Reset (new session) et radiobutton pour le Splut widget
+        # Ligne 4 :
+        # * Bouton Reset (new session)
+        # * radiobutton pour le Split widget Mode
+        # * Pace On/Off button
         #
 
         self.resetButton = QPushButton(
@@ -330,6 +344,18 @@ class MainWindow(QMainWindow):
         grid.addWidget(self.resetButton,      4, 0) # row, column
         grid.addLayout(self.splitModeLayout,  4, 1) # row, column
 
+        self.paceCheckBox = QCheckBox(get_text("PACE"))
+
+        self.paceCheckBox.setChecked(
+            self.settings.pace_enabled
+        )
+
+        self.paceCheckBox.toggled.connect(
+            self._callback_pace_toggled
+        )
+
+        grid.addWidget(self.paceCheckBox,     4, 2) # row, column
+
         #
         # Workout
         #
@@ -338,7 +364,7 @@ class MainWindow(QMainWindow):
 
         self.workoutWidget = WorkoutWidget(
             settings= self.settings,
-            metronome_bar=self.workout_bar,
+            metronome_bar= self.workout_bar,
         )
 
         self.workoutWidget.setMinimumWidth(
@@ -479,6 +505,10 @@ class MainWindow(QMainWindow):
 
         self.settings.__dict__.update(
             new_settings.__dict__
+        )
+
+        self.paceCheckBox.setChecked(
+            self.settings.pace_enabled
         )
 
         #
@@ -826,8 +856,8 @@ class MainWindow(QMainWindow):
             if USE_REPLAY_WORKOUT:
 
                 self.load_workout_file(
-                    filename=REPLAY_WORKOUT_FILE,
-                    replay_mode=True,
+                    filename= REPLAY_WORKOUT_FILE,
+                    replay_mode= True,
                 )
 
             self.state.reset_session()
@@ -873,26 +903,26 @@ class MainWindow(QMainWindow):
 
         self.state.rower.set_power_calibration_context(
             PowerCalibrationContext(
-                profile_enabled=(
+                profile_enabled= (
                     self.settings.power_recalibration_profile_enabled
                 ),
-                spm_correction_enabled=(
+                spm_correction_enabled= (
                     self.settings.power_recalibration_spm_enabled
                 ),
-                workout_enabled=(
+                workout_enabled= (
                     self.settings.power_recalibration_workout_enabled
                     and bool(self.workoutWidget.workout.steps)
                 ),
-                duration_correction_enabled=(
+                duration_correction_enabled= (
                     self.settings.power_recalibration_duration_enabled
                     and bool(self.workoutWidget.workout.steps)
                 ),
-                age=self.settings.profile_age,
-                weight_kg=self.settings.profile_weight_kg,
-                height_cm=self.settings.profile_height_cm,
-                sex=self.settings.profile_sex,
-                level_norm=self.settings.profile_level_norm,
-                intensity=None,
+                age= self.settings.profile_age,
+                weight_kg= self.settings.profile_weight_kg,
+                height_cm= self.settings.profile_height_cm,
+                sex= self.settings.profile_sex,
+                level_norm= self.settings.profile_level_norm,
+                intensity= None,
                 duration_seconds= 0.0,
                 spm= 0.0,
             )
@@ -926,14 +956,27 @@ class MainWindow(QMainWindow):
         #
         # Vitesse et Vmoy
         # + Gauge
+        # + optional Pace (secondary value)
         #
+
+        pace_text = (
+            f"{rowerdata.pace_inst:.3f} / "
+            f"{rowerdata.pace_avg:.3f}"
+            if self.settings.pace_enabled
+            else None
+        )
 
         self.speedWidget.setValue(
             textvalue= (
                 f"{rowerdata.speed:.2f} / "
                 f"{rowerdata.speed_avg:.2f}"
             ),
-            gaugevalue= rowerdata.speed
+            gaugevalue= rowerdata.speed,
+            secondary_textvalue= pace_text,
+        )
+
+        self.speedWidget.setSecondaryVisible(
+            self.settings.pace_enabled
         )
 
         #
@@ -967,7 +1010,7 @@ class MainWindow(QMainWindow):
                 f"{rowerdata.power:.0f} / "
                 f"{rowerdata.power_avg:.0f}"
             ),
-            gaugevalue=rowerdata.power
+            gaugevalue= rowerdata.power
         )
 
         #
@@ -990,8 +1033,8 @@ class MainWindow(QMainWindow):
 
         self.splitWidget.setValue(
             textvalue= (
-                f"{format_pace(rowerdata.split_inst)} / "
-                f"{format_pace(rowerdata.split_avg)}"
+                f"{format_split(rowerdata.split_inst)} / "
+                f"{format_split(rowerdata.split_avg)}"
             ),
             gaugevalue= rowerdata.split_inst
         )
@@ -1025,8 +1068,8 @@ class MainWindow(QMainWindow):
 
                 if samples:
                     self.workoutSplitCalculator.update_samples(
-                        samples=samples,
-                        workout_start_elapsed=start_elapsed,
+                        samples= samples,
+                        workout_start_elapsed= start_elapsed,
                     )
                     self._workout_split_last_sample_index = samples[-1][0]
 
@@ -1053,14 +1096,14 @@ class MainWindow(QMainWindow):
         #
 
         self.caloriesWidget.setValue(
-            textvalue=(
+            textvalue= (
                 f"{rowerdata.calories_rate:.3f} / "
                 f"{rowerdata.calories:.1f}"
             )
         )
 
     # -------------------------------------------------------------------------
-    def _edit_workout_dialog(self, workout= None) -> None:
+    def _edit_workout_dialog(self, workout: Workout|None = None) -> None:
 
         # Pas d'édition pendant une séance.
         if self.workoutWidget.running:
@@ -1094,8 +1137,8 @@ class MainWindow(QMainWindow):
 
         try:
             dialog = WorkoutEditorDialog(
-                workout=workout,
-                parent=self,
+                workout= workout,
+                parent= self,
             )
 
             dialog.exec()
@@ -1156,20 +1199,20 @@ class MainWindow(QMainWindow):
     def _callback_open_workout_file(self) -> None:
 
         self.load_workout_file(
-            filename=None,
-            replay_mode=False,
+            filename= None,
+            replay_mode= False,
         )
 
     # -------------------------------------------------------------------------
     def load_workout_file(
         self,
-        filename=None,
+        filename: Path | str | None = None,
         replay_mode: bool = False,
     ) -> bool:
 
         if not self.workoutWidget.open_setup(
-            filename=filename,
-            replay_mode=replay_mode,
+            filename= filename,
+            replay_mode= replay_mode,
         ):
             return False
 
@@ -1191,7 +1234,7 @@ class MainWindow(QMainWindow):
 
         self.state.rower.calculator.set_power_calibration_workout(
             self.workoutWidget.workout,
-            start_elapsed=(
+            start_elapsed= (
                 0.0 if replay_mode else None
             ),
         )
@@ -1249,6 +1292,21 @@ class MainWindow(QMainWindow):
                 get_text("ERROR"),
                 f"{get_text("ERR_LOAD_WORKOUT")}\n{exc}",
             )
+
+    # -------------------------------------------------------------------------
+    def _callback_pace_toggled(
+        self,
+        checked: bool,
+    ) -> None:
+
+        self.settings.pace_enabled = checked
+
+        save_settings(
+            self.settings,
+            self.user_manager.settings_file(),
+        )
+
+        self.speedWidget.setSecondaryVisible(checked)
 
     # -------------------------------------------------------------------------
     # Note: ceci est une méthode Qt, applelée à la fermeture du widget

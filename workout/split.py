@@ -14,11 +14,16 @@ from workout.split_data import WorkoutSplit
 # =============================================================================
 class WorkoutSplitCalculator:
 
-    def __init__(self, settings) -> None:
+    def __init__(self, settings: Settings) -> None:
 
         self.settings: Settings = settings
 
-        self.workout: Workout | None = None
+        self.reset()
+
+    # -------------------------------------------------------------------------
+    def reset(self, workout: Workout | None = None) -> None:
+
+        self.workout: Workout | None = workout
 
         self.splits: list[WorkoutSplit] = []
 
@@ -26,24 +31,9 @@ class WorkoutSplitCalculator:
 
         self._step_start_elapsed: float = 0.0
         self._step_start_distance: float = 0.0
-
+        
         self._previous_elapsed: float | None = None
         self._previous_distance: float | None = None
-
-    # -------------------------------------------------------------------------
-    def reset(self, workout=None) -> None:
-
-        self.workout: Workout | None = workout
-
-        self.splits.clear()
-
-        self.current_step = None
-
-        self._step_start_elapsed = 0.0
-        self._step_start_distance = 0.0
-
-        self._previous_elapsed = None
-        self._previous_distance = None
 
     # -------------------------------------------------------------------------
     def start(self, distance: float) -> None:
@@ -92,7 +82,7 @@ class WorkoutSplitCalculator:
         if self.current_step is None:
 
             self.start(
-                distance=distance,
+                distance,
             )
 
         # -------------------------------------------------------------
@@ -101,11 +91,13 @@ class WorkoutSplitCalculator:
 
         while self.current_step < step_index:
 
+            step_duration = self.workout.steps[
+                self.current_step
+            ].duration_seconds
+
             boundary_elapsed = (
                 self._step_start_elapsed
-                + self.workout.steps[
-                    self.current_step
-                ].duration_seconds
+                + step_duration
             )
 
             boundary_distance = (
@@ -155,9 +147,9 @@ class WorkoutSplitCalculator:
         )
 
         self._update_split(
-            current,
-            elapsed,
-            current_distance,
+            index= current,
+            elapsed= elapsed,
+            distance= current_distance,
         )
 
         # -------------------------------------------------------------
@@ -182,8 +174,8 @@ class WorkoutSplitCalculator:
             )
 
             self.update(
-                workout_elapsed=workout_elapsed,
-                distance=distance,
+                workout_elapsed= workout_elapsed,
+                distance= distance,
             )
 
     # -------------------------------------------------------------------------
@@ -214,15 +206,15 @@ class WorkoutSplitCalculator:
 
         if split.distance > 0.0:
 
-            split.pace = calc_full_split(
-                dist=split.distance,
-                time=split.elapsed,
+            split.value = calc_full_split(
+                distance= split.distance,
+                time= split.elapsed,
                 split_length= self.settings.split_length,
             )
 
         else:
 
-            split.pace = 0.0
+            split.value = 0.0
 
     # -------------------------------------------------------------------------
     def _interpolate_distance(

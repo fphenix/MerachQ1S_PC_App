@@ -27,7 +27,7 @@ from replays.replay_source import ReplaySource
 class ReplayQ1S(ReplaySource):
     """Source de replay pour le pipeline Merach Q1S."""
 
-    NAME = "Replay Q1S"
+    NAME: str = "Replay Q1S"
 
     # -------------------------------------------------------------------------
     def __init__(

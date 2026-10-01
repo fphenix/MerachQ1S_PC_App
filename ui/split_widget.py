@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 
 from setup.lang import get_text
 from setup.utils import (
-    format_pace, format_time,
+    format_split, format_time,
     clamp_to_zero,
     clamp_to_max,
     clamp_between,
@@ -28,6 +28,9 @@ from setup.constants import (
     SPLIT_MODES_WORKOUT,
 )
 
+from workout.workout import Workout
+from workout.split_data import WorkoutSplit
+
 from engine.calc import calc_full_split
 
 # =============================================================================
@@ -38,7 +41,7 @@ class SplitListWidget(QFrame):
     Le dernier élément représente le split en cours.
     """
 
-    ROWS_PER_COLUMN = 6
+    ROWS_PER_COLUMN: int = 6
 
     # -------------------------------------------------------------------------
     def __init__(
@@ -256,7 +259,7 @@ class SplitListWidget(QFrame):
 
                 self.content_layout.addWidget(
                     column,
-                    alignment=Qt.AlignLeft | Qt.AlignTop,
+                    alignment= Qt.AlignLeft | Qt.AlignTop,
                 )
 
                 self._split_columns.append(column)
@@ -276,7 +279,7 @@ class SplitListWidget(QFrame):
 
             column_layout.addWidget(
                 label,
-                alignment=Qt.AlignLeft | Qt.AlignTop,
+                alignment= Qt.AlignLeft | Qt.AlignTop,
             )
 
             self._split_labels.append(label)
@@ -286,7 +289,7 @@ class SplitListWidget(QFrame):
         self,
         lines: list[str],
         update_from: int = 0,
-        mode=None,
+        mode: str | None = None,
         target_index: int | None = None,
     ) -> None:
 
@@ -315,7 +318,7 @@ class SplitListWidget(QFrame):
 
             self.content_layout.addWidget(
                 label,
-                alignment=Qt.AlignLeft | Qt.AlignTop,
+                alignment= Qt.AlignLeft | Qt.AlignTop,
             )
 
             return
@@ -379,7 +382,7 @@ class SplitListWidget(QFrame):
             self._last_workout_step = None
             self._set_lines(
                 [],
-                mode=SPLIT_MODES_500M,
+                mode= SPLIT_MODES_500M,
             )
             return
 
@@ -387,13 +390,13 @@ class SplitListWidget(QFrame):
 
         for index, (distance, elapsed) in enumerate(
             splits,
-            start=1,
+            start= 1,
         ):
 
-            pace = calc_full_split(
-                dist=distance,
-                time=elapsed,
-                split_length=self.split_length,
+            split = calc_full_split(
+                distance= distance,
+                time= elapsed,
+                split_length= self.split_length,
             )
 
             suffix = (
@@ -405,7 +408,7 @@ class SplitListWidget(QFrame):
             lines.append(
                 f"{index:>2}.  "
                 f"{distance:>5.0f} m  "
-                f"{format_pace(pace)}"
+                f"{format_split(split)}"
                 f"{suffix}"
             )
 
@@ -417,16 +420,16 @@ class SplitListWidget(QFrame):
 
         self._set_lines(
             lines,
-            update_from=update_from,
-            mode=SPLIT_MODES_500M,
-            target_index=new_count - 1,
+            update_from= update_from,
+            mode= SPLIT_MODES_500M,
+            target_index= new_count - 1,
         )
 
     # ----------------------------------------------------------------------
     def set_workout_splits(
         self,
-        workout,
-        splits,
+        workout: Workout,
+        splits: list[WorkoutSplit],
         current_step: int | None,
     ) -> None:
 
@@ -462,13 +465,13 @@ class SplitListWidget(QFrame):
 
                 elapsed = split.elapsed
                 distance = split.distance
-                pace = split.pace
+                value = split.value
 
             else:
 
                 elapsed = 0.0
                 distance = 0.0
-                pace = 0.0
+                value = 0.0
 
             elapsed_text = format_time(
                 elapsed
@@ -480,14 +483,14 @@ class SplitListWidget(QFrame):
                     f"{distance:.0f} m"
                 )
 
-                pace_text = format_pace(
-                    pace
+                split_text = format_split(
+                    value
                 )
 
             else:
 
                 distance_text = "-"
-                pace_text = "--:--"
+                split_text = "--:--"
 
             # ----------------------------------------------------------
             # Step courant
@@ -523,7 +526,7 @@ class SplitListWidget(QFrame):
                 f"{index + 1:>2}.  "
                 f"{elapsed_text:>5}   "
                 f"{distance_text:>5}   "
-                f"{pace_text:>5}  "
+                f"{split_text:>5}  "
                 f"{extra:>5}"
             )
 
@@ -560,9 +563,9 @@ class SplitListWidget(QFrame):
 
         self._set_lines(
             lines,
-            update_from=update_from,
-            mode=SPLIT_MODES_WORKOUT,
-            target_index=target_index,
+            update_from= update_from,
+            mode= SPLIT_MODES_WORKOUT,
+            target_index= target_index,
         )
 
         self._last_workout_step = current_step

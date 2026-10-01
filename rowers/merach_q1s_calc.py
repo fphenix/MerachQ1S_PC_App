@@ -18,6 +18,7 @@ from rowers.power_calibration import WorkoutPowerCalibration
 from rowers.power_calib_data import PowerCalibrationContext
 
 from workout.workout import Workout
+from setup.settings import Settings
 
 from setup.utils import (
     calc_delta,
@@ -27,6 +28,7 @@ from setup.utils import (
 )
 from engine.calc import (
     calc_speed_avg,
+    calc_pace,
     calc_power_avg,
     calc_cadence_from_strokes,
     calc_split500,
@@ -44,22 +46,22 @@ class MerachQ1SCalc:
 
     # Frottements : Coefficient Concept2 est 2.8.
     # Peut être ajusté expérimentalement pour le Merach Q1S.
-    DRAG_FACTOR:float  = 2.8
+    DRAG_FACTOR: float = 2.8
 
     # Candence : lissage
-    CADENCE_WINDOW:int = 4      # nombre de coups utilisés pour le calcul brut (ou plus précisément la taille de la fenêtre utilisée pour calculer la cadence brute)
-    CADENCE_SMOOTHING:int = 3   # nombre de cadences calculées utilisées pour le lissage
+    CADENCE_WINDOW: int = 4      # nombre de coups utilisés pour le calcul brut (ou plus précisément la taille de la fenêtre utilisée pour calculer la cadence brute)
+    CADENCE_SMOOTHING: int = 3   # nombre de cadences calculées utilisées pour le lissage
 
     # Calories
-    USE_C2_CALORIES:bool = False
-    CALORIE_OFFSET:float = 300.0
-    CALORIES_CALIB:float = 1.1639
-    CALORIES_PER_WATT:float = 3.4
+    USE_C2_CALORIES: bool = False
+    CALORIE_OFFSET: float = 300.0
+    CALORIES_CALIB: float = 1.1639
+    CALORIES_PER_WATT: float = 3.4
 
     # ------------------------------------------------------------------
-    def __init__(self, settings) -> None:
+    def __init__(self, settings: Settings) -> None:
 
-        self.settings = settings
+        self.settings: Settings = settings
 
         self.power_calibration = WorkoutPowerCalibration(
             machine_scale=WorkoutPowerCalibration.POWER_SCALE
@@ -68,27 +70,27 @@ class MerachQ1SCalc:
         self.power_calibration_workout: Workout | None = None
         self.power_calibration_workout_start_elapsed: float | None = None
 
-        self.stroke_times = deque(maxlen=self.CADENCE_WINDOW)
-        self.cadence_history = deque(maxlen=self.CADENCE_SMOOTHING)
+        self.stroke_times = deque(maxlen= self.CADENCE_WINDOW)
+        self.cadence_history = deque(maxlen= self.CADENCE_SMOOTHING)
 
         self.reset()
 
     # -------------------------------------------------------------------------
     def reset(self) -> None:
 
-        self.distance = 0.0
-        self.calories = 0.0
-        self.work_j = 0.0
-        self.work_per_stroke = 0.0
+        self.distance: float = 0.0
+        self.calories: float = 0.0
+        self.work_j: float = 0.0
+        self.work_per_stroke: float = 0.0
 
         self.stroke_times.clear()
         self.cadence_history.clear()
 
-        self.cadence_avg = 0.0
-        self.distance_per_stroke = 0.0
-        self.dist_per_stroke_avg = 0.0
+        self.cadence_avg: float = 0.0
+        self.distance_per_stroke: float = 0.0
+        self.dist_per_stroke_avg: float = 0.0
 
-        self.last_strokes = 0
+        self.last_strokes: int = 0
 
         self.splits: list = []
 
@@ -113,14 +115,14 @@ class MerachQ1SCalc:
 
         power_calibration_context = (
             self._power_calibration_context_for_elapsed(
-                elapsed_time=elapsed_time,
-                raw_stroke_rate=raw_stroke_rate,
+                elapsed_time= elapsed_time,
+                raw_stroke_rate= raw_stroke_rate,
             )
         )
 
         p_calibration = self.power_calibration.calibrate_details( # self.power_calibration.calibrate(
-            raw_power=raw_power,
-            context=power_calibration_context,
+            raw_power= raw_power,
+            context= power_calibration_context,
         )
 
         self.last_calibration = p_calibration
@@ -163,11 +165,19 @@ class MerachQ1SCalc:
         split = calc_split500(speed, self.settings.split_length)
         split_avg = calc_split500(speed_avg, self.settings.split_length)
 
+        #
+        # Pace inst (from speed) in s/m
+        # Pace avg (from distance total and elapsed time) in s/m
+        #
+
+        pace_inst = calc_pace(speed)
+        pace_avg = calc_pace(self.distance, elapsed_time)
+
         self.splits = self._q1s_update_splits_list(
             self.splits,
-            distance=self.distance,
-            elapsed_time=elapsed_time,
-            split_length=self.settings.split_length,
+            distance= self.distance,
+            elapsed_time= elapsed_time,
+            split_length= self.settings.split_length,
         )
 
         #
@@ -187,12 +197,12 @@ class MerachQ1SCalc:
         # Cadences (Strokes per minute) : Delta, Inst et Inst lissée
         #
 
-        stroke_count=int(data.get("stroke_count", 0))
+        stroke_count = int(data.get("stroke_count", 0))
 
         delta_strokes, cadence_inst, cadence = self._q1s_calc_cadence_inst(
-            stroke_count=stroke_count,
-            elapsed_time=elapsed_time,
-            delta_elapsed=delta_elapsed,
+            stroke_count= stroke_count,
+            elapsed_time= elapsed_time,
+            delta_elapsed= delta_elapsed,
         )
 
         #
@@ -212,8 +222,8 @@ class MerachQ1SCalc:
 
         if delta_elapsed > 0.0 and cadence > 0.0:
             self.distance_per_stroke = calc_dist_per_stroke(
-                speed=speed,
-                cadence=cadence,
+                speed= speed,
+                cadence= cadence,
             )
 
         self.dist_per_stroke_avg = calc_dist_per_stroke_avg(
@@ -253,6 +263,9 @@ class MerachQ1SCalc:
 
         data["speed"] = speed
         data["speed_avg"] = speed_avg
+
+        data["pace_inst"] = pace_inst
+        data["pace_avg"] = pace_avg
 
         data["distance"] = self.distance
 
@@ -369,15 +382,15 @@ class MerachQ1SCalc:
         ):
             return replace(
                 context,
-                spm=raw_stroke_rate,
+                spm= raw_stroke_rate,
             )
 
         if self.power_calibration_workout_start_elapsed is None:
             return replace(
                 context,
-                intensity=None,
-                duration_seconds=0.0,
-                spm=raw_stroke_rate,
+                intensity= None,
+                duration_seconds= 0.0,
+                spm= raw_stroke_rate,
             )
 
         workout_elapsed = clamp_to_zero(
@@ -394,9 +407,9 @@ class MerachQ1SCalc:
         if step_info is None:
             return replace(
                 context,
-                intensity=None,
-                duration_seconds=0.0,
-                spm=raw_stroke_rate,
+                intensity= None,
+                duration_seconds= 0.0,
+                spm= raw_stroke_rate,
             )
 
         step_index, step_elapsed = step_info
@@ -404,9 +417,9 @@ class MerachQ1SCalc:
 
         return replace(
             context,
-            intensity=step.intensity,
-            duration_seconds=step_elapsed,
-            spm=raw_stroke_rate,
+            intensity= step.intensity,
+            duration_seconds= step_elapsed,
+            spm= raw_stroke_rate,
         )
 
     # -------------------------------------------------------------------------
@@ -545,7 +558,7 @@ class MerachQ1SCalc:
         while current_distance >= split_length:
 
             segment_time = calc_full_split(
-                dist= current_distance,
+                distance= current_distance,
                 time= current_time,
                 split_length= split_length,
             )

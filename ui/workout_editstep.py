@@ -24,24 +24,24 @@ from setup.constants import (
 class WorkoutStepEditor(QWidget):
     """Éditeur d'une ligne de Workout."""
 
-    STEP_NUMBER_WIDTH = 25
-    DUR_LABEL_WIDTH = 40
-    DURATION_WIDTH = 80
-    DUR_UNIT_WIDTH = 65
-    SPM_LABEL_WIDTH = 35
-    SPM_VALUE_WIDTH = 60
-    INTENS_LBL_WIDTH = 55
-    INTENSITY_WIDTH = 45
-    PART_LABEL_WIDTH = 40
-    PART_VALUE_WIDTH = 50
-    INFO_WIDTH = 220
-    COMMENT_WIDTH = 220
-    BUTTON_WIDTH = 28
+    STEP_NUMBER_WIDTH: int = 25
+    DUR_LABEL_WIDTH: int = 40
+    DURATION_WIDTH: int = 80
+    DUR_UNIT_WIDTH: int = 65
+    SPM_LABEL_WIDTH: int = 35
+    SPM_VALUE_WIDTH: int = 60
+    INTENS_LBL_WIDTH: int = 55
+    INTENSITY_WIDTH: int = 45
+    PART_LABEL_WIDTH: int = 40
+    PART_VALUE_WIDTH: int = 50
+    INFO_WIDTH: int = 220
+    COMMENT_WIDTH: int = 220
+    BUTTON_WIDTH: int = 28
 
     sig_duration_changed = Signal()
 
     # -------------------------------------------------------------------------
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent= None) -> None:
 
         super().__init__(parent)
 
