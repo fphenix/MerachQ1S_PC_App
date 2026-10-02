@@ -94,7 +94,21 @@ class WorkoutEditorDialog(QDialog):
         main_layout.addWidget(buttons)
 
         self.status_bar = QStatusBar()
-        self.total_time_label = QLabel()
+
+        self.status_bar.setStyleSheet(
+            """
+            QStatusBar::item {
+                border: none;
+            }
+            QStatusBar QLabel {
+                padding-left: 6px;
+                padding-right: 6px;
+            }
+            """
+        )
+
+        self.total_time_label = QLabel("--")
+        self.total_strokes_label = QLabel("--")
 
         font = AVERAGE_FONT_SIZE
         self.total_time_label.setStyleSheet(
@@ -104,13 +118,26 @@ class WorkoutEditorDialog(QDialog):
             }}
             """
         )
-        self.status_bar.addWidget(self.total_time_label)
+        self.total_strokes_label.setStyleSheet(
+            f"""
+            QLabel {{
+                font: bold {font}px {TITLE_FONT};
+            }}
+            """
+        )
+
+        self.status_bar.addWidget(
+            self.total_time_label
+        )
+        self.status_bar.addWidget(
+            self.total_strokes_label
+        )
 
         main_layout.addWidget(
             self.status_bar
         )
 
-        self._update_total_time()
+        self._update_total()
 
         if self.workout is None:
             self.setWindowTitle(get_text("WO_CREATE_TITLE"))
@@ -123,16 +150,27 @@ class WorkoutEditorDialog(QDialog):
             self._fetch_workout(self.workout)
 
     # -------------------------------------------------------------------------
-    def _update_total_time(self) -> None:
+    def _update_total(self) -> None:
 
-        total = sum(
+        total_time = sum(
             editor.get_duration_seconds()
             for editor in self.step_editors
         )
 
         self.total_time_label.setText(
             f"{get_text("TOTAL_TIME")} : "
-            f"{format_time(total)}"
+            f"{format_time(total_time)}"
+        )
+
+        nb_strokes = sum(
+            round(editor.get_duration_seconds() *
+            editor.get_spm() / 60.0)
+            for editor in self.step_editors
+        )
+
+        self.total_strokes_label.setText(
+            f"{get_text("TOTAL_STROKES")} : "
+            f"{nb_strokes}"
         )
 
     # -------------------------------------------------------------------------
@@ -157,11 +195,11 @@ class WorkoutEditorDialog(QDialog):
         )
 
         editor.sig_duration_changed.connect(
-            self._update_total_time
+            self._update_total
         )
 
         self._update_step_numbers()
-        self._update_total_time()
+        self._update_total()
 
         return editor
 
@@ -176,7 +214,7 @@ class WorkoutEditorDialog(QDialog):
         editor.deleteLater()
 
         self._update_step_numbers()
-        self._update_total_time()
+        self._update_total()
 
     # -------------------------------------------------------------------------
     def _update_step_numbers(self) -> None:

@@ -81,90 +81,6 @@ class WorkoutWidget(QFrame):
         )
 
     # ------------------------------------------------------------------
-    def reset(self) -> None:
-
-        self.timer.stop()
-
-        self.workout = Workout()
-
-        self._reset_runtime_state()
-
-        self.step_list.clear()
-
-        self.metronome_bar.setValue(0)
-
-        self._default_label_text()
-
-        palette = self.intensity_label.palette()
-        palette.setColor(
-            QPalette.WindowText,
-            TEXT_COLOR,
-        )
-        self.intensity_label.setPalette(palette)
-
-        self.info_label.clear()
-
-    # ------------------------------------------------------------------
-    def _reset_runtime_state(
-        self,
-        replay_mode: bool = False,
-    ) -> None:
-
-        self.current_step: int = -1 if replay_mode else 0
-
-        self.replay_mode: bool = replay_mode
-        self.countdown_active: bool = not replay_mode
-        self.running: bool = False
-
-        self.countdown_remaining: float = (
-            self.settings.delay_seconds
-            if not replay_mode
-            else 0.0
-        )
-
-        self.total_remaining_time: float = 0.0
-        self.total_time: float = 0.0
-        self.step_remaining_time: float = 0.0
-        self.step_elapsed: float = 0.0
-
-        self.workout_elapsed: float = 0.0
-        self.model_start_elapsed: float | None = None
-
-        self.metronome_anchor_elapsed: float = 0.0
-        self.metronome_anchor_time: float = (
-            time.perf_counter()
-        )
-
-        self.last_tick: float = time.perf_counter()
-
-    # ------------------------------------------------------------------
-    def _default_label_text(self) -> None:
-
-        self.title_label.setText(get_text("WORKOUT"))
-
-        self.field_label.setText(get_text("FIELD"))
-
-        self.state_label.setText(get_text("WORKOUT_NONE_LOADED"))
-
-        self.total_label.setText(
-            f"{get_text("TOTAL_TIME")} : 00:00"
-        )
-
-        self.exercise_label.setText(
-            f"{get_text("WORKOUT")} : --"
-        )
-
-        self.rate_label.setText(
-            f"{get_text("CADENCE")} : -- {get_text("SPM_UNIT")}"
-        )
-
-        self.intensity_label.setText(
-            f"{get_text("INTENSITY")} : --"
-        )
-
-        self.info_label.setText("--")
-
-    # ------------------------------------------------------------------
     def _create_ui(self) -> None:
 
         self.setStyleSheet(
@@ -355,6 +271,90 @@ class WorkoutWidget(QFrame):
         #
 
         self._configure_metronome_bar()
+
+    # ------------------------------------------------------------------
+    def reset(self) -> None:
+
+        self.timer.stop()
+
+        self.workout = Workout()
+
+        self._reset_runtime_state()
+
+        self.step_list.clear()
+
+        self.metronome_bar.setValue(0)
+
+        self._default_label_text()
+
+        palette = self.intensity_label.palette()
+        palette.setColor(
+            QPalette.WindowText,
+            TEXT_COLOR,
+        )
+        self.intensity_label.setPalette(palette)
+
+        self.info_label.clear()
+
+    # ------------------------------------------------------------------
+    def _reset_runtime_state(
+        self,
+        replay_mode: bool = False,
+    ) -> None:
+
+        self.current_step: int = -1 if replay_mode else 0
+
+        self.replay_mode: bool = replay_mode
+        self.countdown_active: bool = not replay_mode
+        self.running: bool = False
+
+        self.countdown_remaining: float = (
+            self.settings.delay_seconds
+            if not replay_mode
+            else 0.0
+        )
+
+        self.total_remaining_time: float = 0.0
+        self.total_time: float = 0.0
+        self.step_remaining_time: float = 0.0
+        self.step_elapsed: float = 0.0
+
+        self.workout_elapsed: float = 0.0
+        self.model_start_elapsed: float | None = None
+
+        self.metronome_anchor_elapsed: float = 0.0
+        self.metronome_anchor_time: float = (
+            time.perf_counter()
+        )
+
+        self.last_tick: float = time.perf_counter()
+
+    # ------------------------------------------------------------------
+    def _default_label_text(self) -> None:
+
+        self.title_label.setText(get_text("WORKOUT"))
+
+        self.field_label.setText(get_text("FIELD"))
+
+        self.state_label.setText(get_text("WORKOUT_NONE_LOADED"))
+
+        self.total_label.setText(
+            f"{get_text("TOTAL_TIME")} : 00:00"
+        )
+
+        self.exercise_label.setText(
+            f"{get_text("WORKOUT")} : --"
+        )
+
+        self.rate_label.setText(
+            f"{get_text("CADENCE")} : -- {get_text("SPM_UNIT")}"
+        )
+
+        self.intensity_label.setText(
+            f"{get_text("INTENSITY")} : --"
+        )
+
+        self.info_label.setText("--")
 
     # ------------------------------------------------------------------
     def _configure_metronome_bar(self) -> None:

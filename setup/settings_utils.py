@@ -17,6 +17,7 @@ from setup.constants import (
     DEFAULT_SPLIT_MODE,
     SPLIT_MODES,
     DEFAULT_PACE_ENABLED,
+    DEFAULT_MAX_POWER_ENABLED,
     FILE_ENCODING,
     PROFILE_LEVELS_KEYS,
     PROFILE_LEVELS_THRESHOLDS,
@@ -108,6 +109,10 @@ def load_settings(settings_file: Path) -> Settings:
             data.get("pace_enabled", DEFAULT_PACE_ENABLED)
         )
 
+        max_power_enabled = bool(
+            data.get("max_power_enabled", DEFAULT_MAX_POWER_ENABLED)
+        )
+
         profile_sex = data.get("profile_sex", DEFAULT_PROFILE_SEX)
         if profile_sex not in ("M", "F"):
             profile_sex = DEFAULT_PROFILE_SEX
@@ -145,6 +150,7 @@ def load_settings(settings_file: Path) -> Settings:
             split_length= split_length,
             split_mode= split_mode,
             pace_enabled= pace_enabled,
+            max_power_enabled= max_power_enabled,
             power_recalibration_profile_enabled= bool(
                 data.get("power_recalibration_profile_enabled", False)
             ),

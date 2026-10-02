@@ -66,6 +66,10 @@ class WorkoutStepEditor(QWidget):
             lambda text: self.sig_duration_changed.emit()
         )
 
+        self.cpm_box.valueChanged.connect(
+            lambda value: self.sig_duration_changed.emit()
+        )
+
     # -------------------------------------------------------------------------
     def _create_ui(self) -> None:
 
@@ -186,7 +190,7 @@ class WorkoutStepEditor(QWidget):
         self.intensity = QComboBox()
         self.intensity.setFixedWidth(self.INTENSITY_WIDTH)
         self.intensity.addItems(
-            INTENSITY_DICT_KEYS # INTENSITY_DICT.keys()
+            INTENSITY_DICT_KEYS
         )
         self.intensity.setCurrentText("N")
 
@@ -326,6 +330,11 @@ class WorkoutStepEditor(QWidget):
         unit = self.duration_unit.currentText()
 
         return value * DURATION_UNITS[unit]
+
+    # -------------------------------------------------------------------------
+    def get_spm(self) -> float:
+
+        return self.cpm_box.value()
 
     # -------------------------------------------------------------------------
     def set_values(

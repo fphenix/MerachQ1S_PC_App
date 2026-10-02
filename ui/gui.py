@@ -51,6 +51,7 @@ from setup.constants import (
     USE_REPLAY, USE_REPLAY_WORKOUT,
     REPLAY_WORKOUT_FILE,
     WORKOUTS_DIR,
+    MAX_POWER_FILTER, MAX_POWER_WINDOW_WIDTH,
 )
 from setup.cnx_enum import CnxState
 
@@ -95,6 +96,8 @@ class MainWindow(QMainWindow):
 
         self._workout_editor_paused: bool = False
 
+        self.max_power_list: list[float] = []
+
         self._create_ui()
 
         #
@@ -112,7 +115,11 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
     def _create_ui(self) -> None:
         
-        self.setWindowTitle(f"{get_text("WINDOW_TITLE")} : {self.state.rower.NAME}")
+        self.setWindowTitle(
+            f"{get_text("WINDOW_TITLE")} : "
+            f"{self.state.rower.NAME} - "
+            f"{get_text("VERSION")} {VERSION}"
+        )
 
         self._create_menu()
 
@@ -151,21 +158,14 @@ class MainWindow(QMainWindow):
         )
 
         #
-        # Ligne 0 : Etat Bluetooth
+        # Status Bar: Etat Bluetooth
         #
 
         self.connectionWidget = StatusWidget()
 
-        grid.addWidget(
-            self.connectionWidget,
-            0, # row
-            0, # column
-            1, # rowSpan
-            3, # columnSpan
-        )
-
         #
-        # Widgets
+        # Widgets : 1st row
+        # Time, Distance and Speed
         #
 
         self.timeWidget = MetricWidget(
@@ -185,8 +185,13 @@ class MainWindow(QMainWindow):
                 zones= [0, 2, 4, 6, 8], # 2 à 6 m/s est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
             secondary_title= get_text("PACE"),
-            secondary_unit= f"  s/m  /  {get_text("AVG")}",
+            secondary_unit= f"s/m  /  {get_text("AVG")}",
         )
+
+        #
+        # Widgets : 2nd row
+        # Strokes Number, Distance per Stroke, Power
+        #
 
         self.strokeWidget = MetricWidget(
             title= f"{get_text("STROKE")}s",
@@ -206,7 +211,14 @@ class MainWindow(QMainWindow):
             gauge= GradientGauge(
                 zones= [0, 100, 200, 300, 400], # 60 à 350 W est plus réaliste pour femme-débutante à homme-très-confirmé
             ),
+            secondary_title= get_text("MAX_POWER"),
+            secondary_unit= "W"
         )
+
+        #
+        # Widgets : 3rd row
+        # Cadence, Split/Split Lists, Calories
+        #
 
         self.cadenceWidget = MetricWidget(
             title= get_text("CADENCE"),
@@ -230,7 +242,14 @@ class MainWindow(QMainWindow):
             settings= self.settings,
         )
 
-        # Split selector : radiobutton
+        self.caloriesWidget = MetricWidget(
+            title= get_text("CALORIES"),
+            unit= "kcal/s  /  kcal",
+        )
+
+        #
+        # Split selector : radiobuttons
+        #
 
         splitMode_label = QLabel(get_text("SPLIT_MODE_TITLE"))
 
@@ -268,7 +287,9 @@ class MainWindow(QMainWindow):
             self._set_split_mode
         )
 
-        # split widget
+        #
+        # split widgets container
+        #
 
         splitContainer = QWidget()
         splitLayout = QVBoxLayout(splitContainer)
@@ -280,42 +301,10 @@ class MainWindow(QMainWindow):
 
         self.splitListWidget.setVisible(False)
 
-        self.caloriesWidget = MetricWidget(
-            title= get_text("CALORIES"),
-            unit= "kcal/s  /  kcal",
-        )
-
         #
-        # Ligne 1
-        #
-
-        grid.addWidget(self.timeWidget,       1, 0) # row, column
-        grid.addWidget(self.distanceWidget,   1, 1) # row, column
-        grid.addWidget(self.speedWidget,      1, 2) # row, column
-
-        #
-        # Ligne 2
-        #
-
-        grid.addWidget(self.strokeWidget,     2, 0) # row, column
-        grid.addWidget(self.distStrokeWidget, 2, 1) # row, column
-        grid.addWidget(self.powerWidget,      2, 2) # row, column
-
-        #
-        # Ligne 3
-        # Note: splitWidget and the container for SplitList is on the some
-        # cell of the grid and we will display on or the other by clicking
-        # the splitModeCheck button
-        #
-
-        grid.addWidget(self.cadenceWidget,     3, 0) # row, column
-        grid.addWidget(splitContainer,         3, 1) # row, column
-        grid.addWidget(self.caloriesWidget,    3, 2) # row, column
-
-        #
-        # Ligne 4 :
+        # Buttons:
         # * Bouton Reset (new session)
-        # * radiobutton pour le Split widget Mode
+        # * radiobuttons pour le Mode du Split widget
         # * Pace On/Off button
         #
 
@@ -341,8 +330,10 @@ class MainWindow(QMainWindow):
 
         self.splitModeLayout.addStretch()
 
-        grid.addWidget(self.resetButton,      4, 0) # row, column
-        grid.addLayout(self.splitModeLayout,  4, 1) # row, column
+        self.secondaryEnablerLayout = QHBoxLayout()
+        self.secondaryEnablerLayout.setContentsMargins(
+            0, 0, 0, 0
+        )
 
         self.paceCheckBox = QCheckBox(get_text("PACE"))
 
@@ -354,10 +345,70 @@ class MainWindow(QMainWindow):
             self._callback_pace_toggled
         )
 
-        grid.addWidget(self.paceCheckBox,     4, 2) # row, column
+        self.maxPowerCheckBox = QCheckBox(get_text("MAX_POWER"))
+
+        self.maxPowerCheckBox.setChecked(
+            self.settings.max_power_enabled
+        )
+
+        self.maxPowerCheckBox.toggled.connect(
+            self._callback_max_power_toggled
+        )
+
+        self.secondaryEnablerLayout.addStretch()
+        self.secondaryEnablerLayout.addWidget(self.paceCheckBox)
+        self.secondaryEnablerLayout.addWidget(self.maxPowerCheckBox)
+        self.secondaryEnablerLayout.addStretch()
 
         #
-        # Workout
+        # Grid Ligne 0 : Status Bar
+        #
+
+        grid.addWidget(
+            self.connectionWidget,
+            0, # row
+            0, # column
+            1, # rowSpan
+            3, # columnSpan
+        )
+
+        #
+        # Widget Grid: Ligne 1
+        #
+
+        grid.addWidget(self.timeWidget,       1, 0) # row, column
+        grid.addWidget(self.distanceWidget,   1, 1) # row, column
+        grid.addWidget(self.speedWidget,      1, 2) # row, column
+
+        #
+        # Widget Grid: Ligne 2
+        #
+
+        grid.addWidget(self.strokeWidget,     2, 0) # row, column
+        grid.addWidget(self.distStrokeWidget, 2, 1) # row, column
+        grid.addWidget(self.powerWidget,      2, 2) # row, column
+
+        #
+        # Widget Grid: Ligne 3
+        # Note: The Split cell has the container for both the 
+        # splitWidget and the SplitList widget. We will display one
+        # or the other by clicking the splitModeCheck radiobuttons.
+        #
+
+        grid.addWidget(self.cadenceWidget,     3, 0) # row, column
+        grid.addWidget(splitContainer,         3, 1) # row, column
+        grid.addWidget(self.caloriesWidget,    3, 2) # row, column
+
+        #
+        # Grid Ligne 4 : Buttons
+        #
+
+        grid.addWidget(self.resetButton,            4, 0) # row, column
+        grid.addLayout(self.splitModeLayout,        4, 1) # row, column
+        grid.addLayout(self.secondaryEnablerLayout, 4, 2) # row, column
+
+        #
+        # Workout Panel
         #
 
         self.workout_bar = QProgressBar()
@@ -830,6 +881,8 @@ class MainWindow(QMainWindow):
     # -------------------------------------------------------------------------
     def _callback_new_session(self) -> None:
 
+        self.max_power_list.clear()
+
         if USE_REPLAY and self.state.source is not None:
             self.state.source.stop()
 
@@ -1005,15 +1058,26 @@ class MainWindow(QMainWindow):
         # + Gauge
         #
 
+        # NOTE: in Replay, _compute_max_power will be called at GUI refresh
+        # rate and may miss some of the samples. This is not an issue at
+        # REPLAY_SPEED=1 or in Normal mode.
+        max_power_avg = self._compute_max_power(rowerdata.power)
+        max_power_text = f"{max_power_avg:.1f}"
+
         self.powerWidget.setValue(
             textvalue= (
                 f"{rowerdata.power:.0f} / "
                 f"{rowerdata.power_avg:.0f}"
             ),
-            gaugevalue= rowerdata.power
+            gaugevalue= rowerdata.power,
+            secondary_textvalue= max_power_text,
         )
 
-        #
+        self.powerWidget.setSecondaryVisible(
+            self.settings.max_power_enabled
+        )
+
+       #
         # Cadence et SPM moyen
         # + Gauge
         #
@@ -1294,19 +1358,48 @@ class MainWindow(QMainWindow):
             )
 
     # -------------------------------------------------------------------------
-    def _callback_pace_toggled(
+    def _secondary_toggled(
         self,
+        enable_ref: str,
+        widget: MetricWidget,
         checked: bool,
     ) -> None:
 
-        self.settings.pace_enabled = checked
+        # le setattr va nous aider a émuler un passage par référence.
+        # Ex: si enable_ref="pace_enabled" on obtient l'équivallent de:
+        #     self.settings.pace_enabled = checked
+        setattr(self.settings, enable_ref, checked)
 
         save_settings(
             self.settings,
             self.user_manager.settings_file(),
         )
 
-        self.speedWidget.setSecondaryVisible(checked)
+        widget.setSecondaryVisible(checked)
+
+    # -------------------------------------------------------------------------
+    def _callback_pace_toggled(
+        self,
+        checked: bool,
+    ) -> None:
+
+        self._secondary_toggled(
+            "pace_enabled",
+            self.speedWidget,
+            checked
+        )
+
+    # -------------------------------------------------------------------------
+    def _callback_max_power_toggled(
+        self,
+        checked: bool,
+    ) -> None:
+
+        self._secondary_toggled(
+            "max_power_enabled",
+            self.powerWidget,
+            checked
+        )
 
     # -------------------------------------------------------------------------
     # Note: ceci est une méthode Qt, applelée à la fermeture du widget
@@ -1451,4 +1544,27 @@ class MainWindow(QMainWindow):
             self,
             f"{get_text("MENU_ABOUT")}: {get_text("WINDOW_TITLE")}",
             info,
+        )
+
+    # -------------------------------------------------------------------------
+    # We ignore the 'MAX_POWER_FILTER' max values
+    # Wa average the consecutive 'MAX_POWER_WINDOW_WIDTH' values
+    # for instance, with 3 and 5 respectively, values at indices
+    # 0, 1 and 2 are ignored, then values at indices 3, 4, 5, 6 and 7
+    # are used to get the average max power value.
+    def _compute_max_power(self, inst_power_value: float):
+
+        self.max_power_list.append(inst_power_value)
+        self.max_power_list = sorted(
+            self.max_power_list,
+            reverse= True
+        )[:MAX_POWER_FILTER+MAX_POWER_WINDOW_WIDTH]
+
+        filtered_max_power = self.max_power_list[MAX_POWER_FILTER:]
+        nb_filtered_values = len(filtered_max_power)
+
+        return (
+            0.0
+            if nb_filtered_values < 1
+            else sum(filtered_max_power) / float(nb_filtered_values)
         )

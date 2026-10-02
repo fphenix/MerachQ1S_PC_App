@@ -1,6 +1,6 @@
 from pathlib import Path
 
-VERSION: str = "4.12"
+VERSION: str = "4.13"
 COPYRIGHT_YEAR: str | int = "2026"
 
 GUI_REFRESH_MS   = 100 # milliseconds
@@ -37,6 +37,7 @@ SPLIT_MODES_WORKOUT: str = "workout"
 DEFAULT_SPLIT_MODE: str = SPLIT_MODES_NORMAL
 
 DEFAULT_PACE_ENABLED: bool = False
+DEFAULT_MAX_POWER_ENABLED: bool = False
 
 SPLIT_MODES: list[str] = [
     SPLIT_MODES_NORMAL,
@@ -50,6 +51,10 @@ LANGUAGES: dict[str, str] = {
     "fr": "Français",
     "en": "English",
 }
+
+# Compute the "Max Power" value :
+MAX_POWER_FILTER: int       = 3 # remove the N first values (filter glitches)
+MAX_POWER_WINDOW_WIDTH: int = 5 # average the N values after the filter
 
 # ----------------------------------------------------------------------
 # Files and Directories
@@ -144,7 +149,7 @@ REPLAY_FILE: Path = (
 )
 REPLAY_WORKOUT_FILE: Path = WORKOUTS_DIR / "spm_power.wo"
 
-REPLAY_SPEED: float = 100.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.
+REPLAY_SPEED: float = 75.0 # 1.0: temps réel, 10: 10x plus rapide, 100: 100x plus rapide, etc.
 
 # ----------------------------------------------------------------------
 # Power recalibration / profile

@@ -24,11 +24,11 @@ class WorkoutStep:
         part_txt = (
             ""
             if self.part is None
-            else f" ({get_text(f"PART_DICT_{self.part}")})"
+            else f" ({get_text(f"PART_DICT_{self.part.upper()}")})"
         )
 
         return (
-            f"{get_text(f"INTENSITY_DICT_{self.intensity}")}"
+            f"{get_text(f"INTENSITY_DICT_{self.intensity.upper()}")}"
             f"{part_txt}"
         )
 

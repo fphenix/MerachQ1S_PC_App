@@ -243,7 +243,7 @@ class WorkoutPlotWidget(FigureCanvas):
                 color= color, lw= 4,
                 label= label,
             ) for intensity, color in INTENSITY_COLORS.items()
-            if (label := get_text(f"INTENSITY_DICT_{intensity}"))
+            if (label := get_text(f"INTENSITY_DICT_{intensity.upper()}"))
         ]
 
         intensity_legend = ax.legend(

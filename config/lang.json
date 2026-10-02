@@ -272,6 +272,10 @@
         "fr": "Choisir un Log",
         "en": "Select a log"
     },
+    "MAX_POWER": {
+        "fr": "Puissance Max",
+        "en": "Max Power"
+    },
     "MENU_ABOUT": {
         "fr": "A Propos",
         "en": "About"
@@ -536,6 +540,10 @@
         "fr": "Temps",
         "en": "Time"
     },
+    "TOTAL_STROKES": {
+        "fr": "Nombre total de coups",
+        "en": "Total Strokes count"
+    },
     "TOTAL_TIME": {
         "fr": "Temps total",
         "en": "Total Time"
@@ -571,6 +579,10 @@
     "WARN_NO_SETTINGS": {
         "fr": "Les Paramètres ne peuvent pas être modifiés pendant une séance.",
         "en": "Settings cannot be modified during a session."
+    },
+    "WARN_NO_USER_CHANGE": {
+        "fr": "Impossible de changer d'utilisateur à ce moment.",
+        "en": "Cannot swap the user at this moment."
     },
     "WARNING": {
         "fr": "Avertissement",

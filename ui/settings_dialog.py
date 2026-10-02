@@ -185,8 +185,8 @@ class SettingsDialog(QDialog):
         self.height_spinbox.setValue(self.settings.profile_height_cm)
 
         self.sex_combo = QComboBox()
-        self.sex_combo.addItem(get_text(f"PROFILE_SEX_M"), "M")
-        self.sex_combo.addItem(get_text(f"PROFILE_SEX_F"), "F")
+        self.sex_combo.addItem(get_text("PROFILE_SEX_M"), "M")
+        self.sex_combo.addItem(get_text("PROFILE_SEX_F"), "F")
         index = self.sex_combo.findData(self.settings.profile_sex)
         self.sex_combo.setCurrentIndex(clamp_to_zero(index))
 

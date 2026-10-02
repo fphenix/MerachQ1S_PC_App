@@ -48,16 +48,17 @@ class StatusWidget(QWidget):
     # ------------------------------------------------------------------
     def _create_ui(self) -> None:
 
+        layout = QHBoxLayout(self)
+
         self.bt_led_label = QLabel("●")
         self.bt_led_label.setAlignment(Qt.AlignCenter)
+
         self.title_label = QLabel(self.title)
 
         self.led_label = QLabel("●")
         self.led_label.setAlignment(Qt.AlignCenter)
 
         self.text_label = QLabel("---")
-
-        layout = QHBoxLayout(self)
 
         layout.addWidget(self.bt_led_label)
         layout.addWidget(self.title_label)

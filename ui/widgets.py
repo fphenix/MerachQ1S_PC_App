@@ -132,9 +132,9 @@ class MetricWidget(QFrame):
                 self.secondary_unit
             )
 
-            self.secondary_label.setAlignment(Qt.AlignRight)
+            self.secondary_label.setAlignment(Qt.AlignLeft)
             self.secondary_value_label.setAlignment(Qt.AlignCenter)
-            self.secondary_unit_label.setAlignment(Qt.AlignLeft)
+            self.secondary_unit_label.setAlignment(Qt.AlignCenter)
 
             secondary_font = QFont(MAIN_FONT, WIDGET_SECONDARY_FONT_SIZE)
             secondary_font.setBold(True)
