@@ -1,5 +1,5 @@
 WORKOUT: My Title for the workout
-FIELD: The type of exercise, for example Cardio, Fat Burner, Endurance, etc.
+FIELD: The type of exercise, for example CARDIO, FAT_BURNER, ENDURANCE, etc.
 # secondes_(float)  spm_(int)  intensity_(char)   optional_part_(str)
 300 20 N
 300 22 N

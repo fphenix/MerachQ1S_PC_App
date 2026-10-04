@@ -1,12 +1,12 @@
 WORKOUT: 2k_9m00
-FIELD: Catégorie
+FIELD: SPRINT, WARMUP, VO2, POWER, CARDIO
 # Warmup
 INFO: Before a 2k sprint, always start with a WarmUp
 60 18 E
 90 20 E
 60 20 N
 60 22 F
-60 20 N
+60 21 N
 60 24 F
 60 20 N
 60 26 F
