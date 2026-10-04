@@ -1,6 +1,6 @@
 from pathlib import Path
 
-VERSION: str = "4.13"
+VERSION: str = "4.14"
 COPYRIGHT_YEAR: str | int = "2026"
 
 GUI_REFRESH_MS   = 100 # milliseconds
@@ -246,3 +246,15 @@ DURATION_RANGES: dict[str, tuple[int|float, int, float]] = {
     "min": (0.01, 120, 0.5),
     "h":   (0.01, 2, 0.5),
 }
+
+FIELD_CATEGORY_KEYS = (
+    "STRENGTH",
+    "ENDURANCE",
+    "CARDIO",
+    "VO2",
+    "POWER",
+    "SPRINT",
+    "FAT_BURNER",
+    "TECHNIQUE",
+    "WARMUP",
+)

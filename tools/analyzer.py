@@ -552,7 +552,7 @@ class AnalyzerWindow(QMainWindow):
 
         if self.workout_filename is not None:
             lines.extend([
-                f"Workout : {self.workout_filename}",
+                f"{get_text("WORKOUT")} : {self.workout_filename}",
                 "",
             ])
 

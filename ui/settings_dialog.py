@@ -111,17 +111,17 @@ class SettingsDialog(QDialog):
         self.split_mode_combo = QComboBox()
 
         self.split_mode_combo.addItem(
-            "Normal",
+            get_text("SPLIT_MODE_NORMAL"),
             SPLIT_MODES_NORMAL,
         )
 
         self.split_mode_combo.addItem(
-            "500 m",
+            get_text("SPLIT_MODES_500M"),
             SPLIT_MODES_500M,
         )
 
         self.split_mode_combo.addItem(
-            "Workout",
+            get_text("SPLIT_MODES_WORKOUT"),
             SPLIT_MODES_WORKOUT,
         )
 

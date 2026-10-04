@@ -32,7 +32,7 @@ class Language:
     def get_text(self, key: str) -> str:
         if key not in self._texts.keys():
              raise RuntimeError(
-                f"Key {key} does not exist in lang.json"
+                f"Err: Key {key} does not exist in lang.json"
             )
         return self._texts[key]
 

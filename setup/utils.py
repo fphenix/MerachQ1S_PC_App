@@ -119,7 +119,7 @@ def load_workout(filename: str) -> Workout:
                 workout.title = (
                     title
                     if title
-                    else "Placeholder Workout"
+                    else f"{get_text("PLACEHOLDER_WORKOUT")}"
                 )
 
                 continue
@@ -142,7 +142,7 @@ def load_workout(filename: str) -> Workout:
                 workout.field = (
                     field
                     if field
-                    else "Placeholder Field"
+                    else ""
                 )
 
                 continue

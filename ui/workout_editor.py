@@ -23,9 +23,12 @@ from setup.constants import (
     FILE_ENCODING,
     AVERAGE_FONT_SIZE,
     TITLE_FONT,
+    FIELD_CATEGORY_KEYS,
 )
 
 from ui.workout_editstep import WorkoutStepEditor
+from ui.clickable_lineedit import Clickable_LineEdit
+from ui.field_selector import FieldSelectorDialog
 from workout.workout import Workout
 
 # =============================================================================
@@ -42,6 +45,9 @@ class WorkoutEditorDialog(QDialog):
 
         self.workout: Workout = workout
         self.step_editors: list = []
+
+        self.field_keys: list[str] = []
+        self.field_other: str = ""
 
         self.original_filename: Path | None = (
             Path(workout.filename)
@@ -60,18 +66,39 @@ class WorkoutEditorDialog(QDialog):
 
         form = QFormLayout()
 
+        #
+        # Filename, Titre et Champ
+        #
+
+        self.filename_edit = QLineEdit()
+        self.filename_edit.setPlaceholderText(
+            f"<{get_text("FILENAME_INSTR")}>"
+        )
+
         self.title_edit = QLineEdit()
-        self.title_edit.setPlaceholderText(get_text("WORKOUT_NAME"))
+        self.title_edit.setPlaceholderText(
+            f"<{get_text("WORKOUT_NAME_INSTR")}>"
+        )
 
-        self.field_edit = QLineEdit()
-        self.field_edit.setPlaceholderText(get_text("FIELD"))
+        self.field_edit = Clickable_LineEdit()
+        self.field_edit.setReadOnly(True)
+        self.field_edit.setPlaceholderText(
+            f"<{get_text("FIELD_INSTR")}>"
+        )
+        self.field_edit.clicked.connect(
+            self._callback_field_clicked
+        )
 
+        form.addRow(f"{get_text("FILENAME")} :", self.filename_edit)
         form.addRow(f"{get_text("WORKOUT_NAME")} :", self.title_edit)
         form.addRow(f"{get_text("FIELD")} :", self.field_edit)
 
         main_layout.addLayout(form)
 
-        # Zone des étapes
+        #
+        # Zone des lignes d'étapes
+        #
+
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
 
@@ -92,6 +119,10 @@ class WorkoutEditorDialog(QDialog):
         buttons.rejected.connect(self.reject)
 
         main_layout.addWidget(buttons)
+
+        #
+        # Status bar
+        #
 
         self.status_bar = QStatusBar()
 
@@ -137,14 +168,18 @@ class WorkoutEditorDialog(QDialog):
             self.status_bar
         )
 
+        #
+        # Créer/Editer
+        #
+
         self._update_total()
 
+        # Créer
         if self.workout is None:
             self.setWindowTitle(get_text("WO_CREATE_TITLE"))
-            self.title_edit.setText(get_text("WO_CREATE_NEW"))
-            self.field_edit.setText(get_text("FIELD"))
             self._add_step()
 
+        # Editer
         else:
             self.setWindowTitle(get_text("WO_EDIT_TITLE"))
             self._fetch_workout(self.workout)
@@ -228,8 +263,11 @@ class WorkoutEditorDialog(QDialog):
     # -------------------------------------------------------------------------
     def _fetch_workout(self, workout: Workout) -> None:
 
+        self.filename_edit.setText(
+            Path(workout.filename).stem
+        )
         self.title_edit.setText(workout.title)
-        self.field_edit.setText(workout.field)
+        self._set_field_from_text(workout.field)
 
         for step in workout.steps:
             editor = self._add_step()
@@ -247,7 +285,7 @@ class WorkoutEditorDialog(QDialog):
     def _build_workout_text(self) -> str:
 
         title = self.title_edit.text().strip()
-        field = self.field_edit.text().strip()
+        field = self._get_field_text()
 
         lines = [
             f"{WO_KEYWORD["Title"]} {title}",
@@ -287,15 +325,14 @@ class WorkoutEditorDialog(QDialog):
 
         text = self._build_workout_text()
 
-        title = self.title_edit.text().strip()
+        filename_stem = self.filename_edit.text().strip()
 
         # Édition d'un Workout existant
         if self.workout is not None:
             original_filename = Path(self.workout.filename)
-            original_title = original_filename.stem
 
-            # Titre inchangé : on remplace l'ancien fichier après backup.
-            if title == original_title:
+            # Nom de fichier inchangé : on remplace l'ancien fichier après backup.
+            if filename_stem == original_filename.stem:
                 backup = Path(f"{original_filename}.bak")
 
                 try:
@@ -315,8 +352,8 @@ class WorkoutEditorDialog(QDialog):
 
                 return True
 
-            # Titre changé : création d'un nouveau fichier.
-            filename = original_filename.parent / f"{title}.wo"
+            # Nom de fichier changé : création d'un nouveau fichier.
+            filename = original_filename.parent / f"{filename_stem}.wo"
 
             if filename.exists():
                 QMessageBox.warning(
@@ -340,7 +377,7 @@ class WorkoutEditorDialog(QDialog):
             return True
 
         # Création d'un nouveau Workout
-        filename = WORKOUTS_DIR / f"{title}.wo"
+        filename = WORKOUTS_DIR / f"{filename_stem}.wo"
 
         if filename.exists():
             QMessageBox.warning(
@@ -366,8 +403,16 @@ class WorkoutEditorDialog(QDialog):
     # -------------------------------------------------------------------------
     def _callback_save_wo(self) -> None:
 
+        filename = self.filename_edit.text().strip()
         title = self.title_edit.text().strip()
-        field = self.field_edit.text().strip()
+
+        if not filename:
+            QMessageBox.warning(
+                self,
+                get_text("ERROR"),
+                get_text("ERR_INVWO_EMPTY_FILENAME"),
+            )
+            return
 
         if not title:
             QMessageBox.warning(
@@ -377,21 +422,13 @@ class WorkoutEditorDialog(QDialog):
             )
             return
 
-        if not field:
-            QMessageBox.warning(
-                self,
-                get_text("ERROR"),
-                get_text("ERR_INVWO_EMPTY_FIELD"),
-            )
-            return
-
         invalid_chars = '<>:"/\\|?*'
 
-        if any(char in title for char in invalid_chars):
+        if any(char in filename for char in invalid_chars):
             QMessageBox.warning(
                 self,
                 get_text("ERROR"),
-                get_text("ERR_INVWO_BADCHAR_TITLE"),
+                get_text("ERR_INVWO_BADCHAR_FILENAME"),
             )
             return
 
@@ -399,3 +436,66 @@ class WorkoutEditorDialog(QDialog):
             return
 
         self.accept()
+
+    # -------------------------------------------------------------------------
+    def _callback_field_clicked(self) -> None:
+
+        dialog = FieldSelectorDialog(
+            selected_keys=self.field_keys,
+            other_text=self.field_other,
+            parent=self,
+        )
+
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        self.field_keys, self.field_other = (
+            dialog.get_selection()
+        )
+
+        self._update_field_display()
+
+    # -------------------------------------------------------------------------
+    def _update_field_display(self) -> None:
+
+        labels = [
+            get_text(f"FIELD_CATEGORY_{key}")
+            for key in self.field_keys
+        ]
+
+        if self.field_other:
+            labels.append(
+                f"{get_text('FIELD_CATEGORY_OTHER')}: {self.field_other}"
+            )
+
+        self.field_edit.setText(
+            ", ".join(labels)
+        )
+
+    # -------------------------------------------------------------------------
+    def _set_field_from_text(self, field):
+        self.field_keys = []
+        other_values = []
+
+        for value in field.split(","):
+            value = value.strip()
+
+            if not value:
+                continue
+
+            if value in FIELD_CATEGORY_KEYS:
+                self.field_keys.append(value)
+            else:
+                other_values.append(value)
+
+        self.field_other = ", ".join(other_values)
+        self._update_field_display()
+
+    # -------------------------------------------------------------------------
+    def _get_field_text(self):
+        values = list(self.field_keys)
+
+        if self.field_other:
+            values.append(self.field_other)
+
+        return ", ".join(values)

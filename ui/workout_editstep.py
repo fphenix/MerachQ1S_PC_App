@@ -45,6 +45,8 @@ class WorkoutStepEditor(QWidget):
 
         super().__init__(parent)
 
+        self.unit_key: str = "min"
+
         self._create_ui()
 
         self._set_connexions()
@@ -58,12 +60,8 @@ class WorkoutStepEditor(QWidget):
             lambda value: self.sig_duration_changed.emit()
         )
 
-        self.duration_unit.currentTextChanged.connect(
-            self._update_duration_range
-        )
-
-        self.duration_unit.currentTextChanged.connect(
-            lambda text: self.sig_duration_changed.emit()
+        self.duration_unit.currentIndexChanged.connect(
+            self._callback_duration_unit_changed
         )
 
         self.cpm_box.valueChanged.connect(
@@ -127,11 +125,22 @@ class WorkoutStepEditor(QWidget):
 
         self.duration_unit = QComboBox()
         self.duration_unit.setFixedWidth(self.DUR_UNIT_WIDTH)
-        self.duration_unit.addItems(
-            DURATION_UNITS.keys()
+
+        self.duration_unit.addItem(
+            get_text("SECOND_UNIT"),
+            "sec",
         )
-        self.duration_unit.setCurrentText(
-            get_text("MINUTE_UNIT")
+        self.duration_unit.addItem(
+            get_text("MINUTE_UNIT"),
+            "min",
+        )
+        self.duration_unit.addItem(
+            get_text("HOUR_UNIT"),
+            "h",
+        )
+
+        self.duration_unit.setCurrentIndex(
+            self.duration_unit.findData(self.unit_key)
         )
 
         layout.addWidget(
@@ -297,13 +306,23 @@ class WorkoutStepEditor(QWidget):
         )
 
     # -------------------------------------------------------------------------
-    def _update_duration_range(self, unit: str | None = None) -> None:
-        
-        if unit is None:
-            unit = self.duration_unit.currentText()
+    def _callback_duration_unit_changed(self, index: int) -> None:
 
-        minimum, maximum, step = DURATION_RANGES[unit]
-        self.duration_value.setRange(minimum, maximum)
+        self.unit_key = self.duration_unit.itemData(index)
+
+        self._update_duration_range()
+
+        self.sig_duration_changed.emit()
+    
+    # -------------------------------------------------------------------------
+    def _update_duration_range(self) -> None:
+
+        minimum, maximum, step = DURATION_RANGES[self.unit_key]
+
+        self.duration_value.setRange(
+            minimum,
+            maximum,
+        )
         self.duration_value.setSingleStep(step)
 
     # -------------------------------------------------------------------------
@@ -311,25 +330,27 @@ class WorkoutStepEditor(QWidget):
         """Set the duration using the most natural unit."""
 
         if duration_seconds % 3600 == 0:
-            unit = "h"
+            unit_key = "h" # This is the key in DURATION_UNITS
             value = duration_seconds / 3600
         elif duration_seconds % 60 == 0:
-            unit = "min"
+            unit_key = "min" # This is the key in DURATION_UNITS
             value = duration_seconds / 60
         else:
-            unit = "sec"
+            unit_key = "sec" # This is the key in DURATION_UNITS
             value = duration_seconds
 
-        self.duration_unit.setCurrentText(unit)
-        self._update_duration_range(unit)
+        self.duration_unit.setCurrentIndex(
+            self.duration_unit.findData(unit_key)
+        )
+
         self.duration_value.setValue(value)
 
     # -------------------------------------------------------------------------
     def get_duration_seconds(self) -> float:
-        value = self.duration_value.value()
-        unit = self.duration_unit.currentText()
 
-        return value * DURATION_UNITS[unit]
+        value = self.duration_value.value()
+
+        return value * DURATION_UNITS[self.unit_key]
 
     # -------------------------------------------------------------------------
     def get_spm(self) -> float:

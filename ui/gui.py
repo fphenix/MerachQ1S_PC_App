@@ -468,7 +468,7 @@ class MainWindow(QMainWindow):
             METRONOME_MARGIN
         )
 
-        self.metronome_label = QLabel("CPM")
+        self.metronome_label = QLabel(f"{get_text("SPM_UNIT")}")
 
         self.metronome_label.setAlignment(
             Qt.AlignRight | Qt.AlignVCenter
@@ -640,6 +640,11 @@ class MainWindow(QMainWindow):
             return
 
         if not self._can_change_user():
+
+            self.user_actions[
+                self.user_manager.current_user
+            ].setChecked(True)
+            
             return
 
         #
@@ -1184,6 +1189,7 @@ class MainWindow(QMainWindow):
         #
         # Mémorise si la source était réellement en cours.
         #
+
         if source is None:
             source_was_running = False
 
@@ -1192,7 +1198,10 @@ class MainWindow(QMainWindow):
 
         else:
             # Le vrai rameur n'a pas de propriété is_running.
-            source_was_running = True
+            source_was_running = (
+                self.state.curr_rowerdata.connection
+                == CnxState.CONNECTED
+            )
 
         self._workout_editor_paused = True
 
@@ -1365,7 +1374,7 @@ class MainWindow(QMainWindow):
         checked: bool,
     ) -> None:
 
-        # le setattr va nous aider a émuler un passage par référence.
+        # Le setattr va nous aider à émuler un passage par référence.
         # Ex: si enable_ref="pace_enabled" on obtient l'équivallent de:
         #     self.settings.pace_enabled = checked
         setattr(self.settings, enable_ref, checked)
@@ -1548,7 +1557,7 @@ class MainWindow(QMainWindow):
 
     # -------------------------------------------------------------------------
     # We ignore the 'MAX_POWER_FILTER' max values
-    # Wa average the consecutive 'MAX_POWER_WINDOW_WIDTH' values
+    # We average the consecutive 'MAX_POWER_WINDOW_WIDTH' values
     # for instance, with 3 and 5 respectively, values at indices
     # 0, 1 and 2 are ignored, then values at indices 3, 4, 5, 6 and 7
     # are used to get the average max power value.

@@ -95,7 +95,7 @@ class CsvLogger:
 
         self.writer.writerow([
             f"{self.rower_name} PC {mode}",
-            f"Version {VERSION}",
+            f"{get_text("VERSION")} {VERSION}",
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         ])
 

@@ -11,8 +11,8 @@ class Workout:
 
     def __init__(self, filename: str | None = None) -> None:
 
-        self.title: str = "Placeholder Workout"
-        self.field: str = "Placeholder Field"
+        self.title: str = ""
+        self.field: str = ""
         self.steps: list[WorkoutStep] = []
         self.filename: Path | str | None = filename
 
@@ -28,8 +28,8 @@ class Workout:
     # -------------------------------------------------------------------------
     def clear(self) -> None:
         
-        self.title = "Placeholder Workout"
-        self.field = "Placeholder Field"
+        self.title = ""
+        self.field = ""
         self.steps.clear()
         self.filename = None
 

@@ -46,6 +46,7 @@ from setup.constants import (
     MAIN_FONT,
     WORKOUTS_DIR,
     REPLAY_SPEED,
+    FIELD_CATEGORY_KEYS,
 )
 
 from workout.workout import Workout
@@ -190,9 +191,14 @@ class WorkoutWidget(QFrame):
                 else LIST_BACKGROUND
             )
 
+            use_big_font = not (
+                label is self.info_label
+                or label is self.field_label
+            )
+
             font = (
                 BIG_FONT_SIZE
-                if label is not self.info_label
+                if use_big_font
                 else WORKOUT_INFO_FONT_SIZE
             )
 
@@ -459,7 +465,10 @@ class WorkoutWidget(QFrame):
         self.metronome_bar.setValue(0)
 
         self.title_label.setText(workout.title)
-        self.field_label.setText(workout.field)
+
+        field_text = self._get_text_from_field(workout.field)
+
+        self.field_label.setText(field_text)
 
         self.state_label.setText(
             f"{get_text("WORKOUT_STARTS_IN")} "
@@ -877,3 +886,27 @@ class WorkoutWidget(QFrame):
             }}
             """
         )
+
+    # -------------------------------------------------------------------------
+    def _get_text_from_field(self, field):
+
+        field_keys = []
+        other_values = []
+
+        for value in field.split(","):
+            value = value.strip()
+
+            if not value:
+                continue
+
+            # Si la valeur est une clé connue, trouver son texte associé
+            if value in FIELD_CATEGORY_KEYS:
+                field_keys.append(
+                    get_text(f"FIELD_CATEGORY_{value}")
+                )
+
+            # Sinon ajouter la valeur à la fin telle quelle.
+            else:
+                other_values.append(value)
+
+        return ", ".join(field_keys + other_values)
