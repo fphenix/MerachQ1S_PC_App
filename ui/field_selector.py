@@ -23,20 +23,20 @@ class FieldSelectorDialog(QDialog):
 
         super().__init__(parent)
 
-        self.other_text = other_text
+        self.other_text: str = other_text
 
         self.setWindowTitle(
             get_text("FIELD_CATEGORIES")
         )
 
-        self.selected_keys = selected_keys or []
+        self.selected_keys: list = selected_keys or []
 
         self.checkboxes: dict[str, QCheckBox] = {}
 
         self._create_ui()
 
     # -------------------------------------------------------------------------
-    def _create_ui(self):
+    def _create_ui(self) -> None:
 
         layout = QVBoxLayout(self)
 

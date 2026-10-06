@@ -253,9 +253,9 @@ class MainWindow(QMainWindow):
 
         splitMode_label = QLabel(get_text("SPLIT_MODE_TITLE"))
 
-        self.splitModeNormal  = QRadioButton(SPLIT_MODES_NORMAL)
-        self.splitMode500m    = QRadioButton(SPLIT_MODES_500M)
-        self.splitModeWorkout = QRadioButton(SPLIT_MODES_WORKOUT)
+        self.splitModeNormal  = QRadioButton(get_text("SPLIT_MODE_NORMAL"))
+        self.splitMode500m    = QRadioButton(get_text("SPLIT_MODE_500M"))
+        self.splitModeWorkout = QRadioButton(get_text("SPLIT_MODE_WORKOUT"))
 
         split_mode_list = [self.splitModeNormal, self.splitMode500m, self.splitModeWorkout]
 
@@ -1505,6 +1505,8 @@ class MainWindow(QMainWindow):
             self.settings,
             self.user_manager.settings_file(),
         )
+
+        self._apply_split_mode_preference()
 
         if self.settings.language != old_language_setting:
             QMessageBox.information(

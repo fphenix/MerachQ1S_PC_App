@@ -473,7 +473,8 @@ class WorkoutEditorDialog(QDialog):
         )
 
     # -------------------------------------------------------------------------
-    def _set_field_from_text(self, field):
+    def _set_field_from_text(self, field) -> None:
+
         self.field_keys = []
         other_values = []
 
@@ -492,7 +493,8 @@ class WorkoutEditorDialog(QDialog):
         self._update_field_display()
 
     # -------------------------------------------------------------------------
-    def _get_field_text(self):
+    def _get_field_text(self) -> str:
+
         values = list(self.field_keys)
 
         if self.field_other:

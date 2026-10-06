@@ -10,5 +10,7 @@ class Clickable_LineEdit(QLineEdit):
 
     # -------------------------------------------------------------------------
     def mousePressEvent(self, event) -> None:
+
         super().mousePressEvent(event)
+        
         self.clicked.emit()

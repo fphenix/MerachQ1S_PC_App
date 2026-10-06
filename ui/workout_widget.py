@@ -466,7 +466,7 @@ class WorkoutWidget(QFrame):
 
         self.title_label.setText(workout.title)
 
-        field_text = self._get_text_from_field(workout.field)
+        field_text = self.get_text_from_field(workout.field)
 
         self.field_label.setText(field_text)
 
@@ -888,10 +888,11 @@ class WorkoutWidget(QFrame):
         )
 
     # -------------------------------------------------------------------------
-    def _get_text_from_field(self, field):
+    @staticmethod
+    def get_text_from_field(field) -> str:
 
-        field_keys = []
-        other_values = []
+        field_keys: list = []
+        other_values: list = []
 
         for value in field.split(","):
             value = value.strip()

@@ -1,5 +1,3 @@
-# ui/settings_dialog.py
-
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog,
@@ -116,12 +114,12 @@ class SettingsDialog(QDialog):
         )
 
         self.split_mode_combo.addItem(
-            get_text("SPLIT_MODES_500M"),
+            get_text("SPLIT_MODE_500M"),
             SPLIT_MODES_500M,
         )
 
         self.split_mode_combo.addItem(
-            get_text("SPLIT_MODES_WORKOUT"),
+            get_text("SPLIT_MODE_WORKOUT"),
             SPLIT_MODES_WORKOUT,
         )
 
@@ -165,6 +163,8 @@ class SettingsDialog(QDialog):
         self.duration_recalibration_check.setChecked(
             self.settings.power_recalibration_duration_enabled
         )
+        # La recalibration par durée est en ce moment désactivée.
+        self.duration_recalibration_check.setEnabled(False)
 
         self.age_spinbox = QDoubleSpinBox()
         self.age_spinbox.setRange(MIN_PROFILE_AGE, MAX_PROFILE_AGE)

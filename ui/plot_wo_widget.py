@@ -9,6 +9,7 @@ from setup.constants import (
     INTENSITY_COLORS,
 )
 
+from ui.workout_widget import WorkoutWidget
 from workout.workout import Workout
 from setup.lang import get_text
 
@@ -232,7 +233,7 @@ class WorkoutPlotWidget(FigureCanvas):
         if workout.field:
 
             ax.set_title(
-                workout.field,
+                WorkoutWidget.get_text_from_field(workout.field),
                 fontsize= 11,
                 pad= 10,
             )
