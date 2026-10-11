@@ -38,6 +38,7 @@ class CsvLogger:
         self.log_format: str = LOGGER_FORMAT
         self.writer = None
         self.workout_file: str | None = None
+        self.game_name: str | None = None
 
         self.packet: int = 0
 
@@ -100,13 +101,10 @@ class CsvLogger:
         ])
 
         #
-        # Workout associé à la séance
+        # Workout ou jeu associé à la séance
         #
 
-        self.writer.writerow([
-            "Workout",
-            self.workout_file or "None Loaded",
-        ])
+        self.writer.writerow(self._activity_header_row())
 
         #
         # Entête des colonnes
@@ -115,6 +113,20 @@ class CsvLogger:
         self.writer.writerow(
             LogRecord.csv_header()
         )
+
+    # -------------------------------------------------------------------------
+    def _activity_header_row(self) -> list[str]:
+
+        if self.game_name:
+            return ["Game", self.game_name]
+        
+        return ["Workout", self.workout_file or "None Loaded"]
+
+    # -------------------------------------------------------------------------
+    def set_game_name(self, name: str | None) -> None:
+
+        self.game_name = name
+        self._update_workout_header()
 
     # -------------------------------------------------------------------------
     def _update_workout_header(self) -> None:
@@ -132,10 +144,7 @@ class CsvLogger:
         if len(rows) < 2:
             return
 
-        rows[1] = [
-            "Workout",
-            self.workout_file or "None Loaded",
-        ]
+        rows[1] = self._activity_header_row()
 
         self._file.seek(0)
         self._file.truncate()

@@ -19,6 +19,7 @@ class StatusWidget(QWidget):
         super().__init__()
 
         self.title: str = title
+        self.username: str = ""
 
         self._init_tables()
 
@@ -53,18 +54,22 @@ class StatusWidget(QWidget):
         self.bt_led_label = QLabel("●")
         self.bt_led_label.setAlignment(Qt.AlignCenter)
 
-        self.title_label = QLabel(self.title)
+        self.bt_title_label = QLabel(self.title)
 
-        self.led_label = QLabel("●")
-        self.led_label.setAlignment(Qt.AlignCenter)
+        self.state_led_label = QLabel("●")
+        self.state_led_label.setAlignment(Qt.AlignCenter)
 
-        self.text_label = QLabel("---")
+        self.state_text_label = QLabel("---")
+
+        self.user_label = QLabel()
 
         layout.addWidget(self.bt_led_label)
-        layout.addWidget(self.title_label)
+        layout.addWidget(self.bt_title_label)
         layout.addStretch()
-        layout.addWidget(self.led_label)
-        layout.addWidget(self.text_label)
+        layout.addWidget(self.user_label)
+        layout.addStretch()
+        layout.addWidget(self.state_led_label)
+        layout.addWidget(self.state_text_label)
 
         self.bt_status()
         self.set_status(CnxState.SEEKING)
@@ -116,7 +121,7 @@ class StatusWidget(QWidget):
         color = self._get_color(status)
         text  = self._get_text(status)
 
-        self.led_label.setStyleSheet(
+        self.state_led_label.setStyleSheet(
             f"""
             QLabel {{
                 color: {color};
@@ -126,4 +131,10 @@ class StatusWidget(QWidget):
             """
         )
 
-        self.text_label.setText(text)
+        self.state_text_label.setText(text)
+
+    # -------------------------------------------------------------------------
+    def set_username(self, user: str) -> None:
+        self.username = user
+        self.user_label.setText(self.username)
+        

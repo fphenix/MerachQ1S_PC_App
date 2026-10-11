@@ -68,3 +68,10 @@ def get_text(key: str) -> str:
         )
 
     return _language.get_text(key)
+
+# =============================================================================
+def get_language() -> str:
+    """Return the currently initialized language code."""
+    if _language is None:
+        raise RuntimeError("Language not initialized")
+    return _language.language

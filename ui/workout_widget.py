@@ -98,10 +98,7 @@ class WorkoutWidget(QFrame):
         main_layout = QHBoxLayout(self)
 
         main_layout.setContentsMargins(
-            10,
-            10,
-            10,
-            10,
+            10, 10, 10, 10,
         )
 
         main_layout.setSpacing(15)
@@ -114,10 +111,7 @@ class WorkoutWidget(QFrame):
 
         layout.setSpacing(8)
         layout.setContentsMargins(
-            10,
-            5,
-            10,
-            5,
+            10, 5, 10, 5,
         )
 
         main_layout.addLayout(
@@ -633,7 +627,7 @@ class WorkoutWidget(QFrame):
         )
 
         self.exercise_label.setText(
-            f"{get_text("WORKOUT")} "
+            f"{get_text("WORKOUT_STEP")} "
             f"{self.current_step + 1}/"
             f"{len(self.workout.steps)}  -  "
             f"{get_text("TIME")} : "

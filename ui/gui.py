@@ -5,6 +5,7 @@ Fenêtre principale.
 """
 
 from pathlib import Path
+import datetime
 
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QActionGroup
@@ -26,6 +27,7 @@ from PySide6.QtWidgets import (
     QInputDialog,
     QToolButton,
     QCheckBox,
+    QStackedLayout,
 )
 
 from setup.lang import get_text
@@ -39,19 +41,19 @@ from setup.settings_utils import (
     load_settings,
 )
 from setup.constants import (
-    VERSION, COPYRIGHT_YEAR,
+    VERSION,
     GUI_REFRESH_MS,
     WINDOW_WIDTH, WINDOW_HEIGHT,
     WORKOUT_WIDTH, WORKOUT_HEIGHT,
     METRONOME_MARGIN,
     SPLIT_MODES,
     SPLIT_MODES_NORMAL,
-    SPLIT_MODES_500M,
     SPLIT_MODES_WORKOUT,
     USE_REPLAY, USE_REPLAY_WORKOUT,
     REPLAY_WORKOUT_FILE,
     WORKOUTS_DIR,
     MAX_POWER_FILTER, MAX_POWER_WINDOW_WIDTH,
+    USERS_DIR,
 )
 from setup.cnx_enum import CnxState
 
@@ -68,6 +70,8 @@ from ui.progbar_widget import GradientGauge
 from ui.workout_widget import WorkoutWidget
 from ui.settings_dialog import SettingsDialog
 from ui.workout_editor import WorkoutEditorDialog
+from games.game_widget import GameWidget
+from games.highscore_dialog import HighScoreDialog
 
 from workout.split import WorkoutSplitCalculator
 from rowers.power_calib_data import PowerCalibrationContext
@@ -139,21 +143,51 @@ class MainWindow(QMainWindow):
             top_layout
         )
 
-        rower_panel = QWidget()
+        self.rower_panel = QWidget()
 
-        rower_panel.setFixedSize(
+        self.rower_panel.setFixedSize(
             WINDOW_WIDTH,
             WINDOW_HEIGHT,
         )
 
-        grid = QGridLayout(rower_panel)
+        grid = QGridLayout(self.rower_panel)
 
         grid.setContentsMargins(15, 15, 15, 15)
         grid.setHorizontalSpacing(12)
         grid.setVerticalSpacing(12)
 
+        #
+        # Game window
+        #
+
+        self.gameWidget = GameWidget(
+            state= self.state,
+            personal_highscore_file= self.user_manager.logs_dir().parent / "games.json",
+            common_highscore_file= USERS_DIR / "games.json",
+            user_id= self.user_manager.get_current_user(),
+            parent= central,
+        )
+
+        self.main_stack = QStackedLayout()
+        self.main_stack.setContentsMargins(0, 0, 0, 0)
+
+        self.main_panel = QWidget()
+        self.main_panel.setFixedSize(
+            WINDOW_WIDTH,
+            WINDOW_HEIGHT,
+        )
+        self.main_panel.setLayout(self.main_stack)
+
+        self.main_stack.addWidget(self.rower_panel)
+        self.main_stack.addWidget(self.gameWidget)
+        self.main_stack.setCurrentWidget(self.rower_panel)
+
+        self.gameWidget.set_personal_highscore_file(
+            self.user_manager.logs_dir().parent / "games.json"
+        )
+
         top_layout.addWidget(
-            rower_panel,
+            self.main_panel,
             0,
         )
 
@@ -162,6 +196,9 @@ class MainWindow(QMainWindow):
         #
 
         self.connectionWidget = StatusWidget()
+        self.connectionWidget.set_username(
+            self.user_manager.get_current_user()
+        )
 
         #
         # Widgets : 1st row
@@ -545,6 +582,15 @@ class MainWindow(QMainWindow):
 
         if not self.user_manager.add_user(name):
             return
+        
+        self.gameWidget.set_user_id(
+            user_id= self.user_manager.get_current_user(),
+            user_hiscore_file= self.user_manager.logs_dir().parent / "games.json",
+        )
+
+        self.connectionWidget.set_username(
+            self.user_manager.get_current_user()
+        )
 
         #
         # Charge les settings du nouvel utilisateur.
@@ -622,7 +668,10 @@ class MainWindow(QMainWindow):
     # -------------------------------------------------------------------------
     def _can_change_user(self) -> bool:
 
-        if self._session_or_workout_active():
+        if (
+            self.gameWidget.isVisible()
+            or self._session_or_workout_active()
+        ):
 
             QMessageBox.information(
                 self,
@@ -670,6 +719,10 @@ class MainWindow(QMainWindow):
         if not self.user_manager.select_user(name):
             return
 
+        self.connectionWidget.set_username(
+            self.user_manager.get_current_user()
+        )
+
         #
         # Charge ses paramètres.
         #
@@ -693,6 +746,15 @@ class MainWindow(QMainWindow):
             )
 
             self.logger.start()
+
+        #
+        # Game user
+        #
+
+        self.gameWidget.set_user_id(
+            user_id= self.user_manager.get_current_user(),
+            user_hiscore_file= self.user_manager.logs_dir().parent / "games.json",
+        )
 
         #
         # Actualise le menu.
@@ -787,6 +849,43 @@ class MainWindow(QMainWindow):
         self.settings_action.triggered.connect(
             self._callback_open_settings
         )
+
+        #
+        # Jeux >
+        #
+
+        games_menu = self.menuBar().addMenu(
+            get_text("MENU_GAMES")
+        )
+
+        fishing_action = games_menu.addAction(
+            get_text("MENU_GAMES_FISHING")
+        )
+        fishing_action.triggered.connect(
+            self._callback_start_fishing_game
+        )
+
+        fishing2_action = games_menu.addAction(
+            get_text("MENU_GAMES_FISHING2")
+        )
+        fishing2_action.triggered.connect(
+            self._callback_start_fishing2_game
+        )
+
+        hiscore_action = games_menu.addAction(
+            get_text("MENU_GAMES_HISCORE")
+        )
+        hiscore_action.triggered.connect(
+            self._callback_show_hiscores
+        )
+
+        self.exit_game_action = games_menu.addAction(
+            get_text("MENU_GAMES_EXIT")
+        )
+        self.exit_game_action.triggered.connect(
+            self._callback_exit_game
+        )
+        self.exit_game_action.setEnabled(False)
 
         #
         # About
@@ -1235,6 +1334,67 @@ class MainWindow(QMainWindow):
             if source is not None and source_was_running:
                 source.start()
 
+    # -------------------------------------------------------------------------
+    def _callback_start_fishing_game(self) -> None:
+        self._callback_start_game("fishing")
+
+    # -------------------------------------------------------------------------
+    def _callback_start_fishing2_game(self) -> None:
+        self._callback_start_game("fishing2")
+
+    # -------------------------------------------------------------------------
+    def _callback_start_game(self, game_id: str) -> None:
+
+        if self._session_or_workout_active():
+            QMessageBox.information(
+                self,
+                get_text("MENU_GAMES"),
+                get_text("WARN_NO_GAMES"),
+            )
+            return
+
+        if self.workoutWidget.isVisible():
+            self._close_workout()
+
+        self.gameWidget.start_game(game_id)
+        self.main_stack.setCurrentWidget(self.gameWidget)
+
+        self.exit_game_action.setEnabled(True)
+
+        if self.logger is not None:
+            self.logger.set_game_name(self.gameWidget.game.title)
+
+    # -------------------------------------------------------------------------
+    def _callback_exit_game(self) -> None:
+
+        self.main_stack.setCurrentWidget(self.rower_panel)
+        self.exit_game_action.setEnabled(False)
+
+        if self.logger is not None:
+            self.logger.set_game_name(None)
+
+    # -------------------------------------------------------------------------
+    def _callback_show_hiscores(self) -> None:
+
+        HighScoreDialog(
+            highscores= self.gameWidget.highscores,
+            user_id= self.user_manager.get_current_user(),
+            selected_game_id= self.gameWidget.last_played_game_id,
+            parent= self,
+        ).exec()
+
+    # -------------------------------------------------------------------------
+    def keyPressEvent(self, event) -> None:
+
+        if (
+            event.key() == Qt.Key.Key_Space
+            and self.gameWidget.isVisible()
+        ):
+            self.gameWidget.register_stroke()
+            event.accept()
+            return
+
+        super().keyPressEvent(event)
 
     # -------------------------------------------------------------------------
     def _callback_create_workout(self) -> None:
@@ -1543,12 +1703,15 @@ class MainWindow(QMainWindow):
 
     # -------------------------------------------------------------------------
     def _callback_show_about(self) -> None:
+
+        year = datetime.date.today().year
+
         info = (
             f"{get_text("WINDOW_TITLE")}\n"
             f"{get_text("ABOUT_INFO")}\n"
             f"{get_text("VERSION")} {VERSION}\n"
-            f"{get_text("AUTHOR")}: fphenix (@ github)\n"
-            f"(c){str(COPYRIGHT_YEAR)}"
+            f"{get_text("AUTHOR")}: fphenix (@ github & @ hotmail.com)\n"
+            f"(c){str(year)}"
         )
 
         QMessageBox.information(

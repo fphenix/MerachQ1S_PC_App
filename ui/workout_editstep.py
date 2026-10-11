@@ -64,7 +64,7 @@ class WorkoutStepEditor(QWidget):
             self._callback_duration_unit_changed
         )
 
-        self.cpm_box.valueChanged.connect(
+        self.spm_box.valueChanged.connect(
             lambda value: self.sig_duration_changed.emit()
         )
 
@@ -167,13 +167,13 @@ class WorkoutStepEditor(QWidget):
             4,
         )
 
-        self.cpm_box = QSpinBox()
-        self.cpm_box.setFixedWidth(self.SPM_VALUE_WIDTH)
-        self.cpm_box.setRange(10, 50)
-        self.cpm_box.setValue(20)
+        self.spm_box = QSpinBox()
+        self.spm_box.setFixedWidth(self.SPM_VALUE_WIDTH)
+        self.spm_box.setRange(10, 50)
+        self.spm_box.setValue(20)
 
         layout.addWidget(
-            self.cpm_box,
+            self.spm_box,
             0,
             5,
         )
@@ -355,7 +355,7 @@ class WorkoutStepEditor(QWidget):
     # -------------------------------------------------------------------------
     def get_spm(self) -> float:
 
-        return self.cpm_box.value()
+        return self.spm_box.value()
 
     # -------------------------------------------------------------------------
     def set_values(
@@ -370,7 +370,7 @@ class WorkoutStepEditor(QWidget):
 
         self._set_duration_seconds(duration_seconds)
 
-        self.cpm_box.setValue(spm)
+        self.spm_box.setValue(spm)
 
         index = self.intensity.findText(intensity)
         if index >= 0:
@@ -399,7 +399,7 @@ class WorkoutStepEditor(QWidget):
     def get_values(self) -> dict[str, Any]:
         return {
             "duration_seconds": self.get_duration_seconds(),
-            "spm": self.cpm_box.value(),
+            "spm": self.spm_box.value(),
             "intensity": self.intensity.currentText(),
             "part": self.part.currentText() or None,
             "info": self.info_lineedit.text().strip(),

@@ -51,21 +51,21 @@
         "en": "Power Cadence Recal.",
         "fr": "Recal. Puissance par Cadence"
     },
+    "CHECK_POWER_WORKOUT_RECAL": {
+        "en": "Recalibrate the power based on the expected intensity from the Workout",
+        "fr": "Recalibrer le power avec l'intensité de l'Exercice"
+    },
+    "CHECK_POWER_WORKOUT_TITLE": {
+        "en": "Power Workout Recal.",
+        "fr": "Recal. Puissance par Exercice"
+    },
     "CHECK_POWER_WO_DUR_RECAL": {
         "en": "Recalibrate the power based on the duration of the step in the Workout",
-        "fr": "Recalibrer le power avec la durée de l'étape dans le Workout"
+        "fr": "Recalibrer le power avec la durée de l'étape dans l'Exercice"
     },
     "CHECK_POWER_WO_DUR_TITLE": {
         "en": "and by step Duration",
         "fr": "et par Durée d'étape"
-    },
-    "CHECK_POWER_WORKOUT_RECAL": {
-        "en": "Recalibrate the power based on the expected intensity from the Workout",
-        "fr": "Recalibrer le power avec l'intensité du Workout"
-    },
-    "CHECK_POWER_WORKOUT_TITLE": {
-        "en": "Power Workout Recal.",
-        "fr": "Recal. Puissance par Workout"
     },
     "CNX_CONNECTED": {
         "en": "Connected",
@@ -111,25 +111,21 @@
         "en": "Duration",
         "fr": "Durée"
     },
-    "ERR_BT_NO_VALID_STATE": {
-        "en": "is not a valid Bluetooth card state to switch from.",
-        "fr": "n'est pas un état valide de la carte Bluetooth pour basculer."
+    "ERROR": {
+        "en": "Error",
+        "fr": "Erreur"
     },
     "ERR_BT_NOT_FOUND": {
         "en": "Bluetooth not found",
         "fr": "Bluetooth non trouvé"
     },
+    "ERR_BT_NO_VALID_STATE": {
+        "en": "is not a valid Bluetooth card state to switch from.",
+        "fr": "n'est pas un état valide de la carte Bluetooth pour basculer."
+    },
     "ERR_INVWO_BADCHAR_FILENAME": {
         "en": "Invalid Workout: The file name contains a forbidden character.",
         "fr": "Workout invalide : Le nom du fichier contient un caractère interdit."
-    },
-    "ERR_INVWO_BADCHAR_TITLE": {
-        "en": "Invalid Workout: The Title contains a forbidden character for a file name.",
-        "fr": "Workout invalide: Le Titre contient un caractère interdit pour un nom de fichier."
-    },
-    "ERR_INVWO_EMPTY_FIELD": {
-        "en": "Invalid Workout: The Field cannot be empty.",
-        "fr": "Workout invalide: Le champ d'application ne peut pas être vide."
     },
     "ERR_INVWO_EMPTY_FILENAME": {
         "en": "Invalid Workout: The file name cannot be empty.",
@@ -215,10 +211,6 @@
         "en": "The Zip file must contain only one log",
         "fr": "Le Zip doit contenir un seul fichier"
     },
-    "ERROR": {
-        "en": "Error",
-        "fr": "Erreur"
-    },
     "FIELD": {
         "en": "Field",
         "fr": "Catégorie"
@@ -227,13 +219,37 @@
         "fr": "Catégories",
         "en": "Fields"
     },
-    "FIELD_CATEGORY_STRENGTH": {
-        "fr": "Force",
-        "en": "Strength"
+    "FIELD_CATEGORY_CARDIO": {
+        "fr": "Cardio",
+        "en": "Cardio"
     },
     "FIELD_CATEGORY_ENDURANCE": {
         "fr": "Endurance",
         "en": "Endurance"
+    },
+    "FIELD_CATEGORY_FAT_BURNER": {
+        "fr": "FatBurner",
+        "en": "FatBurner"
+    },
+    "FIELD_CATEGORY_OTHER": {
+        "fr": "Autre",
+        "en": "Other"
+    },
+    "FIELD_CATEGORY_POWER": {
+        "fr": "Puissance",
+        "en": "Power"
+    },
+    "FIELD_CATEGORY_SPRINT": {
+        "fr": "Sprint",
+        "en": "Sprint"
+    },
+    "FIELD_CATEGORY_STRENGTH": {
+        "fr": "Force",
+        "en": "Strength"
+    },
+    "FIELD_CATEGORY_TECHNIQUE": {
+        "fr": "Technique",
+        "en": "Technique"
     },
     "FIELD_CATEGORY_VO2": {
         "fr": "VO2",
@@ -242,30 +258,6 @@
     "FIELD_CATEGORY_WARMUP": {
         "fr": "Echauffement",
         "en": "Warm-up"
-    },
-    "FIELD_CATEGORY_POWER": {
-        "fr": "Puissance",
-        "en": "Power"
-    },
-    "FIELD_CATEGORY_FAT_BURNER": {
-        "fr": "FatBurner",
-        "en": "FatBurner"
-    },
-    "FIELD_CATEGORY_CARDIO": {
-        "fr": "Cardio",
-        "en": "Cardio"
-    },
-    "FIELD_CATEGORY_TECHNIQUE": {
-        "fr": "Technique",
-        "en": "Technique"
-    },
-    "FIELD_CATEGORY_SPRINT": {
-        "fr": "Sprint",
-        "en": "Sprint"
-    },
-    "FIELD_CATEGORY_OTHER": {
-        "fr": "Autre",
-        "en": "Other"
     },
     "FIELD_INSTR": {
         "en": "Choose the fields exercised",
@@ -294,6 +286,38 @@
     "FTMS_THREAD_ENDED": {
         "en": "Thread ended",
         "fr": "Thread terminé."
+    },
+    "GAME_NEW_HISCORE": {
+        "en": "NEW HI-SCORE!",
+        "fr": "NOUVEAU HI-SCORE !"
+    },
+    "GAME_OVER": {
+        "en": "GAME OVER",
+        "fr": "Game Over"
+    },
+    "GAME_RULES_BUTTON": {
+        "en": "RULES",
+        "fr": "RÈGLES"
+    },
+    "GAME_WAIT_FOR_STROKE": {
+        "en": "Row to start",
+        "fr": "Ramez pour commencer"
+    },
+    "HISCORE_COMMON": {
+        "en": "Common",
+        "fr": "Commune"
+    },
+    "HISCORE_GAME": {
+        "en": "Game",
+        "fr": "Jeu"
+    },
+    "HISCORE_PERSONAL": {
+        "en": "Personal",
+        "fr": "Personnelle"
+    },
+    "HISCORE_TITLE": {
+        "en": "Hi-Scores",
+        "fr": "Hi-Scores"
     },
     "HOUR_UNIT": {
         "en": "h",
@@ -347,6 +371,26 @@
     "MENU_ABOUT": {
         "en": "About",
         "fr": "A Propos"
+    },
+    "MENU_GAMES": {
+        "en": "Games",
+        "fr": "Jeux"
+    },
+    "MENU_GAMES_EXIT": {
+        "en": "Exit Game",
+        "fr": "Quitter le jeu"
+    },
+    "MENU_GAMES_FISHING": {
+        "en": "Bug Catcher",
+        "fr": "Choppe Bestiole"
+    },
+    "MENU_GAMES_FISHING2": {
+        "en": "Bug Catcher 2",
+        "fr": "Choppe Bestiole 2"
+    },
+    "MENU_GAMES_HISCORE": {
+        "en": "Hi-Scores",
+        "fr": "Hi-Scores"
     },
     "MENU_SETTINGS": {
         "en": "Settings",
@@ -520,6 +564,10 @@
         "en": "Seeking a rower...",
         "fr": "Recherche du rameur..."
     },
+    "SCORE": {
+        "en": "Score",
+        "fr": "Score"
+    },
     "SECOND_UNIT": {
         "en": "sec",
         "fr": "sec"
@@ -530,7 +578,7 @@
     },
     "SETTINGS_DELAY": {
         "en": "Delay before Workout",
-        "fr": "Délai avant le workout"
+        "fr": "Délai avant l'Exercice"
     },
     "SETTINGS_LANG": {
         "en": "Language of the UI",
@@ -652,6 +700,10 @@
         "en": "Version",
         "fr": "Version"
     },
+    "WARNING": {
+        "en": "Warning ",
+        "fr": "Avertissement"
+    },
     "WARN_ANALYZER_COL_NOT_FOUND": {
         "en": "The following column could not be found in the log to analyze",
         "fr": "La colonne suivante n'a pu être trouvée dans le log à analyser"
@@ -664,6 +716,10 @@
         "en": "Log ignored because it would have been empty.",
         "fr": "Log ignoré car il aurait été vide."
     },
+    "WARN_NO_GAMES": {
+        "en": "A game cannot be started during a session or workout.",
+        "fr": "Impossible de lancer un jeu pendant une séance ou un exercice."
+    },
     "WARN_NO_SETTINGS": {
         "en": "Settings cannot be modified during a session.",
         "fr": "Les Paramètres ne peuvent pas être modifiés pendant une séance."
@@ -672,21 +728,61 @@
         "en": "Cannot swap the user at this moment.",
         "fr": "Impossible de changer d'utilisateur à ce moment."
     },
-    "WARNING": {
-        "en": "Warning ",
-        "fr": "Avertissement"
-    },
     "WINDOW_TITLE": {
         "en": "Rower Monitor",
         "fr": "Moniteur Rameur"
     },
+    "WORKOUT": {
+        "en": "Workout",
+        "fr": "Exercice"
+    },
+    "WORKOUT_COMPLETE": {
+        "en": "Workout complete",
+        "fr": "Exercice terminé"
+    },
+    "WORKOUT_FILE_EXT": {
+        "en": "Workout (*.wo);;All files (*)",
+        "fr": "Workout (*.wo);;Tous les fichiers (*)"
+    },
+    "WORKOUT_FILE_SELECT": {
+        "en": "Select a workout",
+        "fr": "Choisir un Exercice"
+    },
+    "WORKOUT_NAME": {
+        "en": "Workout Title",
+        "fr": "Titre de l'Exercice"
+    },
+    "WORKOUT_NAME_INSTR": {
+        "en": "Enter the Workout's Title",
+        "fr": "Entrer le Titre de l'Exercice"
+    },
+    "WORKOUT_NONE_LOADED": {
+        "en": "Select a Workout",
+        "fr": "Choisir un Exercice"
+    },
+    "WORKOUT_PREPARING": {
+        "en": "Preparing...",
+        "fr": "Préparation..."
+    },
+    "WORKOUT_RUNNING": {
+        "en": "Workout running",
+        "fr": "Exercice en cours"
+    },
+    "WORKOUT_STARTS_IN": {
+        "en": "Starts in",
+        "fr": "Démarrage dans"
+    },
+    "WORKOUT_STEP": {
+        "en": "Step",
+        "fr": "Étape"
+    },
     "WO_CREATE_TITLE": {
         "en": "Create a Workout",
-        "fr": "Créer un Workout"
+        "fr": "Créer un Exercice"
     },
     "WO_EDIT_TITLE": {
         "en": "Edit a Workout",
-        "fr": "Editer un Workout"
+        "fr": "Editer un Exercice"
     },
     "WO_FILE_CONSEC_CMT": {
         "en": "Consecutive comments will be merged.",
@@ -720,6 +816,10 @@
         "en": "Error line ",
         "fr": "Erreur ligne "
     },
+    "WO_FILE_EXPECTED_DATA": {
+        "en": "expected format : 'seconds spm intensity <part>'",
+        "fr": "format attendu : 'secondes cpm intensité <partie>'"
+    },
     "WO_FILE_EXP_DATA_TYPE": {
         "en": "Invalid data type; must be: 'int_or_float int char <char_or_str>'",
         "fr": "Type de donnée invalide; attendu: 'int_or_float int char <char_or_str>'"
@@ -740,10 +840,6 @@
         "en": "SPM must be between 0 and 50",
         "fr": "CPM doit être entre 0 et 50"
     },
-    "WO_FILE_EXPECTED_DATA": {
-        "en": "expected format : 'seconds spm intensity <part>'",
-        "fr": "format attendu : 'secondes cpm intensité <partie>'"
-    },
     "WO_FILE_KEYWORD": {
         "en": "Keyword",
         "fr": "Mot-clé"
@@ -755,46 +851,6 @@
     "WO_FILE_WARNING_LINE": {
         "en": "Warning line ",
         "fr": "Avertissement ligne "
-    },
-    "WORKOUT": {
-        "en": "Workout",
-        "fr": "Exercice"
-    },
-    "WORKOUT_COMPLETE": {
-        "en": "Workout complete",
-        "fr": "Workout terminé"
-    },
-    "WORKOUT_FILE_EXT": {
-        "en": "Workout (*.wo);;All files (*)",
-        "fr": "Workout (*.wo);;Tous les fichiers (*)"
-    },
-    "WORKOUT_FILE_SELECT": {
-        "en": "Select a workout",
-        "fr": "Choisir un workout"
-    },
-    "WORKOUT_NAME": {
-        "en": "Workout Title",
-        "fr": "Titre du Workout"
-    },
-    "WORKOUT_NAME_INSTR": {
-        "en": "Enter the Workout's Title",
-        "fr": "Entrer le Titre du Workout"
-    },
-    "WORKOUT_NONE_LOADED": {
-        "en": "Select a workout",
-        "fr": "Choisir un workout"
-    },
-    "WORKOUT_PREPARING": {
-        "en": "Preparing...",
-        "fr": "Préparation..."
-    },
-    "WORKOUT_RUNNING": {
-        "en": "Workout running",
-        "fr": "Workout en cours"
-    },
-    "WORKOUT_STARTS_IN": {
-        "en": "Starts in",
-        "fr": "Démarrage dans"
     },
     "ZZZ_TEMPLATE": {
         "en": "En Template",

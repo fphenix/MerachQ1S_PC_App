@@ -1,7 +1,6 @@
 from pathlib import Path
 
-VERSION: str = "4.15"
-COPYRIGHT_YEAR: str | int = "2026"
+VERSION: str = "5.0"
 
 GUI_REFRESH_MS   = 100 # milliseconds
 WORKOUT_TIMER_MS =  20 # milliseconds
@@ -67,7 +66,7 @@ WORKOUTS_DIR: Path = BASE_DIR / "workouts"
 USERS_DIR: Path    = BASE_DIR / "users"
 
 LANG_FILE: Path         = CONFIG_DIR / "lang.json"
-USERS_CONFIG_FILE: Path = CONFIG_DIR / "users.json"
+USERS_CONFIG_FILE: Path = USERS_DIR / "users.json"
 
 SETTINGS_FILE_NAME: str = "settings.json"
 LOGS_DIR_NAME: str = "logs"
