@@ -9,6 +9,9 @@ In Version 4.3, the Workout Editor (Create or Edit) has been added.
 
 In Version 4.10, the power (thus all metrics that derive from it) can be calibrated by the user's profile and the Workout.
 
+Version 5.0 introduces Games!
+
+
 Dependencies : PySide6, Bleak (& pyftms)
 
 * pip install PySide6
