@@ -1,4 +1,5 @@
 from collections import deque
+
 from PySide6.QtGui import QColor
 
 from setup.lang import get_text
@@ -346,11 +347,11 @@ def clamp_between(value: int | float, minval: int | float, maxval: int | float) 
 # -----------------------------------------------------------------------------
 # clamp values between min and max but on steps between
 def clamp_step(
-    value: int|float,
-    minimum: int|float,
-    maximum: int|float,
-    step: int|float,
-) -> int|float:
+    value: int | float,
+    minimum: int | float,
+    maximum: int | float,
+    step: int | float,
+) -> int | float:
 
     # clamp between min & max
     value = clamp_between(
@@ -373,9 +374,9 @@ def clamp_step(
 # However the strict_min and strict_max boolean
 # can be used to change the behavior at the boundaries.
 def is_between(
-    value: int|float,
-    minimum: int|float,
-    maximum: int|float,
+    value: int | float,
+    minimum: int | float,
+    maximum: int | float,
     strict_min: bool = False,
     strict_max: bool = False
 ) -> bool:
@@ -388,6 +389,28 @@ def is_between(
             (strict_max and (value < maximum))
             or
             (not strict_max and (value <= maximum))
+    )
+
+# -----------------------------------------------------------------------------
+# Returns a boolean answering the question:
+# "Is 'value' within 'target +/-dekta' ?"
+# By default the bounds are not strict (i.e value may be equal
+# to minimum (ie. target-delta) or to maximum (ie. target+delta)).
+# However the strict boolean can be used to change the behavior
+# at the boundaries and exclude min and max from the matching range.
+def is_within(
+    value: int | float,
+    target: int | float,
+    delta: int | float,
+    strict: bool = False
+) -> bool:
+
+    dist = abs(target - value) 
+    
+    return (
+        (strict and (dist < delta))
+        or 
+        (not strict and (dist <= delta))
     )
 
 # -----------------------------------------------------------------------------
@@ -428,7 +451,7 @@ def calc_average(values: deque) -> float:
 # -----------------------------------------------------------------------------
 # delta = curr - prev
 # both values must be in the same unit
-def calc_delta(curr: int|float, prev: int|float) -> int|float:
+def calc_delta(curr: int | float, prev: int | float) -> int | float:
     return curr - prev
 
 # -----------------------------------------------------------------------------
@@ -440,7 +463,7 @@ def calc_deltatime(curr: float, prev: float) -> float:
 # -----------------------------------------------------------------------------
 # generic metric average : metric / per_unit
 # returns 0.0 if the per_unit is negative or null
-def calc_metric_avg(metric: float, per_unit: int|float) -> float:
+def calc_metric_avg(metric: float, per_unit: int | float) -> float:
     return (
         metric / float(per_unit)
         if float(per_unit) > 0.0
@@ -463,7 +486,7 @@ def bmi(
 # -----------------------------------------------------------------------------
 # returns the normalized progression (from 0.0 to 1.0)
 # represented by 'value' (mod ref) within one 'ref'
-def fractional_progress(value: int|float, ref: int|float) -> float:
+def fractional_progress(value: int | float, ref: int | float) -> float:
     if float(ref) == 0.0:
         return 0.0
     return (float(value) % float(ref)) / float(ref)

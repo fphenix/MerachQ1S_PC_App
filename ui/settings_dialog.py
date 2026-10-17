@@ -14,9 +14,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from setup.settings import Settings
 from setup.lang import get_text
 from setup.utils import clamp_to_zero
-from setup.settings import Settings
 from setup.settings_utils import profile_level_key_from_norm
 from setup.constants import (
     LANGUAGES,
@@ -299,6 +299,7 @@ class SettingsDialog(QDialog):
 
     # ------------------------------------------------------------------
     def _update_level_display(self, value: int) -> None:
+        
         level_norm = value / 100.0
         level_key = profile_level_key_from_norm(level_norm)
         level_text = get_text(f"PROFILE_LEVEL_{level_key}")

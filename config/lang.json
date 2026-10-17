@@ -3,6 +3,10 @@
         "en": "Performance Monitor and Workouts for rower machines.",
         "fr": "Moniteur de Performance et Exercices pour rameur."
     },
+    "ACTIVE_USER": {
+        "en": "Active User",
+        "fr": "Utilisateur actif"
+    },    
     "ANALYZER_TITLE": {
         "en": "Analyzer",
         "fr": "Analyseur"
@@ -287,17 +291,149 @@
         "en": "Thread ended",
         "fr": "Thread terminé."
     },
+    "GAME_GO": {
+        "en": "GO!",
+        "fr": "PARTEZ!"
+    },
+    "GAME_JUMP_CACTUS": {
+        "en": "CACTUS",
+        "fr": "CACTUS"
+    },
+    "GAME_JUMP_ROCK": {
+        "en": "ROCK",
+        "fr": "ROCHER"
+    },
+    "GAME_JUMP_RUN": {
+        "en": "FORWARD",
+        "fr": "AVANCER"
+    },
     "GAME_NEW_HISCORE": {
         "en": "NEW HI-SCORE!",
         "fr": "NOUVEAU HI-SCORE !"
+    },
+    "GAME_OPPONENT": {
+        "en": "ADV",
+        "fr": "ADV"
     },
     "GAME_OVER": {
         "en": "GAME OVER",
         "fr": "Game Over"
     },
+    "GAME_PATH_CENTER": {
+        "en": "CENTER",
+        "fr": "CENTRE"
+    },
+    "GAME_PATH_FIND_CADENCE": {
+        "en": "Find a cadence",
+        "fr": "Trouvez votre cadence"
+    },
+    "GAME_PATH_LEFT": {
+        "en": "LEFT",
+        "fr": "GAUCHE"
+    },
+    "GAME_PATH_MOVE_TO": {
+        "en": "MOVE {lane}",
+        "fr": "VOIE {lane}"
+    },
+    "GAME_PATH_ON_TRACK": {
+        "en": "ON THE PATH",
+        "fr": "SUR LE CHEMIN"
+    },
+    "GAME_PATH_RIGHT": {
+        "en": "RIGHT",
+        "fr": "DROITE"
+    },
+    "GAME_PIGEON_OPENING_PROMPT": {
+        "en": "OPEN: 24 SPM",
+        "fr": "OUVRIR: 24 CPM"
+    },
+    "GAME_PIGEON_SHOOTING_PROMPT": {
+        "en": "SHOOT: 28+ SPM",
+        "fr": "TIRER: 28+ CPM"
+    },
+    "GAME_PLAYER": {
+        "en": "PLAYER",
+        "fr": "JOUEUR"
+    },
+    "GAME_RACE_FINISH_LINE": {
+        "en": "FINISH",
+        "fr": "FINISH"
+    },
+    "GAME_RACE_LOST": {
+        "en": "Better luck next time!",
+        "fr": "Essaie encore !"
+    },
+    "GAME_RACE_START_LINE": {
+        "en": "START",
+        "fr": "START"
+    },
+    "GAME_RACE_WON": {
+        "en": "YOU WIN!",
+        "fr": "VICTOIRE !"
+    },
     "GAME_RULES_BUTTON": {
         "en": "RULES",
         "fr": "RÈGLES"
+    },
+    "GAME_SCORE": {
+        "en": "Score",
+        "fr": "Score"
+    },
+    "GAME_SIMON_CADENCE_HINT": {
+        "en": "GREEN ≈ 18  |  YELLOW ≈ 24  |  RED ≈ 30 SPM",
+        "fr": "VERT ≈ 18  |  JAUNE ≈ 24  |  ROUGE ≈ 30 CPM"
+    },
+    "GAME_SIMON_MISSED": {
+        "en": "WRONG PANEL — GAME OVER",
+        "fr": "MAUVAIS PANNEAU — FIN DE PARTIE"
+    },
+    "GAME_SIMON_REPEAT": {
+        "en": "REPEAT THE SEQUENCE",
+        "fr": "REPRODUISEZ LA SÉQUENCE"
+    },
+    "GAME_SIMON_ROUND": {
+        "en": "ROUND {round}",
+        "fr": "MANCHE {round}"
+    },
+    "GAME_SIMON_WAIT_CADENCE": {
+        "en": "WAITING FOR A VALID CADENCE",
+        "fr": "EN ATTENTE D’UNE CADENCE VALIDE"
+    },
+    "GAME_SIMON_WATCH": {
+        "en": "WATCH THE SEQUENCE",
+        "fr": "MÉMORISEZ LA SÉQUENCE"
+    },
+    "GAME_SLOWNGO_ADJUST": {
+        "en": "ADJUST YOUR CADENCE",
+        "fr": "AJUSTEZ VOTRE CADENCE"
+    },
+    "GAME_SLOWNGO_CLOSE": {
+        "en": "CLOSE — KEEP ADJUSTING",
+        "fr": "PRESQUE — CONTINUEZ À AJUSTER"
+    },
+    "GAME_SLOWNGO_FAST": {
+        "en": "FAST",
+        "fr": "RAPIDE"
+    },
+    "GAME_SLOWNGO_MEDIUM": {
+        "en": "MEDIUM",
+        "fr": "MOYEN"
+    },
+    "GAME_SLOWNGO_ON_TARGET": {
+        "en": "ON TARGET",
+        "fr": "BONNE CADENCE"
+    },
+    "GAME_SLOWNGO_SLOW": {
+        "en": "SLOW",
+        "fr": "LENT"
+    },
+    "GAME_SLOWNGO_TARGET": {
+        "en": "ROW AT {spm} SPM",
+        "fr": "RAMEZ À {spm} CPM"
+    },
+    "GAME_SLOWNGO_WAITING_CADENCE": {
+        "en": "WAITING FOR CADENCE",
+        "fr": "EN ATTENTE DE CADENCE"
     },
     "GAME_WAIT_FOR_STROKE": {
         "en": "Row to start",
@@ -318,6 +454,78 @@
     "HISCORE_TITLE": {
         "en": "Hi-Scores",
         "fr": "Hi-Scores"
+    },
+    "HISTORY_ACTIVITY": {
+        "en": "Workout / game(s)",
+        "fr": "Exercice / jeu(x)"
+    },
+    "HISTORY_CADENCE": {
+        "en": "Average cadence (SPM)",
+        "fr": "Cadence moyenne (CPM)"
+    },
+    "HISTORY_CALORIES": {
+        "en": "Calories (kcal)",
+        "fr": "Calories (kcal)"
+    },
+    "HISTORY_DATE": {
+        "en": "Date",
+        "fr": "Date"
+    },
+    "HISTORY_DISTANCE": {
+        "en": "Distance (m)",
+        "fr": "Distance (m)"
+    },
+    "HISTORY_DISTANCE_PER_STROKE": {
+        "en": "Distance per stroke (m)",
+        "fr": "Distance par coup (m)"
+    },
+    "HISTORY_DURATION": {
+        "en": "Duration",
+        "fr": "Durée"
+    },
+    "HISTORY_HEART_RATE": {
+        "en": "Average heart rate (bpm)",
+        "fr": "Fréquence cardiaque moyenne (bpm)"
+    },
+    "HISTORY_POWER": {
+        "en": "Average power (W)",
+        "fr": "Puissance moyenne (W)"
+    },
+    "HISTORY_POWER_PER_STROKE": {
+        "en": "Work per stroke (J)",
+        "fr": "Travail par coup (J)"
+    },
+    "HISTORY_ROWER": {
+        "en": "Rower",
+        "fr": "Rameur"
+    },
+    "HISTORY_SAVE_ERROR": {
+        "en": "Could not save the session history.",
+        "fr": "Impossible d'enregistrer l'historique des séances."
+    },
+    "HISTORY_SPEED": {
+        "en": "Average speed (m/s)",
+        "fr": "Vitesse moyenne (m/s)"
+    },
+    "HISTORY_SPLIT": {
+        "en": "Average split /500 m",
+        "fr": "Split moyen /500 m"
+    },
+    "HISTORY_STROKES": {
+        "en": "Strokes",
+        "fr": "Coups"
+    },
+    "HISTORY_TIME": {
+        "en": "Time",
+        "fr": "Heure"
+    },
+    "HISTORY_TITLE": {
+        "en": "Sessions history",
+        "fr": "Historique des séances"
+    },
+    "HISTORY_VERSION": {
+        "en": "Version",
+        "fr": "Version"
     },
     "HOUR_UNIT": {
         "en": "h",
@@ -391,6 +599,42 @@
     "MENU_GAMES_HISCORE": {
         "en": "Hi-Scores",
         "fr": "Hi-Scores"
+    },
+    "MENU_GAMES_JUMP": {
+        "en": "Jumpazor-Rex",
+        "fr": "Sautazor-Rex"
+    },
+    "MENU_GAMES_MARIO": {
+        "en": "Ramio",
+        "fr": "Ramio"
+    },
+    "MENU_GAMES_PATH": {
+        "en": "Path",
+        "fr": "Ballade"
+    },
+    "MENU_GAMES_PIGEON": {
+        "en": "Pigeon Shooting",
+        "fr": "Tir au pigeon"
+    },
+    "MENU_GAMES_RACE_1000": {
+        "en": "Rowing Race 1000 m",
+        "fr": "Course 1000 m"
+    },
+    "MENU_GAMES_RACE_2000": {
+        "en": "Rowing Race 2000 m",
+        "fr": "Course 2000 m"
+    },
+    "MENU_GAMES_SIMON": {
+        "en": "Jack Says",
+        "fr": "Jacques a dit"
+    },
+    "MENU_GAMES_SLOWNGO": {
+        "en": "Slow N'Go",
+        "fr": "Slow N'Go"
+    },
+    "MENU_HISTORY": {
+        "en": "Session history...",
+        "fr": "Historique des séances..."
     },
     "MENU_SETTINGS": {
         "en": "Settings",
@@ -563,10 +807,6 @@
     "ROWER_SEEKING": {
         "en": "Seeking a rower...",
         "fr": "Recherche du rameur..."
-    },
-    "SCORE": {
-        "en": "Score",
-        "fr": "Score"
     },
     "SECOND_UNIT": {
         "en": "sec",

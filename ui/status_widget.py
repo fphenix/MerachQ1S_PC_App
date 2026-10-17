@@ -8,7 +8,6 @@ from PySide6.QtWidgets import (
 from setup.utils import is_between
 from setup.lang import get_text
 from setup.constants import USE_REPLAY
-
 from setup.cnx_enum import CnxState
 
 # =============================================================================
@@ -136,5 +135,7 @@ class StatusWidget(QWidget):
     # -------------------------------------------------------------------------
     def set_username(self, user: str) -> None:
         self.username = user
-        self.user_label.setText(self.username)
+        self.user_label.setText(
+            f"{get_text("ACTIVE_USER")}: {self.username}"
+        )
         

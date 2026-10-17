@@ -1,6 +1,6 @@
 from pathlib import Path
 
-VERSION: str = "5.0"
+VERSION: str = "5.02"
 
 GUI_REFRESH_MS   = 100 # milliseconds
 WORKOUT_TIMER_MS =  20 # milliseconds
@@ -13,6 +13,7 @@ WINDOW_TO_SCREEN_TOP_MARGIN: float = 0.33 # 0.33 = 33% of the margin at the top,
 
 MAIN_FONT  = "Consolas"
 TITLE_FONT = "Segoe UI"
+GAME_FONT  = "Courier New"
 
 BIG_FONT_SIZE          = 22 # point
 AVERAGE_FONT_SIZE      = 16 # point

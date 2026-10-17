@@ -3,17 +3,26 @@
 # être définies dans la class qui hérite de RowerClient
 from abc import ABC, abstractmethod
 
+from setup.settings import Settings
+
+from engine.state import RowState
+
 from rowers.data import RowerData
 
 # =============================================================================
 class RowerClient(ABC):
 
-    def __init__(self, address: str, state, settings) -> None:
+    def __init__(
+        self,
+        address: str,
+        state: RowState,
+        settings: Settings
+    ) -> None:
         
         self.address: str = address
-        self.state = state
+        self.state: RowState = state
 
-        self.settings = settings
+        self.settings: Settings = settings
 
     # -------------------------------------------------------------------------
     def process(

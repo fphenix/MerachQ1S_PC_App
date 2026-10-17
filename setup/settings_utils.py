@@ -1,7 +1,8 @@
+from dataclasses import asdict
 from pathlib import Path
 import json
-from dataclasses import asdict
 
+from setup.settings import Settings
 from setup.utils import clamp_between, clamp_step
 from setup.constants import (
     DEFAULT_LANGUAGE,
@@ -28,8 +29,6 @@ from setup.constants import (
     MIN_PROFILE_HEIGHT, MAX_PROFILE_HEIGHT, DEFAULT_PROFILE_HEIGHT,
     DEFAULT_PROFILE_SEX,
 )
-
-from setup.settings import Settings
 
 # =============================================================================
 def profile_level_norm_from_key(level: str) -> float:

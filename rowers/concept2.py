@@ -9,10 +9,10 @@ C2 uses a proprietary BLE transfert over BT, not FTMS.
 
 from bleak import BleakClient
 
-from .rower import RowerClient
-
 from setup.lang import get_text
 from setup.utils import echo
+
+from rowers.rower import RowerClient
 
 C2_BASE_UUID = "CE06XXXX-43E5-11E4-916C-0800200C9A66"
 

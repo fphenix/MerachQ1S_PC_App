@@ -1,5 +1,4 @@
-from engine.calc import calc_full_split
-
+from setup.settings import Settings
 from setup.utils import (
     clamp_to_zero,
     clamp_between,
@@ -7,7 +6,8 @@ from setup.utils import (
     calc_delta,
 )
 
-from setup.settings import Settings
+from engine.calc import calc_full_split
+
 from workout.workout import Workout
 from workout.split_data import WorkoutSplit
 

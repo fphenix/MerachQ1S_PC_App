@@ -29,6 +29,7 @@ from setup.constants import (
 from ui.workout_editstep import WorkoutStepEditor
 from ui.clickable_lineedit import Clickable_LineEdit
 from ui.field_selector import FieldSelectorDialog
+
 from workout.workout import Workout
 
 # =============================================================================
@@ -209,7 +210,7 @@ class WorkoutEditorDialog(QDialog):
         )
 
     # -------------------------------------------------------------------------
-    def _add_step(self, after: int|None = None) -> WorkoutStepEditor:
+    def _add_step(self, after: int | None = None) -> WorkoutStepEditor:
 
         editor = WorkoutStepEditor()
 
@@ -473,7 +474,7 @@ class WorkoutEditorDialog(QDialog):
         )
 
     # -------------------------------------------------------------------------
-    def _set_field_from_text(self, field) -> None:
+    def _set_field_from_text(self, field: str) -> None:
 
         self.field_keys = []
         other_values = []

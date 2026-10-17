@@ -17,14 +17,14 @@ import time
 from bleak import BleakScanner
 from pyftms.client.machines.rower import Rower
 
+from setup.settings import Settings
+from setup.cnx_enum import CnxState
 from setup.lang import get_text
 from setup.utils import (
     echo, echoerr,
     calc_deltatime,
 )
 
-from setup.cnx_enum import CnxState
-from setup.settings import Settings
 from engine.state import RowState
 
 from rowers.rower import RowerClient

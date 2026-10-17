@@ -47,6 +47,7 @@ class ReplaySource(ABC):
 
     # -------------------------------------------------------------------------
     def start(self) -> None:
+
         if self._running:
             return
 
@@ -59,6 +60,7 @@ class ReplaySource(ABC):
 
     # -------------------------------------------------------------------------
     def stop(self) -> None:
+        
         self._running = False
 
         if self._thread is not None:

@@ -23,8 +23,10 @@ import asyncio
 from PySide6.QtWidgets import QApplication
 
 from setup.settings import Settings
+from setup.users import UserManager
 from setup.lang import init_language, get_text
 from setup.settings_utils import load_settings
+from setup.utils import echo
 from setup.constants import (
     WINDOW_WIDTH, WINDOW_HEIGHT,
     WINDOW_TO_SCREEN_LEFT_MARGIN,
@@ -32,23 +34,22 @@ from setup.constants import (
     REPLAY_FILE, REPLAY_SPEED, USE_REPLAY,
     USE_REPLAY_WORKOUT, REPLAY_WORKOUT_FILE,
 )
-from setup.utils import echo
-from setup.users import UserManager
+
+# BluetoothManager permet (sur PC Win11) de s'assurer que la carte BT est
+# activé (ou l'active si besoin) et de remettre son état initial en quittant
+from bluetooth.manager import BluetoothManager
 
 from engine.state import RowState
+
 from ui.gui import MainWindow
 
 from rowers.merach_q1s import MerachRower
 #from rowers.concept2 import Concept2Rower
 
-from replays.replay_q1s import ReplayQ1S
-#from replays.replay_c2 import ReplayC2
-
 from logger.logger import CsvLogger
 
-# BluetoothManager permet (sur PC Win11) de s'assurer que la carte BT est
-# activé (ou l'active si besoin) et de remettre son état initial en quittant
-from bluetooth.manager import BluetoothManager
+from replays.replay_q1s import ReplayQ1S
+#from replays.replay_c2 import ReplayC2
 
 # -----------------------------------------------------------------------------
 def main():

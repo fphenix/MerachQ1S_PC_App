@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from setup.settings import Settings
 from setup.lang import get_text
 from setup.utils import (
     format_split, format_time,
@@ -18,7 +19,6 @@ from setup.utils import (
     clamp_to_max,
     clamp_between,
 )
-from setup.settings import Settings
 from setup.constants import (
     TITLE_FONT,
     DEFAULT_SPLIT_LENGTH,
@@ -28,10 +28,10 @@ from setup.constants import (
     SPLIT_MODES_WORKOUT,
 )
 
+from engine.calc import calc_full_split
+
 from workout.workout import Workout
 from workout.split_data import WorkoutSplit
-
-from engine.calc import calc_full_split
 
 # =============================================================================
 class SplitListWidget(QFrame):

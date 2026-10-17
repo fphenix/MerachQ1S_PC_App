@@ -3,7 +3,7 @@ from statistics import mean, stdev
 from setup.utils import calc_metric_avg
 
 # --------------------------------------------------------
-# Metrics
+# Metrics calculation
 # --------------------------------------------------------
 
 # -----------------------------------------------------------------------------
@@ -42,7 +42,11 @@ def calc_split500(speed: float, split_length: float) -> float:
 # Mais si par exemple distance = 250m alors 
 # split = temps / 250 * 500 soit split = 2 * temps
 # ce qui est bien le temps ramené à 500m
-def calc_full_split(distance: float, time: float, split_length: float) -> float:
+def calc_full_split(
+    distance: float,
+    time: float,
+    split_length: float
+) -> float:
     return calc_metric_avg(time, distance) * split_length
 
 # -----------------------------------------------------------------------------
@@ -101,7 +105,7 @@ def calc_work_per_stroke(work: float, stroke_count: int) -> float:
 
 def calc_stats(
     values: list[float],
-    minimum: float|None = None
+    minimum: float | None = None
 ) -> dict[str, float]:
 
     # if empty list, set results to 0

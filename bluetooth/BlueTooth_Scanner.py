@@ -4,7 +4,7 @@
 #===========================================================
 
 import asyncio
-from bleak import BleakScanner, BleakClient
+from bleak import BleakScanner
 
 COMPANIES = {
     # Computing
@@ -106,7 +106,7 @@ raise SystemExit
 # %> pip install bleak
 
 import asyncio
-from bleak import BleakScanner, BleakClient
+from bleak import BleakScanner
 
 # Scan for Bluetooth emitters
 

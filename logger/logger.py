@@ -1,5 +1,6 @@
 from pathlib import Path
 from datetime import datetime
+from collections import Counter
 
 import csv
 import zipfile
@@ -24,10 +25,7 @@ from logger.logrecord import LogRecord
 # =============================================================================
 class CsvLogger:
 
-    def __init__(
-        self,
-        logs_dir: Path,
-    ) -> None:
+    def __init__(self, logs_dir: Path) -> None:
 
         self.logs_dir: Path = Path(logs_dir)
 
@@ -38,7 +36,8 @@ class CsvLogger:
         self.log_format: str = LOGGER_FORMAT
         self.writer = None
         self.workout_file: str | None = None
-        self.game_name: str | None = None
+        self.game_names: list[str] = []
+        self.session_started_at: datetime | None = None
 
         self.packet: int = 0
 
@@ -57,6 +56,8 @@ class CsvLogger:
         self.packet = 0
         self.last_pc_time = None
         self._has_data = False
+        self.session_started_at = datetime.now().astimezone()
+        self.game_names = []
 
         self.logs_dir.mkdir(
             parents= True,
@@ -97,7 +98,7 @@ class CsvLogger:
         self.writer.writerow([
             f"{self.rower_name} PC {mode}",
             f"{get_text("VERSION")} {VERSION}",
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            (self.session_started_at or datetime.now()).strftime("%Y-%m-%d %H:%M:%S"),
         ])
 
         #
@@ -117,15 +118,17 @@ class CsvLogger:
     # -------------------------------------------------------------------------
     def _activity_header_row(self) -> list[str]:
 
-        if self.game_name:
-            return ["Game", self.game_name]
+        if self.game_names:
+            return ["Game", ", ".join(self.game_names)]
         
         return ["Workout", self.workout_file or "None Loaded"]
 
     # -------------------------------------------------------------------------
     def set_game_name(self, name: str | None) -> None:
+        """Enregistre chaque lancement de jeu dans l'en-tête du log de séance."""
 
-        self.game_name = name
+        if name:
+            self.game_names.append(name)
         self._update_workout_header()
 
     # -------------------------------------------------------------------------
@@ -156,7 +159,7 @@ class CsvLogger:
 
     # -------------------------------------------------------------------------
     def _write_header(self) -> None:
-        """Réécrit l'en-tête en conservant les données déjà enregistrées."""
+        """ Réécrit l'en-tête en conservant les données déjà enregistrées. """
 
         if self._file is None:
             return
@@ -197,9 +200,7 @@ class CsvLogger:
 
     # -------------------------------------------------------------------------
     def flush(self) -> None:
-        """
-        Force l'écriture physique du fichier.
-        """
+        """ Force l'écriture physique du fichier. """
 
         if self._file is None:
             return
@@ -211,9 +212,7 @@ class CsvLogger:
 
     # -------------------------------------------------------------------------
     def _periodic_flush(self) -> None:
-        """
-        Flush périodique.
-        """
+        """ Flush périodique. """
 
         now = time.monotonic()
 
@@ -222,9 +221,7 @@ class CsvLogger:
 
     # -------------------------------------------------------------------------
     def stroke_detected(self) -> None:
-        """
-        Appelée lorsqu'un nouveau coup est détecté.
-        """
+        """ Appelée lorsqu'un nouveau coup est détecté. """
 
         self.last_stroke_time = time.monotonic()
 
@@ -330,10 +327,7 @@ class CsvLogger:
         self._has_data = False
 
     # -------------------------------------------------------------------------
-    def set_logs_dir(
-        self,
-        logs_dir: Path,
-    ) -> None:
+    def set_logs_dir(self, logs_dir: Path) -> None:
 
         if self._file is not None:
             raise RuntimeError(
@@ -343,10 +337,7 @@ class CsvLogger:
         self.logs_dir = Path(logs_dir)
 
     # -------------------------------------------------------------------------
-    def set_workout_file(
-        self,
-        filename: str | None,
-    ) -> None:
+    def set_workout_file(self, filename: str | None) -> None:
 
         if filename is None:
             self.workout_file = None

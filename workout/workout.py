@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from workout.step import WorkoutStep
-
 # Cannot use a simple "from setup.utils import clamp_to_zero"
 # because of a circular dependency between this file and utils.py.
 import setup.utils as utils
+
+from workout.step import WorkoutStep
 
 # =============================================================================
 class Workout:

@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QFrame,
 )
 
+from setup.settings import Settings
 from setup.lang import get_text
 from setup.utils import (
     load_workout,
@@ -25,7 +26,6 @@ from setup.utils import (
     fractional_progress,
     calc_deltatime,
 )
-from setup.settings import Settings
 from setup.constants import (
     WORKOUT_TIMER_MS,
     WORKOUT_WARNING_TIME,
@@ -883,7 +883,7 @@ class WorkoutWidget(QFrame):
 
     # -------------------------------------------------------------------------
     @staticmethod
-    def get_text_from_field(field) -> str:
+    def get_text_from_field(field: str) -> str:
 
         field_keys: list = []
         other_values: list = []

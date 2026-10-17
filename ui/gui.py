@@ -30,6 +30,9 @@ from PySide6.QtWidgets import (
     QStackedLayout,
 )
 
+from setup.settings import Settings
+from setup.cnx_enum import CnxState
+from setup.users import UserManager
 from setup.lang import get_text
 from setup.utils import (
     format_split,
@@ -55,13 +58,8 @@ from setup.constants import (
     MAX_POWER_FILTER, MAX_POWER_WINDOW_WIDTH,
     USERS_DIR,
 )
-from setup.cnx_enum import CnxState
 
 from engine.state import RowState
-from setup.settings import Settings
-from setup.users import UserManager
-from logger.logger import CsvLogger
-from workout.workout import Workout
 
 from ui.status_widget import StatusWidget
 from ui.widgets import MetricWidget
@@ -70,14 +68,21 @@ from ui.progbar_widget import GradientGauge
 from ui.workout_widget import WorkoutWidget
 from ui.settings_dialog import SettingsDialog
 from ui.workout_editor import WorkoutEditorDialog
-from games.game_widget import GameWidget
-from games.highscore_dialog import HighScoreDialog
 
-from workout.split import WorkoutSplitCalculator
 from rowers.power_calib_data import PowerCalibrationContext
 
 from tools.analyzer import AnalyzerWindow
 from tools.plot_wo import WorkoutPlotWindow
+
+from workout.split import WorkoutSplitCalculator
+from workout.workout import Workout
+
+from games.game_widget import GameWidget
+from games.highscore_dialog import HighScoreDialog
+
+from logger.logger import CsvLogger
+from history.manager import HistoryManager
+from ui.history_dialog import HistoryDialog
 
 # =============================================================================
 class MainWindow(QMainWindow):
@@ -97,6 +102,11 @@ class MainWindow(QMainWindow):
 
         self.user_manager: UserManager = user_manager
         self.logger: CsvLogger = logger
+        self.history = HistoryManager(
+            self.user_manager.logs_dir().parent / "history.json",
+            enabled= not USE_REPLAY,
+        )
+        self.history.begin_session(self.logger.session_started_at)
 
         self._workout_editor_paused: bool = False
 
@@ -609,7 +619,7 @@ class MainWindow(QMainWindow):
         )
 
         #
-        # Le logger repart dans le nouveau répertoire.
+        # Logger et Historique
         #
 
         if self.logger is not None:
@@ -619,6 +629,11 @@ class MainWindow(QMainWindow):
             )
 
             self.logger.start()
+
+        self.history.filename = self.user_manager.logs_dir().parent / "history.json"
+        self.history.begin_session(
+            self.logger.session_started_at if self.logger is not None else None
+        )
 
         self._rebuild_user_menu()
 
@@ -671,6 +686,7 @@ class MainWindow(QMainWindow):
         if (
             self.gameWidget.isVisible()
             or self._session_or_workout_active()
+            or bool(self.history.games)
         ):
 
             QMessageBox.information(
@@ -736,7 +752,7 @@ class MainWindow(QMainWindow):
         )
 
         #
-        # Le logger utilise maintenant son répertoire.
+        # Logger et Historique
         #
 
         if self.logger is not None:
@@ -746,6 +762,11 @@ class MainWindow(QMainWindow):
             )
 
             self.logger.start()
+
+        self.history.filename = self.user_manager.logs_dir().parent / "history.json"
+        self.history.begin_session(
+            self.logger.session_started_at if self.logger is not None else None
+        )
 
         #
         # Game user
@@ -785,7 +806,6 @@ class MainWindow(QMainWindow):
         workout_menu = self.menuBar().addMenu(
             get_text("MENU_WORKOUT")
         )
-
         open_workout_action = workout_menu.addAction(
             get_text("MENU_WORKOUT_OPEN")
         )
@@ -793,6 +813,8 @@ class MainWindow(QMainWindow):
             self._callback_open_workout_file
         )
 
+        workout_menu.addSeparator()
+        
         create_workout_action = workout_menu.addAction(
             get_text("MENU_WORKOUT_CREATE")
         )
@@ -810,6 +832,7 @@ class MainWindow(QMainWindow):
         #
         # Tools >
         #   Analyser un log
+        #   Voir l'Historique
         #   Visualiser un .wo
         #
 
@@ -823,6 +846,13 @@ class MainWindow(QMainWindow):
 
         analyzer_action.triggered.connect(
             self._callback_open_analyzer
+        )
+
+        history_action = tools_menu.addAction(
+            get_text("MENU_HISTORY")
+        )
+        history_action.triggered.connect(
+            self._callback_show_history
         )
 
         plot_wo_action = tools_menu.addAction(
@@ -858,20 +888,27 @@ class MainWindow(QMainWindow):
             get_text("MENU_GAMES")
         )
 
-        fishing_action = games_menu.addAction(
-            get_text("MENU_GAMES_FISHING")
-        )
-        fishing_action.triggered.connect(
-            self._callback_start_fishing_game
-        )
+        # Liste de jeux
+        game_actions: list = []
+        for game_title, game_id in (
+            ["MENU_GAMES_FISHING", "fishing"],
+            ["MENU_GAMES_FISHING2", "fishing2"],
+            ["MENU_GAMES_PIGEON", "pigeon"],
+            ["MENU_GAMES_JUMP", "jump"],
+            ["MENU_GAMES_SLOWNGO", "slowngo"],
+            ["MENU_GAMES_PATH", "path"],
+            ["MENU_GAMES_RACE_1000", "race_1000"],
+            ["MENU_GAMES_RACE_2000", "race_2000"],
+            ["MENU_GAMES_MARIO", "mario"],
+            ["MENU_GAMES_SIMON", "simon"],
+        ):
+            game_actions.append(games_menu.addAction(get_text(game_title)))
+            game_actions[-1].triggered.connect(
+                lambda checked=False, id=game_id: self._callback_start_game(id)
+            )
 
-        fishing2_action = games_menu.addAction(
-            get_text("MENU_GAMES_FISHING2")
-        )
-        fishing2_action.triggered.connect(
-            self._callback_start_fishing2_game
-        )
-
+        # Hi-Scores
+        games_menu.addSeparator()
         hiscore_action = games_menu.addAction(
             get_text("MENU_GAMES_HISCORE")
         )
@@ -879,6 +916,8 @@ class MainWindow(QMainWindow):
             self._callback_show_hiscores
         )
 
+        # Exit Game
+        games_menu.addSeparator()
         self.exit_game_action = games_menu.addAction(
             get_text("MENU_GAMES_EXIT")
         )
@@ -991,8 +1030,10 @@ class MainWindow(QMainWindow):
             self.state.source.stop()
 
         # --------------------------------------------------------------
-        # Stop Logger
+        # Archive dans l'Historique et Stop le Logger
         # --------------------------------------------------------------
+
+        self._finalize_history_session()
 
         if self.logger is not None:
             self.logger.flush()
@@ -1045,6 +1086,12 @@ class MainWindow(QMainWindow):
 
             if self.logger is not None:
                 self.logger.start()
+
+        self.history.begin_session(
+            self.logger.session_started_at
+            if self.logger is not None
+            else None
+        )
 
         self._refresh()
 
@@ -1271,7 +1318,7 @@ class MainWindow(QMainWindow):
         )
 
     # -------------------------------------------------------------------------
-    def _edit_workout_dialog(self, workout: Workout|None = None) -> None:
+    def _edit_workout_dialog(self, workout: Workout | None = None) -> None:
 
         # Pas d'édition pendant une séance.
         if self.workoutWidget.running:
@@ -1335,17 +1382,12 @@ class MainWindow(QMainWindow):
                 source.start()
 
     # -------------------------------------------------------------------------
-    def _callback_start_fishing_game(self) -> None:
-        self._callback_start_game("fishing")
-
-    # -------------------------------------------------------------------------
-    def _callback_start_fishing2_game(self) -> None:
-        self._callback_start_game("fishing2")
-
-    # -------------------------------------------------------------------------
     def _callback_start_game(self, game_id: str) -> None:
 
-        if self._session_or_workout_active():
+        # Les jeux peuvent se succéder pendant une même séance rameur :
+        # chacun prend un instantané de départ et ne dépend pas d'un compteur remis à zéro.
+        # En revanche, on ne remplace pas un entraînement structuré en cours.
+        if self.workoutWidget.running:
             QMessageBox.information(
                 self,
                 get_text("MENU_GAMES"),
@@ -1356,17 +1398,22 @@ class MainWindow(QMainWindow):
         if self.workoutWidget.isVisible():
             self._close_workout()
 
-        self.gameWidget.start_game(game_id)
+        self.gameWidget.start_game(
+            game_id,
+            profile_level_norm= self.settings.profile_level_norm
+        )
         self.main_stack.setCurrentWidget(self.gameWidget)
 
         self.exit_game_action.setEnabled(True)
 
+        self.history.register_game(game_id, self.gameWidget.game.title)
         if self.logger is not None:
             self.logger.set_game_name(self.gameWidget.game.title)
 
     # -------------------------------------------------------------------------
     def _callback_exit_game(self) -> None:
 
+        self.gameWidget.stop_game()
         self.main_stack.setCurrentWidget(self.rower_panel)
         self.exit_game_action.setEnabled(False)
 
@@ -1388,6 +1435,7 @@ class MainWindow(QMainWindow):
 
         if (
             event.key() == Qt.Key.Key_Space
+            and not event.isAutoRepeat()
             and self.gameWidget.isVisible()
         ):
             self.gameWidget.register_stroke()
@@ -1496,6 +1544,34 @@ class MainWindow(QMainWindow):
         self.analyzer_window.show()
 
     # -------------------------------------------------------------------------
+    def _finalize_history_session(self) -> None:
+
+        if not self.history.enabled:
+            return
+        
+        try:
+            self.history.finalize(
+                self.state.snapshot().rowerdata,
+                workout_file= self.logger.workout_file if self.logger is not None else None,
+                rower_name= self.logger.rower_name if self.logger is not None else None,
+            )
+
+        except (OSError, ValueError, TypeError) as exc:
+            QMessageBox.warning(
+                self,
+                get_text("HISTORY_TITLE"),
+                f"{get_text('HISTORY_SAVE_ERROR')}\n{exc}",
+            )
+
+    # -------------------------------------------------------------------------
+    def _callback_show_history(self) -> None:
+
+        HistoryDialog(
+            self.user_manager.logs_dir().parent / "history.json",
+            parent= self,
+        ).exec()
+
+    # -------------------------------------------------------------------------
     def _callback_open_plot_wo(self) -> None:
 
         filename, _ = QFileDialog.getOpenFileName(
@@ -1574,9 +1650,12 @@ class MainWindow(QMainWindow):
     # Note: ceci est une méthode Qt, applelée à la fermeture du widget
     def closeEvent(self, event) -> None:
 
-        # Arrête le moteur principal.
+        # Arrête d'abord la source pour figer le dernier instantané disponible.
         if self.state.source is not None:
             self.state.source.stop()
+
+        # Le logger reste ouvert jusqu'au finally de main.py.
+        self._finalize_history_session()
 
         # Ferme les fenêtres outils.
         for window in (
@@ -1726,7 +1805,7 @@ class MainWindow(QMainWindow):
     # for instance, with 3 and 5 respectively, values at indices
     # 0, 1 and 2 are ignored, then values at indices 3, 4, 5, 6 and 7
     # are used to get the average max power value.
-    def _compute_max_power(self, inst_power_value: float):
+    def _compute_max_power(self, inst_power_value: float) -> float:
 
         self.max_power_list.append(inst_power_value)
         self.max_power_list = sorted(

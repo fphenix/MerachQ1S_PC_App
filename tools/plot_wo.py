@@ -15,7 +15,6 @@ from setup.constants import (
     PLOTWO_CODE_MIN_WIDTH, PLOTWO_CODE_MAX_WIDTH,
     FILE_ENCODING,
 )
-
 from setup.lang import get_text
 from setup.utils import load_workout
 

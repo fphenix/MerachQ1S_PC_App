@@ -161,9 +161,9 @@ class MetricWidget(QFrame):
     # -------------------------------------------------------------------------
     def setValue(
         self,
-        textvalue: int|str,
-        gaugevalue: int|float|None = None,
-        secondary_textvalue: int|str | None = None,
+        textvalue: int | str,
+        gaugevalue: int | float | None = None,
+        secondary_textvalue: int | str | None = None,
     ) -> None:
 
         self.value_label.setText(str(textvalue))

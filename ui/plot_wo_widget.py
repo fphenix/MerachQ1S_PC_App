@@ -5,13 +5,14 @@ from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.ticker import MultipleLocator
 
+from setup.lang import get_text
 from setup.constants import (
     INTENSITY_COLORS,
 )
 
 from ui.workout_widget import WorkoutWidget
+
 from workout.workout import Workout
-from setup.lang import get_text
 
 # =============================================================================
 class WorkoutPlotWidget(FigureCanvas):

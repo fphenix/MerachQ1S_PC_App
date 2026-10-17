@@ -11,21 +11,17 @@
 # our calculations on something... We will only use the inst power
 # (not the raw average).
 
-from collections import deque
 from dataclasses import replace
+from collections import deque
 
-from rowers.power_calibration import WorkoutPowerCalibration
-from rowers.power_calib_data import PowerCalibrationContext
-
-from workout.workout import Workout
 from setup.settings import Settings
-
 from setup.utils import (
     calc_delta,
     calc_deltatime,
     calc_average,
     clamp_to_zero,
 )
+
 from engine.calc import (
     calc_speed_avg,
     calc_pace,
@@ -40,6 +36,11 @@ from engine.calc import (
     calc_work,
     calc_work_per_stroke,
 )
+
+from rowers.power_calibration import WorkoutPowerCalibration
+from rowers.power_calib_data import PowerCalibrationContext
+
+from workout.workout import Workout
 
 # =============================================================================
 class MerachQ1SCalc:

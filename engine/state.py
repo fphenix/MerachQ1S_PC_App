@@ -2,15 +2,14 @@ from threading import Lock
 from collections import deque
 from copy import deepcopy
 
-from engine.snapshot import Snapshot
-
 from setup.utils import (
     clamp_to_zero,
     calc_delta,
     calc_deltatime,
 )
-
 from setup.cnx_enum import CnxState
+
+from engine.snapshot import Snapshot
 
 from rowers.data import RowerData
 
