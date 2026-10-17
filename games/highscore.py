@@ -1,11 +1,12 @@
 """Gestion générique des Hi-Scores des jeux, avec date de réalisation."""
 
-
 from datetime import datetime
 import json
 from pathlib import Path
 
 from setup.constants import FILE_ENCODING
+
+from games.score_config import GAME_SCORE_ORDERS
 
 # =============================================================================
 class HighScoreManager:
@@ -63,7 +64,10 @@ class HighScoreManager:
             scores = self._personal_scores.setdefault(game_id, [])
             scores.append(entry)
 
-        scores.sort(key=lambda item: int(item["score"]), reverse=True)
+        scores.sort(
+            key=lambda item: int(item["score"]),
+            reverse=GAME_SCORE_ORDERS.get(game_id, "descending") != "ascending",
+        )
         is_hiscore = entry in scores[:self.SCORES_LIST_LENGTH]
 
         del scores[self.SCORES_LIST_LENGTH:]
@@ -74,6 +78,7 @@ class HighScoreManager:
 
     # -------------------------------------------------------------------------
     def _personal_load(self) -> None:
+
         self._personal_scores = self._load_scores(
             self.personal_filename,
             common=False
@@ -81,6 +86,7 @@ class HighScoreManager:
 
     # -------------------------------------------------------------------------
     def _common_load(self) -> None:
+        
         self._common_scores = self._load_scores(
             self.common_filename,
             common=True
@@ -88,16 +94,25 @@ class HighScoreManager:
 
     # -------------------------------------------------------------------------
     @staticmethod
-    def _load_scores(filename: Path, common: bool) -> dict[str, list[dict[str, object]]]:
+    def _load_scores(
+        filename: Path,
+        common: bool
+    ) -> dict[str, list[dict[str, object]]]:
+
         try:
             with filename.open("r", encoding=FILE_ENCODING) as rfile:
                 data = json.load(rfile)
+
             if not isinstance(data, dict):
                 return {}
+            
             result: dict[str, list[dict[str, object]]] = {}
+
             for game, values in data.items():
+
                 if not isinstance(values, list):
                     continue
+
                 entries = []
                 for value in values:
                     if isinstance(value, dict) and "score" in value:
@@ -105,19 +120,30 @@ class HighScoreManager:
                             "score": int(value["score"]),
                             "date": str(value.get("date", "--/--/--")),
                         }
+
                         if common:
                             entry["user_id"] = str(value.get("user_id", ""))
+
                         entries.append(entry)
+
                     elif isinstance(value, (int, float, str)):
                         # Legacy files stored personal scores as integers and
                         # common scores as {score, user_id} or bare integers.
                         entry = {"score": int(value), "date": "--/--/--"}
+
                         if common:
                             entry["user_id"] = ""
+
                         entries.append(entry)
-                entries.sort(key=lambda item: int(item["score"]), reverse=True)
+
+                entries.sort(
+                    key=lambda item: int(item["score"]),
+                    reverse=GAME_SCORE_ORDERS.get(game, "descending") != "ascending",
+                )
                 result[str(game)] = entries[:HighScoreManager.SCORES_LIST_LENGTH]
+
             return result
+        
         except (OSError, ValueError, TypeError, json.JSONDecodeError):
             return {}
 
@@ -131,7 +157,7 @@ class HighScoreManager:
 
     # -------------------------------------------------------------------------
     @staticmethod
-    def _save(filename: Path, scores) -> None:
+    def _save(filename: Path, scores: dict) -> None:
 
         filename.parent.mkdir(parents=True, exist_ok=True)
 

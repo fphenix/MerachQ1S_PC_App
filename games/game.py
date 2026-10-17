@@ -2,6 +2,9 @@
 
 from abc import ABC, abstractmethod
 
+from setup.lang import get_text
+from setup.utils import format_duration
+
 from games.game_input import GameInput
 
 # =============================================================================
@@ -87,6 +90,18 @@ class Game(ABC):
     # -------------------------------------------------------------------------
     def remaining(self) -> float:
         return max(0.0, self.duration - self.elapsed)
+
+    # -------------------------------------------------------------------------
+    def hud_score_text(self) -> str:
+        return f"{get_text('GAME_SCORE')}: {self.score:05d}"
+
+    # -------------------------------------------------------------------------
+    def hud_time_text(self) -> str:
+        return f"{get_text('TIME')}: {format_duration(self.remaining())}"
+
+    # -------------------------------------------------------------------------
+    def records_score(self) -> bool:
+        return True
 
     # -------------------------------------------------------------------------
     def reset(self) -> None:

@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QButtonGroup,
     QGroupBox,
     QHBoxLayout,
+    QGridLayout,
     QLabel,
     QRadioButton,
     QVBoxLayout,
@@ -21,12 +22,12 @@ from games.game_registry import GAME_CLASSES
 class HighScoreDialog(QDialog):
 
     def __init__(
-            self,
-            highscores: HighScoreManager,
-            user_id: str = "",
-            selected_game_id: str = "fishing",
-            parent= None
-        ) -> None:
+        self,
+        highscores: HighScoreManager,
+        user_id: str = "",
+        selected_game_id: str = "fishing",
+        parent= None
+    ) -> None:
 
         super().__init__(parent)
 
@@ -50,15 +51,16 @@ class HighScoreDialog(QDialog):
         layout = QVBoxLayout(self)
 
         game_group = QGroupBox(get_text("HISCORE_GAME"))
-        game_layout = QHBoxLayout(game_group)
+        game_layout = QGridLayout(game_group)
         self.game_buttons = QButtonGroup(self)
+        columns = 4
 
         for index, (game_id, game_class) in enumerate(GAME_CLASSES.items()):
             
             button = QRadioButton(game_class().title)
             button.setProperty("game_id", game_id)
             self.game_buttons.addButton(button, index)
-            game_layout.addWidget(button)
+            game_layout.addWidget(button, index // columns, index % columns)
 
             if game_id == self.selected_game_id:
                 button.setChecked(True)
@@ -97,13 +99,24 @@ class HighScoreDialog(QDialog):
         return button.property("game_id")
 
     # -------------------------------------------------------------------------
+    @staticmethod
+    def _format_score(game_id: str, score: int) -> str:
+
+        if game_id in {"race_1000", "race_2000"}:
+            minutes, seconds = divmod(max(0, score), 60)
+            return f"{minutes:02d}:{seconds:02d}"
+        
+        return str(score)
+
+    # -------------------------------------------------------------------------
     def _update_scores(self) -> None:
 
         game_id = self._selected_game_id()
 
         personal_scores = self.highscores.scores(game_id)
         personal_lines = [
-            f"{index:2d}. {int(entry['score']):5d}  {entry.get('date', '--/--/--')}"
+            f"{index:2d}. {self._format_score(game_id, int(entry['score'])):>7}  "
+            f"{entry.get('date', '--/--/--')}"
             for index, entry in enumerate(personal_scores, start=1)
         ]
         self.personal_label.setText(
@@ -115,7 +128,8 @@ class HighScoreDialog(QDialog):
         common_scores = self.highscores.scores(game_id, common= True)
         common_lines = [
             f"{index:2d}. {entry.get('user_id') or '???'}  :   "
-            f"{int(entry['score']):5d}  {entry.get('date', '--/--/--')}"
+            f"{self._format_score(game_id, int(entry['score'])):>7}  "
+            f"{entry.get('date', '--/--/--')}"
             for index, entry in enumerate(common_scores, start= 1)
         ]
         self.common_label.setText(

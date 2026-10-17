@@ -3,15 +3,17 @@
     Appelé "Fishing" car il est basé sur 
     le jeu "Fishing" du Concept2!
 """
+from dataclasses import dataclass
+
+import random
 import math
 
-from dataclasses import dataclass
-import random
-
 from setup.lang import get_text
+from setup.utils import is_between
 
 from games.game import Game
 from games.game_input import GameInput
+from games.cadence import input_cadence
 
 # =============================================================================
 @dataclass(slots=True)
@@ -46,23 +48,17 @@ class FishingGame(Game):
     SPAWN_MAX: float = 1.20
 
     INSECTS_DATA: dict[str, dict[str, int|float]] = {
-        "bee": {
-            "pxsize": 22, "speed": 70.0, "points": 60, "freq": 55.0,
-        },
-        "butterfly": {
-            "pxsize": 30, "speed": 50.0, "points": 30, "freq": 25.0,
-        },
-        "hornet": {
-            "pxsize": 40, "speed": 100.0, "points": -45, "freq": 20.0,
-        },
+        "bee":       {"pxsize": 35, "speed":  70.0, "points":  60, "freq": 55.0},
+        "butterfly": {"pxsize": 40, "speed":  50.0, "points":  30, "freq": 25.0},
+        "hornet":    {"pxsize": 50, "speed": 100.0, "points": -45, "freq": 20.0},
     }
 
-    SPM_LEVELS: tuple[int] = (16, 20, 24, 28, 32)
-    LANE_COUNT: int = len(SPM_LEVELS)
+    CADENCE_LEVELS: tuple[int] = (16, 20, 24, 28, 32)
+    LANE_COUNT: int = len(CADENCE_LEVELS)
     LANE_HEIGHT: float = PLAYFIELD_HEIGHT / LANE_COUNT
 
     NET_LERP_SPEED: float = 3.0
-    SPM_HYSTERESIS: float = 1.0
+    CADENCE_MARGIN: float = 1.0
 
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
@@ -116,24 +112,24 @@ class FishingGame(Game):
 
         # Un seul changement de couloir par frappe.
         if self.lane_index < self.LANE_COUNT - 1:
-            current_spm = self.SPM_LEVELS[self.lane_index]
-            next_spm = self.SPM_LEVELS[self.lane_index + 1]
+            current_spm = self.CADENCE_LEVELS[self.lane_index]
+            next_spm = self.CADENCE_LEVELS[self.lane_index + 1]
 
             up_threshold = (
                 (current_spm + next_spm) / 2
-                + self.SPM_HYSTERESIS
+                + self.CADENCE_MARGIN
             )
 
             if spm >= up_threshold:
                 self.lane_index += 1
 
         if self.lane_index > 0:
-            current_spm = self.SPM_LEVELS[self.lane_index]
-            previous_spm = self.SPM_LEVELS[self.lane_index - 1]
+            current_spm = self.CADENCE_LEVELS[self.lane_index]
+            previous_spm = self.CADENCE_LEVELS[self.lane_index - 1]
 
             down_threshold = (
                 (current_spm + previous_spm) / 2
-                - self.SPM_HYSTERESIS
+                - self.CADENCE_MARGIN
             )
 
             if spm <= down_threshold:
@@ -157,10 +153,9 @@ class FishingGame(Game):
                     self._game_time - self._last_stroke_time
                     if self._last_stroke_time is not None else 0.0
                 )
-                if game_input.raw_spm > 0.0:
-                    self.current_spm = game_input.raw_spm
-                elif game_input.spm > 0.0:
-                    self.current_spm = game_input.spm
+                measured_spm = input_cadence(game_input)
+                if measured_spm is not None:
+                    self.current_spm = measured_spm
                 elif interval > 0.0:
                     self.current_spm = 60.0 * stroke_delta / interval
                 if self.current_spm is not None:
@@ -171,7 +166,7 @@ class FishingGame(Game):
                     interval = self._game_time - self._last_stroke_time
                     # After a long pause, the first stroke establishes a new
                     # timing baseline; do not treat the pause as a real cadence.
-                    if 0.0 < interval <= 60.0 / self.SPM_LEVELS[0]:
+                    if is_between(interval, 0.01, 60.0 / self.CADENCE_LEVELS[0]):
                         self.current_spm = 60.0 / interval
                         self._update_lane_from_spm(self.current_spm)
 
@@ -185,11 +180,11 @@ class FishingGame(Game):
             if interval > 0.0:
                 predicted_spm = 60.0 / interval
                 self._anticipate_lane_from_spm(predicted_spm)
-                if self.lane_index == 0 and predicted_spm < self.SPM_LEVELS[0]:
+                if self.lane_index == 0 and predicted_spm < self.CADENCE_LEVELS[0]:
                     max_offset = self.LANE_HEIGHT * 0.40
                     # After reaching the lowest lane, continue lowering the
                     # net over the next ~2 seconds of inactivity.
-                    excess_time = max(0.0, interval - 60.0 / self.SPM_LEVELS[0])
+                    excess_time = max(0.0, interval - 60.0 / self.CADENCE_LEVELS[0])
                     self._rest_offset = min(max_offset, max_offset * excess_time / 2.0)
 
         target_y = self._net_y_for_lane(self.lane_index) + self._rest_offset
@@ -214,10 +209,12 @@ class FishingGame(Game):
     # -------------------------------------------------------------------------
     def _anticipate_lane_from_spm(self, spm: float) -> None:
         """Apply downward hysteresis thresholds during the expected stroke gap."""
+
         if self.lane_index > 0:
-            current = self.SPM_LEVELS[self.lane_index]
-            previous = self.SPM_LEVELS[self.lane_index - 1]
-            down_threshold = (current + previous) / 2 - self.SPM_HYSTERESIS
+            current = self.CADENCE_LEVELS[self.lane_index]
+            previous = self.CADENCE_LEVELS[self.lane_index - 1]
+            down_threshold = (current + previous) / 2 - self.CADENCE_MARGIN
+
             if spm <= down_threshold:
                 self.lane_index -= 1
                 self._target_net_y = self._net_y_for_lane(self.lane_index)

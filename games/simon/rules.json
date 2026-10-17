@@ -1,0 +1,4 @@
+{
+    "en": "Simon:\n\nWatch the three colored panels flash in sequence, then repeat the sequence in the same order. The sequence grows by one panel each round.\n\nYour cadence chooses the panel for each rowing stroke: around 18 SPM selects green, 24 SPM selects yellow, and 30 SPM selects red. Wait until the sequence has finished before responding.\n\nA wrong panel ends the game. Your score increases as you complete longer rounds.",
+    "fr": "Simon :\n\nObservez les trois panneaux colorés qui s'allument successivement, puis reproduisez la séquence dans le même ordre. La séquence s'allonge d'un panneau à chaque manche.\n\nVotre cadence choisit le panneau à chaque coup de rame : environ 18 CPM sélectionne le vert, 24 CPM le jaune et 30 CPM le rouge. Attendez la fin de la séquence avant de répondre.\n\nUne erreur termine la partie. Le score augmente avec la longueur des manches réussies."
+}
