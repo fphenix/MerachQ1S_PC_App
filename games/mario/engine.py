@@ -7,8 +7,7 @@ import math
 from setup.lang import get_text
 
 from games.game import Game
-from games.game_input import GameInput
-from games.cadence import input_cadence
+from games.game_input import GameInput, input_cadence
 
 # =============================================================================
 @dataclass(slots=True)

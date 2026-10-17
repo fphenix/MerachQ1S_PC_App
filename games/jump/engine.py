@@ -7,9 +7,8 @@ import random
 from setup.lang import get_text
 from setup.utils import is_within, is_between
 
-from games.cadence import input_cadence
 from games.game import Game
-from games.game_input import GameInput
+from games.game_input import GameInput, input_cadence
 
 # =============================================================================
 @dataclass(slots=True)
