@@ -9,19 +9,24 @@ from pathlib import Path
 from uuid import uuid4
 
 from setup.constants import VERSION
+from setup.lang import get_text
 
 # =============================================================================
 class HistoryManager:
     """Stocke une entrée par segment de séance, entre deux resets."""
 
+    HISTORY_ACTIVITY_TYPE_GAME: str = "game"
+    HISTORY_ACTIVITY_TYPE_WORKOUT: str = "workout"
+    HISTORY_ACTIVITY_TYPE_FREE: str = "free"
+
     # -------------------------------------------------------------------------
     def __init__(self, filename: Path, enabled: bool = True) -> None:
 
         self.filename = Path(filename)
-        self.enabled = enabled
+        self.enabled: bool = enabled
         self.started_at = datetime.now().astimezone()
         self.games: list[dict[str, str]] = []
-        self._finalized = False
+        self._finalized: bool = False
 
     # -------------------------------------------------------------------------
     def begin_session(self, started_at: datetime | None = None) -> None:
@@ -64,7 +69,7 @@ class HistoryManager:
             document = json.load(file)
 
         if not isinstance(document, dict) or not isinstance(document.get("sessions"), list):
-            raise ValueError(f"Format d'historique invalide : {filename}")
+            raise ValueError(f"{get_text("ERR_HISO_INVALID_FORMAT")} : {filename}")
         
         document["sessions"] = [
             item for item in document["sessions"] if isinstance(item, dict)
@@ -97,20 +102,21 @@ class HistoryManager:
             title = game["title"]
             if title not in ordered_titles:
                 ordered_titles.append(title)
+
         games_text = ", ".join(
             f"{title} (x{counts[title]})" if counts[title] > 1 else title
             for title in ordered_titles
         )
 
         if self.games:
-            activity_type = "Jeu"
-            activity = games_text or "Jeu"
+            activity_type = self.HISTORY_ACTIVITY_TYPE_GAME
+            activity = games_text or get_text("HISTORY_FILTER_GAME")
         elif workout_file:
-            activity_type = "Workout"
+            activity_type = self.HISTORY_ACTIVITY_TYPE_WORKOUT
             activity = Path(workout_file).name
         else:
-            activity_type = "Libre"
-            activity = "Séance libre"
+            activity_type = self.HISTORY_ACTIVITY_TYPE_FREE
+            activity = get_text("HISTORY_FILTER_FREE")
 
         duration = self._positive(getattr(rowerdata, "elapsed_time", None))
         session = {

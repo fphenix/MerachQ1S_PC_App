@@ -68,6 +68,7 @@ from ui.progbar_widget import GradientGauge
 from ui.workout_widget import WorkoutWidget
 from ui.settings_dialog import SettingsDialog
 from ui.workout_editor import WorkoutEditorDialog
+from ui.workout_finder import WorkoutFinderDialog
 
 from rowers.power_calib_data import PowerCalibrationContext
 
@@ -801,32 +802,42 @@ class MainWindow(QMainWindow):
         #   Ouvrir un .wo
         #   Créer un .wo
         #   Editer un .wo
+        #   Checher un .wo
         #
 
-        workout_menu = self.menuBar().addMenu(
+        self.workout_menu = self.menuBar().addMenu(
             get_text("MENU_WORKOUT")
         )
-        open_workout_action = workout_menu.addAction(
+        open_workout_action = self.workout_menu.addAction(
             get_text("MENU_WORKOUT_OPEN")
         )
         open_workout_action.triggered.connect(
             self._callback_open_workout_file
         )
 
-        workout_menu.addSeparator()
+        self.workout_menu.addSeparator()
         
-        create_workout_action = workout_menu.addAction(
+        create_workout_action = self.workout_menu.addAction(
             get_text("MENU_WORKOUT_CREATE")
         )
         create_workout_action.triggered.connect(
             self._callback_create_workout
         )
 
-        edit_workout_action = workout_menu.addAction(
+        edit_workout_action = self.workout_menu.addAction(
             get_text("MENU_WORKOUT_EDIT")
         )
         edit_workout_action.triggered.connect(
             self._callback_edit_workout
+        )
+
+        self.workout_menu.addSeparator()
+
+        finder_action = self.workout_menu.addAction(
+            get_text("MENU_WORKOUT_FINDER")
+        )
+        finder_action.triggered.connect(
+            self._callback_workout_finder
         )
 
         #
@@ -836,11 +847,11 @@ class MainWindow(QMainWindow):
         #   Visualiser un .wo
         #
 
-        tools_menu = self.menuBar().addMenu(
+        self.tools_menu = self.menuBar().addMenu(
             get_text("MENU_TOOLS")
         )
 
-        analyzer_action = tools_menu.addAction(
+        analyzer_action = self.tools_menu.addAction(
             get_text("MENU_TOOLS_ANALYZER")
         )
 
@@ -848,14 +859,14 @@ class MainWindow(QMainWindow):
             self._callback_open_analyzer
         )
 
-        history_action = tools_menu.addAction(
+        history_action = self.tools_menu.addAction(
             get_text("MENU_HISTORY")
         )
         history_action.triggered.connect(
             self._callback_show_history
         )
 
-        plot_wo_action = tools_menu.addAction(
+        plot_wo_action = self.tools_menu.addAction(
             get_text("MENU_TOOLS_PLOT")
         )
 
@@ -868,11 +879,11 @@ class MainWindow(QMainWindow):
         #   Paramètres...
         #
 
-        settings_menu = self.menuBar().addMenu(
+        self.settings_menu = self.menuBar().addMenu(
             get_text("MENU_SETTINGS")
         )
 
-        self.settings_action = settings_menu.addAction(
+        self.settings_action = self.settings_menu.addAction(
             f"{get_text("SETTINGS")}..."
         )
 
@@ -894,6 +905,7 @@ class MainWindow(QMainWindow):
             ["MENU_GAMES_FISHING", "fishing"],
             ["MENU_GAMES_FISHING2", "fishing2"],
             ["MENU_GAMES_PIGEON", "pigeon"],
+            ["MENU_GAMES_REAL_FISHING", "real_fishing"],
             ["MENU_GAMES_JUMP", "jump"],
             ["MENU_GAMES_SLOWNGO", "slowngo"],
             ["MENU_GAMES_PATH", "path"],
@@ -901,6 +913,7 @@ class MainWindow(QMainWindow):
             ["MENU_GAMES_RACE_2000", "race_2000"],
             ["MENU_GAMES_MARIO", "mario"],
             ["MENU_GAMES_SIMON", "simon"],
+            ["MENU_GAMES_DOOM", "doom"],
         ):
             game_actions.append(games_menu.addAction(get_text(game_title)))
             game_actions[-1].triggered.connect(
@@ -1382,6 +1395,15 @@ class MainWindow(QMainWindow):
                 source.start()
 
     # -------------------------------------------------------------------------
+    def _set_menu_enable(self, enabled: bool) -> None:
+        """ Évite d'ouvrir les autres menus pendant un jeu. """
+
+        self.user_menu.setEnabled(enabled)
+        self.workout_menu.setEnabled(enabled)
+        self.tools_menu.setEnabled(enabled)
+        self.settings_menu.setEnabled(enabled)
+
+    # -------------------------------------------------------------------------
     def _callback_start_game(self, game_id: str) -> None:
 
         # Les jeux peuvent se succéder pendant une même séance rameur :
@@ -1405,6 +1427,7 @@ class MainWindow(QMainWindow):
         self.main_stack.setCurrentWidget(self.gameWidget)
 
         self.exit_game_action.setEnabled(True)
+        self._set_menu_enable(False)
 
         self.history.register_game(game_id, self.gameWidget.game.title)
         if self.logger is not None:
@@ -1415,7 +1438,9 @@ class MainWindow(QMainWindow):
 
         self.gameWidget.stop_game()
         self.main_stack.setCurrentWidget(self.rower_panel)
+
         self.exit_game_action.setEnabled(False)
+        self._set_menu_enable(True)
 
         if self.logger is not None:
             self.logger.set_game_name(None)
@@ -1475,6 +1500,13 @@ class MainWindow(QMainWindow):
             return
 
         self._edit_workout_dialog(workout)
+
+    # -------------------------------------------------------------------------
+    def _callback_workout_finder(self) -> None:
+
+        dialog = WorkoutFinderDialog(self)
+        if dialog.exec() == QDialog.DialogCode.Accepted and dialog.selected_filename is not None:
+            self.load_workout_file(filename=dialog.selected_filename, replay_mode=False)
 
     # -------------------------------------------------------------------------
     def _callback_open_workout_file(self) -> None:

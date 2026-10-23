@@ -1,3 +1,5 @@
+import math
+
 from collections import deque
 
 from PySide6.QtGui import QColor
@@ -425,8 +427,8 @@ def interpolate(
     return y0 + (tx * float(y1 - y0))
 
 # -------------------------------------------------------------------------
-# Trouve la couleur intermédiaire entre color1 et color2
-# en fonction du ratio normalisé.
+# Trouve la couleur intermédiaire entre color1 et color2 en fonction
+# du ratio normalisé (c'est-à-dire que ratio est entre 0.0 et 1.0).
 def interpolate_color(
     color1: str,
     color2: str,
@@ -441,6 +443,18 @@ def interpolate_color(
     b = int( c1.blue()  + (c2.blue() - c1.blue()) * ratio )
 
     return f"#{r:02x}{g:02x}{b:02x}"
+
+# -------------------------------------------------------------------------
+# Log normalisé: retourne un point ayant x entre 0 et xmax et ayant une
+# valeur y entre 0 et 1 et suivant une courbe log dont la courbure dépend de k.
+#   f(x) = log(1 + k.x) / log(1 + k.xmax)
+def log_norm(
+    value: float,
+    maxval: float,
+    courbure: float,
+) -> float:
+
+    return math.log(1 + (courbure * value)) / math.log(1 + (courbure * maxval))
 
 # -----------------------------------------------------------------------------
 # return the average in a deque

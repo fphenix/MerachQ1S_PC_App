@@ -6,7 +6,7 @@
     "ACTIVE_USER": {
         "en": "Active User",
         "fr": "Utilisateur actif"
-    },    
+    },
     "ANALYZER_TITLE": {
         "en": "Analyzer",
         "fr": "Analyseur"
@@ -126,6 +126,10 @@
     "ERR_BT_NO_VALID_STATE": {
         "en": "is not a valid Bluetooth card state to switch from.",
         "fr": "n'est pas un état valide de la carte Bluetooth pour basculer."
+    },
+    "ERR_HISO_INVALID_FORMAT": {
+        "en": "Invalid history format",
+        "fr": "Format d'historique invalide"
     },
     "ERR_INVWO_BADCHAR_FILENAME": {
         "en": "Invalid Workout: The file name contains a forbidden character.",
@@ -291,6 +295,38 @@
         "en": "Thread ended",
         "fr": "Thread terminé."
     },
+    "GAME_DOOM_ENEMY_ARMORED": {
+        "en": "ARMORED ENEMY",
+        "fr": "ENNEMI BLINDÉ"
+    },
+    "GAME_DOOM_ENEMY_FAST": {
+        "en": "FAST ENEMY",
+        "fr": "ENNEMI RAPIDE"
+    },
+    "GAME_DOOM_EXPLORE": {
+        "en": "Keep a steady, moderate cadence to explore",
+        "fr": "Gardez une cadence modérée et régulière pour avancer"
+    },
+    "GAME_DOOM_FIRE": {
+        "en": "FIRE! Keep the cadence high",
+        "fr": "TIREZ ! Maintenez une cadence élevée"
+    },
+    "GAME_DOOM_INJURIES": {
+        "en": "Injuries",
+        "fr": "Blessures"
+    },
+    "GAME_DOOM_INJURY": {
+        "en": "You were hit! Keep going",
+        "fr": "Vous avez été touché ! Continuez"
+    },
+    "GAME_DOOM_KILLS": {
+        "en": "Kills",
+        "fr": "Éliminations"
+    },
+    "GAME_DOOM_ROW_TO_MOVE": {
+        "en": "Row a little faster to move forward",
+        "fr": "Ramez un peu plus vite pour avancer"
+    },
     "GAME_GO": {
         "en": "GO!",
         "fr": "PARTEZ!"
@@ -371,6 +407,62 @@
         "en": "YOU WIN!",
         "fr": "VICTOIRE !"
     },
+    "GAME_REAL_FISHING_BITE": {
+        "en": "BITE! Row faster to hook the fish!",
+        "fr": "ÇA MORD ! Accélérez pour ferrer !"
+    },
+    "GAME_REAL_FISHING_CARP": {
+        "en": "Carp",
+        "fr": "Carpe"
+    },
+    "GAME_REAL_FISHING_CAST": {
+        "en": "Row at 26 SPM to cast the line",
+        "fr": "Ramez à 26 CPM pour lancer la ligne"
+    },
+    "GAME_REAL_FISHING_CASTING": {
+        "en": "Casting...",
+        "fr": "Lancement..."
+    },
+    "GAME_REAL_FISHING_CAUGHT": {
+        "en": "Fish caught: {count}",
+        "fr": "Poissons attrapés : {count}"
+    },
+    "GAME_REAL_FISHING_ESCAPED": {
+        "en": "The fish escaped! Cast again",
+        "fr": "Le poisson s'est échappé ! Relancez la ligne"
+    },
+    "GAME_REAL_FISHING_GOLDEN": {
+        "en": "Golden fish",
+        "fr": "Poisson doré"
+    },
+    "GAME_REAL_FISHING_PIKE": {
+        "en": "Pike",
+        "fr": "Brochet"
+    },
+    "GAME_REAL_FISHING_RARE_REEL": {
+        "en": "RARE GOLDEN FISH! Row very fast!",
+        "fr": "POISSON DORÉ RARE ! Ramez très vite !"
+    },
+    "GAME_REAL_FISHING_REEL": {
+        "en": "Reel in! Keep rowing fast!",
+        "fr": "Ramenez le poisson ! Gardez une cadence rapide !"
+    },
+    "GAME_REAL_FISHING_RESULT": {
+        "en": "Fish in net: {count}  |  Points: {points}",
+        "fr": "Poissons dans l'épuisette : {count}  |  Points : {points}"
+    },
+    "GAME_REAL_FISHING_SALMON": {
+        "en": "Salmon",
+        "fr": "Saumon"
+    },
+    "GAME_REAL_FISHING_UNHOOK": {
+        "en": "Slow down to 22 SPM to land the fish",
+        "fr": "Ralentissez à 22 CPM pour décrocher le poisson"
+    },
+    "GAME_REAL_FISHING_WAITING": {
+        "en": "Fishing... keep a steady medium cadence",
+        "fr": "Pêche en cours... gardez une cadence moyenne régulière"
+    },
     "GAME_RULES_BUTTON": {
         "en": "RULES",
         "fr": "RÈGLES"
@@ -384,8 +476,8 @@
         "fr": "VERT ≈ 18  |  JAUNE ≈ 24  |  ROUGE ≈ 30 CPM"
     },
     "GAME_SIMON_MISSED": {
-        "en": "WRONG PANEL — GAME OVER",
-        "fr": "MAUVAIS PANNEAU — FIN DE PARTIE"
+        "en": "WRONG CADENCE — WATCH THE SEQUENCE AGAIN",
+        "fr": "MAUVAISE CADENCE — OBSERVEZ À NOUVEAU"
     },
     "GAME_SIMON_REPEAT": {
         "en": "REPEAT THE SEQUENCE",
@@ -435,6 +527,10 @@
         "en": "WAITING FOR CADENCE",
         "fr": "EN ATTENTE DE CADENCE"
     },
+    "GAME_TARGET": {
+        "en": "Target",
+        "fr": "Cible"
+    },
     "GAME_WAIT_FOR_STROKE": {
         "en": "Row to start",
         "fr": "Ramez pour commencer"
@@ -458,6 +554,10 @@
     "HISTORY_ACTIVITY": {
         "en": "Workout / game(s)",
         "fr": "Exercice / jeu(x)"
+    },
+    "HISTORY_ACTIVITY_TYPE": {
+        "en": "Activity type",
+        "fr": "Type d'Activité"
     },
     "HISTORY_CADENCE": {
         "en": "Average cadence (SPM)",
@@ -483,6 +583,30 @@
         "en": "Duration",
         "fr": "Durée"
     },
+    "HISTORY_FILTER_ALL": {
+        "en": "All",
+        "fr": "Tous"
+    },
+    "HISTORY_FILTER_GAME": {
+        "en": "Game",
+        "fr": "Jeu"
+    },
+    "HISTORY_FILTER_WORKOUT": {
+        "en": "Workout",
+        "fr": "Exercice"
+    },
+    "HISTORY_FILTER_FREE": {
+        "en": "Free row",
+        "fr": "Séance libre"
+    },
+    "HISTORY_FILTER_ALL_WORKOUTS": {
+        "en": "All workouts",
+        "fr": "Tous les exercices"
+    },
+    "HISTORY_FREE_SESSION": {
+        "en": "Free session",
+        "fr": "Séance libre"
+    },
     "HISTORY_HEART_RATE": {
         "en": "Average heart rate (bpm)",
         "fr": "Fréquence cardiaque moyenne (bpm)"
@@ -502,6 +626,14 @@
     "HISTORY_SAVE_ERROR": {
         "en": "Could not save the session history.",
         "fr": "Impossible d'enregistrer l'historique des séances."
+    },
+    "HISTORY_SEARCH": {
+        "en": "Search",
+        "fr": "Recherche"
+    },
+    "HISTORY_SEARCH_PLACEHOLDER": {
+        "en": "Name, activity, date...",
+        "fr": "Nom, activité, date..."
     },
     "HISTORY_SPEED": {
         "en": "Average speed (m/s)",
@@ -523,9 +655,17 @@
         "en": "Sessions history",
         "fr": "Historique des séances"
     },
+    "HISTORY_TYPE": {
+        "en": "Type",
+        "fr": "Type"
+    },
     "HISTORY_VERSION": {
         "en": "Version",
         "fr": "Version"
+    },
+    "HISTORY_WORKOUT_FILE": {
+        "en": "Workout File",
+        "fr": "Fichier Workout"
     },
     "HOUR_UNIT": {
         "en": "h",
@@ -584,6 +724,10 @@
         "en": "Games",
         "fr": "Jeux"
     },
+    "MENU_GAMES_DOOM": {
+        "en": "DooM",
+        "fr": "DooM"
+    },
     "MENU_GAMES_EXIT": {
         "en": "Exit Game",
         "fr": "Quitter le jeu"
@@ -623,6 +767,10 @@
     "MENU_GAMES_RACE_2000": {
         "en": "Rowing Race 2000 m",
         "fr": "Course 2000 m"
+    },
+    "MENU_GAMES_REAL_FISHING": {
+        "en": "Real Fishing",
+        "fr": "Pêche au bouchon"
     },
     "MENU_GAMES_SIMON": {
         "en": "Jack Says",
@@ -671,6 +819,10 @@
     "MENU_WORKOUT_EDIT": {
         "en": "Edit...",
         "fr": "Éditer..."
+    },
+    "MENU_WORKOUT_FINDER": {
+        "en": "Find a workout...",
+        "fr": "Rechercher un workout..."
     },
     "MENU_WORKOUT_OPEN": {
         "en": "Open...",
@@ -987,6 +1139,38 @@
     "WORKOUT_FILE_SELECT": {
         "en": "Select a workout",
         "fr": "Choisir un Exercice"
+    },
+    "WORKOUT_FINDER_CATEGORIES": {
+        "fr": "Catégories recherchées (toutes les catégories cochées doivent correspondre)",
+        "en": "Categories (all checked categories must match)"
+    },
+    "WORKOUT_FINDER_MAX_DURATION": {
+        "fr": "Durée maximale : {value} min",
+        "en": "Maximum duration: {value} min"
+    },
+    "WORKOUT_FINDER_MIN_DURATION": {
+        "fr": "Durée minimale : {value} min",
+        "en": "Minimum duration: {value} min"
+    },
+    "WORKOUT_FINDER_OPEN": {
+        "fr": "Ouvrir le workout",
+        "en": "Open workout"
+    },
+    "WORKOUT_FINDER_RESULT_COUNT": {
+        "fr": "{count} résultat(s)",
+        "en": "{count} result(s)"
+    },
+    "WORKOUT_FINDER_SEARCH": {
+        "fr": "Rechercher",
+        "en": "Search"
+    },
+    "WORKOUT_FINDER_SELECT_ONE": {
+        "fr": "Sélectionne un workout dans la liste.",
+        "en": "Select a workout from the list."
+    },
+    "WORKOUT_FINDER_TITLE": {
+        "fr": "Recherche de Workout",
+        "en": "Workout Finder"
     },
     "WORKOUT_NAME": {
         "en": "Workout Title",

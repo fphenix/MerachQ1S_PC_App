@@ -18,6 +18,7 @@ Point d'entrée de l'application Merach PM (Performance Monitor).
 # -----------------------------------------------------------------------------
 
 import sys
+
 import asyncio
 
 from PySide6.QtWidgets import QApplication

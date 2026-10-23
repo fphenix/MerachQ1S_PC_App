@@ -1,6 +1,6 @@
 from pathlib import Path
 
-VERSION: str = "5.02"
+VERSION: str = "5.06"
 
 GUI_REFRESH_MS   = 100 # milliseconds
 WORKOUT_TIMER_MS =  20 # milliseconds
@@ -116,6 +116,11 @@ ALLOWED_REPLAY_EXT: list[str] = [
     LOGGER_FORMAT_CSV,
     LOGGER_FORMAT_ZIP,
 ]
+
+# Autoriser l'enregistrement des Hi-Scores lors des parties pilotées par
+# ESPACE. "False" évite que les tests/debug remplacent les scores des
+# parties au rameur.
+ALLOW_DEBUG_HISCORES: bool = False
 
 # ----------------------------------------------------------------------
 # Replay
