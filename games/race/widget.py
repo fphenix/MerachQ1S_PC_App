@@ -7,15 +7,16 @@ from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QPolygonF, QFont
 
 from setup.constants import GAME_FONT
 from setup.lang import get_text
-from setup.utils import is_between
+from setup.utils import clamp_between, clamp_to_zero, is_between
 
 from games.game import Game
+from games.game_painter import GamePainter
 
 # =============================================================================
-class RaceWidget:
+class RaceWidget(GamePainter):
 
-    RULER_HEIGHT = 42
-    VISIBLE_DISTANCE = 55.0
+    RULER_HEIGHT: int = 42 # pixels
+    VISIBLE_DISTANCE: float = 55.0 # meters
 
     # -------------------------------------------------------------------------
     def paint(self, painter: QPainter, game: Game) -> None:
@@ -36,14 +37,14 @@ class RaceWidget:
             painter.setPen(QPen(QColor("#7c9d8f"), 1, Qt.PenStyle.DashLine))
             painter.drawLine(0, y, game.WIDTH, y)
 
-        # La caméra montre environ 55 m autour du joueur, pas toute la longueur de course.
+        # Zoom sur les bateaux
         scale = (game.WIDTH - 40.0) / self.VISIBLE_DISTANCE
         player_x = game.PLAYER_X
         player_distance = game.player_boat.distance
         course_x = lambda distance: player_x + (distance - player_distance) * scale
 
-        # Repères de 50 m / 100 m sur toute la longueur du bassin.
-        first_marker = max(0, int(player_distance // 50) * 50 - 50)
+        # Repères de 50 m / 100 m sur toute la longueur du bassin
+        first_marker = clamp_to_zero(int(player_distance // 50) * 50 - 50)
         last_marker = min(int(game.race_distance), int(player_distance + self.VISIBLE_DISTANCE))
         painter.setFont(QFont(GAME_FONT, 10))
         for marker_m in range(first_marker, last_marker + 1, 50):
@@ -74,11 +75,11 @@ class RaceWidget:
                     for y in range(top + 42, ruler_top, 18):
                         painter.drawLine(round(line_x - 5), y, round(line_x + 5), y + 9)
 
-        # Bateaux et animation de coups de rame, y compris pour les adversaires.
+        # Bateaux et animation de coups de rame
         for boat in game.boats:
             lane_center = top + (boat.lane + 0.5) * lane_height
             x = player_x if boat.is_player else course_x(boat.distance)
-            x = max(48.0, min(game.WIDTH - 48.0, x))
+            x = clamp_between(x, 48.0, game.WIDTH - 48.0)
 
             # Coup actif: pour un bâteau allant de gauche à droite, balayage de rame
             # de gauche à droite, bref (au plus 1 s).
@@ -93,13 +94,13 @@ class RaceWidget:
             if cycle_time >= period:
                 stroke_progress = 0.0
             elif cycle_time <= active_duration:
-                t = max(0.0, min(1.0, cycle_time / max(0.001, active_duration)))
+                t = clamp_between(cycle_time / max(0.001, active_duration), 0.0, 1.0)
                 stroke_progress = t * t * (3.0 - 2.0 * t)
             else:
-                t = max(0.0, min(1.0, (cycle_time - active_duration) / max(0.001, period - active_duration)))
+                t = clamp_between((cycle_time - active_duration) / max(0.001, period - active_duration), 0.0, 1.0)
                 recovery = t * t * (3.0 - 2.0 * t)
                 stroke_progress = 1.0 - recovery
-            stroke_progress = max(0.0, min(1.0, stroke_progress))
+            stroke_progress = clamp_between(stroke_progress, 0.0, 1.0)
             hull_y = lane_center - 10
             if boat.is_player:
                 hull_y -= 7.0 * game.stroke_impulse
@@ -143,7 +144,7 @@ class RaceWidget:
             )
             painter.drawText(round(x - 32), round(hull_y + 4), label)
 
-        # Échelle complète du parcours : les points gardent la position absolue de chaque bateau.
+        # Échelle complète du parcours : les points représentent la position de chaque bateau.
         painter.fillRect(0, ruler_top, game.WIDTH, self.RULER_HEIGHT, QColor("#101d19"))
         painter.setPen(QPen(QColor("#8da99b"), 1))
         painter.drawLine(20, ruler_top + 20, game.WIDTH - 20, ruler_top + 20)

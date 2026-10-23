@@ -2,12 +2,18 @@
 
 from pathlib import Path
 
+from games.game import Game
+from games.game_painter import GamePainter
+
 from games.fishing.engine import FishingGame
 from games.fishing2.engine import Fishing2Game
 from games.fishing.widget import FishingWidget
 
 from games.pigeon.engine import PigeonGame
 from games.pigeon.widget import PigeonWidget
+
+from games.real_fishing.engine import RealFishingGame
+from games.real_fishing.widget import RealFishingWidget
 
 from games.jump.engine import JumpGame
 from games.jump.widget import JumpWidget
@@ -27,10 +33,14 @@ from games.mario.widget import MarioWidget
 from games.simon.engine import SimonGame
 from games.simon.widget import SimonWidget
 
-GAME_CLASSES = {
+from games.doom.engine import DoomGame
+from games.doom.widget import DoomWidget
+
+GAME_CLASSES: dict[str, Game] = {
     "fishing": FishingGame,
     "fishing2": Fishing2Game,
     "pigeon": PigeonGame,
+    "real_fishing": RealFishingGame,
     "jump": JumpGame,
     "slowngo": SlowNGoGame,
     "path": PathGame,
@@ -38,12 +48,14 @@ GAME_CLASSES = {
     "race_2000": Race2000Game,
     "mario": MarioGame,
     "simon": SimonGame,
+    "doom": DoomGame,
 }
 
-GAME_VIEWS = {
+GAME_VIEWS: dict[str, GamePainter] = {
     "fishing": FishingWidget,
     "fishing2": FishingWidget,
     "pigeon": PigeonWidget,
+    "real_fishing": RealFishingWidget,
     "jump": JumpWidget,
     "slowngo": SlowNGoWidget,
     "path": PathWidget,
@@ -51,12 +63,14 @@ GAME_VIEWS = {
     "race_2000": RaceWidget,
     "mario": MarioWidget,
     "simon": SimonWidget,
+    "doom": DoomWidget,
 }
 
-GAME_RULES = {
+GAME_RULES: dict[str, Path] = {
     "fishing": Path(__file__).parent / "fishing" / "rules.json",
     "fishing2": Path(__file__).parent / "fishing2" / "rules.json",
     "pigeon": Path(__file__).parent / "pigeon" / "rules.json",
+    "real_fishing": Path(__file__).parent / "real_fishing" / "rules.json",
     "jump": Path(__file__).parent / "jump" / "rules.json",
     "slowngo": Path(__file__).parent / "slowngo" / "rules.json",
     "path": Path(__file__).parent / "path" / "rules.json",
@@ -64,4 +78,5 @@ GAME_RULES = {
     "race_2000": Path(__file__).parent / "race" / "rules_2000.json",
     "mario": Path(__file__).parent / "mario" / "rules.json",
     "simon": Path(__file__).parent / "simon" / "rules.json",
+    "doom": Path(__file__).parent / "doom" / "rules.json",
 }

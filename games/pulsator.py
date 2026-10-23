@@ -2,7 +2,7 @@
 
 import math
 
-from PySide6.QtCore import QRectF
+from PySide6.QtCore import QRectF, Qt
 from PySide6.QtGui import QColor, QBrush, QPen, QPainter
 
 # =============================================================================
@@ -12,13 +12,16 @@ class Pulsator:
     # -------------------------------------------------------------------------
     def __init__(
         self,
-        min_radius: float = 2.0, max_radius: float = 14.0,
-        pen_width: float = 2.0
+        min_radius: float = 2.0,
+        max_radius: float = 14.0,
+        pen_width: float = 2.0,
+        outlined: bool = False
     ):
  
-        self.min_radius = float(min_radius)
-        self.max_radius = float(max_radius)
-        self.pen_width = float(pen_width)
+        self.min_radius: float = float(min_radius)
+        self.max_radius: float = float(max_radius)
+        self.pen_width: float = float(pen_width)
+        self.outlined: bool = outlined
 
     # -------------------------------------------------------------------------
     def radius_at(self, elapsed: float, cadence: float) -> float:
@@ -44,6 +47,11 @@ class Pulsator:
         radius = self.radius_at(elapsed, cadence)
 
         painter.save()
+
+        if self.outlined:
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.setPen(QPen(QColor(color), 1))
+            painter.drawEllipse(QRectF(center_x - self.max_radius, center_y - self.max_radius, self.max_radius * 2.0, self.max_radius * 2.0))
 
         painter.setPen(QPen(QColor(color), self.pen_width))
         painter.setBrush(QBrush(QColor(color)))

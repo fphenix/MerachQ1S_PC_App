@@ -49,12 +49,16 @@ class HighScoreManager:
     def add_hiscore(
         self,
         game_id: str,
-        score: int,
+        score: int | float,
         common: bool = False,
-        user_id: str = ""
+        user_id: str = "",
+        tie_break_score: int | None = None,
     ) -> bool:
         
-        entry = {"score": int(score), "date": datetime.now().strftime("%d/%m/%y")}
+        stored_score = round(float(score), 2) if game_id == "real_fishing" else int(score)
+        entry = {"score": stored_score, "date": datetime.now().strftime("%d/%m/%y")}
+        if game_id == "doom":
+            entry["injuries"] = max(0, int(tie_break_score or 0))
 
         if common:
             entry["user_id"] = str(user_id)
@@ -64,10 +68,7 @@ class HighScoreManager:
             scores = self._personal_scores.setdefault(game_id, [])
             scores.append(entry)
 
-        scores.sort(
-            key=lambda item: int(item["score"]),
-            reverse=GAME_SCORE_ORDERS.get(game_id, "descending") != "ascending",
-        )
+        scores.sort(key=lambda item: self._sort_key(game_id, item))
         is_hiscore = entry in scores[:self.SCORES_LIST_LENGTH]
 
         del scores[self.SCORES_LIST_LENGTH:]
@@ -75,6 +76,15 @@ class HighScoreManager:
         self._common_save() if common else self._personal_save()
         
         return is_hiscore
+
+    # -------------------------------------------------------------------------
+    @staticmethod
+    def _sort_key(game_id: str, item: dict[str, object]) -> tuple:
+        if game_id == "doom":
+            return (-float(item.get("score", 0)), int(item.get("injuries", 0)))
+
+        score = float(item.get("score", 0))
+        return (score if GAME_SCORE_ORDERS.get(game_id, "descending") == "ascending" else -score,)
 
     # -------------------------------------------------------------------------
     def _personal_load(self) -> None:
@@ -116,10 +126,17 @@ class HighScoreManager:
                 entries = []
                 for value in values:
                     if isinstance(value, dict) and "score" in value:
+                        score_value = (
+                            round(float(value["score"]), 2)
+                            if game == "real_fishing" else int(value["score"])
+                        )
                         entry = {
-                            "score": int(value["score"]),
+                            "score": score_value,
                             "date": str(value.get("date", "--/--/--")),
                         }
+
+                        if game == "doom":
+                            entry["injuries"] = max(0, int(value.get("injuries", 0)))
 
                         if common:
                             entry["user_id"] = str(value.get("user_id", ""))
@@ -129,17 +146,18 @@ class HighScoreManager:
                     elif isinstance(value, (int, float, str)):
                         # Legacy files stored personal scores as integers and
                         # common scores as {score, user_id} or bare integers.
-                        entry = {"score": int(value), "date": "--/--/--"}
+                        score_value = (
+                            round(float(value), 2)
+                            if game == "real_fishing" else int(value)
+                        )
+                        entry = {"score": score_value, "date": "--/--/--"}
 
                         if common:
                             entry["user_id"] = ""
 
                         entries.append(entry)
 
-                entries.sort(
-                    key=lambda item: int(item["score"]),
-                    reverse=GAME_SCORE_ORDERS.get(game, "descending") != "ascending",
-                )
+                entries.sort(key=lambda item: HighScoreManager._sort_key(game, item))
                 result[str(game)] = entries[:HighScoreManager.SCORES_LIST_LENGTH]
 
             return result

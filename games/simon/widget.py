@@ -8,23 +8,24 @@ from PySide6.QtGui import QColor, QBrush, QPen, QPainter, QFont
 from setup.constants import GAME_FONT
 from setup.lang import get_text
 
-from games.pulsator import Pulsator
 from games.game import Game
+from games.game_painter import GamePainter
+from games.pulsator import Pulsator
 
 # =============================================================================
-class SimonWidget:
+class SimonWidget(GamePainter):
 
-    PULSATOR = Pulsator(min_radius=3.0, max_radius=18.0, pen_width=2.0)
+    PULSATOR = Pulsator(min_radius= 3.0, max_radius= 18.0, pen_width= 2.0, outlined= True)
 
-    COLORS = (
+    SECTIONS_COLORS: list[QColor] = [
         QColor("#35a853"),  # 18 CPM : lent
         QColor("#f4d03f"),  # 24 CPM : moyen
         QColor("#e74c3c"),  # 30 CPM : rapide
-    )
+    ]
     # Les centres des secteurs sont respectivement en haut, en bas à gauche,
     # et en bas à droite. Les angles Qt sont exprimés en seizièmes de degré.
-    SECTOR_START_ANGLES  = (30, 150, 270)
-    SECTOR_CENTER_ANGLES = (90, 210, 330)
+    SECTOR_START_ANGLES: tuple[int]  = (30, 150, 270)
+    SECTOR_CENTER_ANGLES: tuple[int] = (90, 210, 330)
 
     # -------------------------------------------------------------------------
     def paint(self, painter: QPainter, game: Game) -> None:
@@ -42,10 +43,8 @@ class SimonWidget:
 
         diameter = 390
         disk = QRectF(
-            (game.WIDTH - diameter) / 2,
-            118,
-            diameter,
-            diameter,
+            (game.WIDTH - diameter) / 2, 118,
+            diameter, diameter,
         )
         center_x = disk.center().x()
         center_y = disk.center().y()
@@ -57,7 +56,7 @@ class SimonWidget:
         painter.drawEllipse(disk.adjusted(-7, -7, 7, 7))
 
         # Sections de disque et pulsateur toujours visible pour chaque cadence.
-        for lane, color in enumerate(self.COLORS):
+        for lane, color in enumerate(self.SECTIONS_COLORS):
             active = lane == game.active_lane
             fill = color.lighter(185) if active else color.darker(185)
             painter.setBrush(QBrush(fill))
@@ -144,10 +143,10 @@ class SimonWidget:
         )
 
         # Rappel animé des trois cibles, sous les consignes textuelles.
-        for lane, color in enumerate(self.COLORS):
+        for lane, color in enumerate(self.SECTIONS_COLORS):
             self.PULSATOR.paint(
                 painter,
-                center_x + (lane - 1) * 95,
+                center_x + (lane - 1) * 195,
                 665,
                 game.elapsed,
                 game.CADENCE_TARGETS[lane],

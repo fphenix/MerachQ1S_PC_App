@@ -1,7 +1,6 @@
 """ Jeu Attrape-insectes.
 
-    Appelé "Fishing" car il est basé sur 
-    le jeu "Fishing" du Concept2!
+    Appelé "Fishing" en interne car il est basé sur le jeu "Fishing" du Concept2!
 """
 from dataclasses import dataclass
 
@@ -9,7 +8,8 @@ import random
 import math
 
 from setup.lang import get_text
-from setup.utils import is_between
+from setup.utils import is_between, clamp_to_zero, clamp_to_max
+from setup.utils import debug
 
 from games.game import Game
 from games.game_input import GameInput, input_cadence
@@ -29,10 +29,9 @@ class FishingGame(Game):
 
     WIDTH: int = 1000
     HEIGHT: int = 700
-
+    HUD_HEIGHT: int = 70
     DURATION_SECONDS: float = 240.0
 
-    HUD_HEIGHT: int = 70
     PLAYFIELD_HEIGHT: int = HEIGHT - HUD_HEIGHT
 
     NET_HEIGHT: int = 90
@@ -40,7 +39,7 @@ class FishingGame(Game):
     NET_RETURN_SPEED: float = 90.0
     NET_SPEED: float = 60.0
     NET_GRAVITY_SPEED: float = 20.0
-    NET_LERP_SPEED = 3.0
+    NET_LERP_SPEED: float = 3.0
     NET_LEFT_MARGIN: int = 90
     
     SPAWN_MIN: float = 0.65
@@ -53,11 +52,12 @@ class FishingGame(Game):
     }
 
     CADENCE_LEVELS: tuple[int] = (16, 20, 24, 28, 32)
+
+    MIN_VALID_CADENCE: float = 10.0
+    MAX_VALID_CADENCE: float = 40.0
+
     LANE_COUNT: int = len(CADENCE_LEVELS)
     LANE_HEIGHT: float = PLAYFIELD_HEIGHT / LANE_COUNT
-
-    NET_LERP_SPEED: float = 3.0
-    CADENCE_MARGIN: float = 1.0
 
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
@@ -67,6 +67,11 @@ class FishingGame(Game):
             title= get_text("MENU_GAMES_FISHING"),
             duration= self.DURATION_SECONDS,
         )
+
+        self.reset()
+
+    # -------------------------------------------------------------------------
+    def reset(self) -> None:
 
         self._game_time: float = 0.0
         self._rest_offset: float = 0.0
@@ -79,23 +84,7 @@ class FishingGame(Game):
         self._target_net_y: float = self.net_y
 
         self.insects: list[Insect] = []
-        self._spawn_remaining: float = 0.0
-
-    # -------------------------------------------------------------------------
-    def reset(self) -> None:
-
-        self._game_time = 0.0
-        self._rest_offset = 0.0
-        self._last_stroke_time = None
-
-        self.current_spm = None
-        self.lane_index = 2
-
-        self.net_y = self._net_y_for_lane(self.lane_index)
-        self._target_net_y = self.net_y
-
-        self.insects.clear()
-        self._spawn_remaining = 0.5
+        self._spawn_remaining: float = 0.5
 
     # -------------------------------------------------------------------------
     def _net_y_for_lane(self, lane_index: int) -> float:
@@ -107,40 +96,31 @@ class FishingGame(Game):
         return lane_center - self.NET_HEIGHT / 2
     
     # -------------------------------------------------------------------------
+    @classmethod
+    def _lane_for_spm(cls, spm: float) -> int:
+        """Return the unique lane for a cadence, using midpoint boundaries."""
+
+        for lane_index in range(cls.LANE_COUNT - 1):
+            threshold = (
+                cls.CADENCE_LEVELS[lane_index]
+                + cls.CADENCE_LEVELS[lane_index + 1]
+            ) / 2
+            if spm < threshold:
+                return lane_index
+            
+        return cls.LANE_COUNT - 1
+
+    # -------------------------------------------------------------------------
     def _update_lane_from_spm(self, spm: float) -> None:
 
-        # Un seul changement de couloir par frappe.
-        if self.lane_index < self.LANE_COUNT - 1:
-            current_spm = self.CADENCE_LEVELS[self.lane_index]
-            next_spm = self.CADENCE_LEVELS[self.lane_index + 1]
-
-            up_threshold = (
-                (current_spm + next_spm) / 2
-                + self.CADENCE_MARGIN
-            )
-
-            if spm >= up_threshold:
-                self.lane_index += 1
-
-        if self.lane_index > 0:
-            current_spm = self.CADENCE_LEVELS[self.lane_index]
-            previous_spm = self.CADENCE_LEVELS[self.lane_index - 1]
-
-            down_threshold = (
-                (current_spm + previous_spm) / 2
-                - self.CADENCE_MARGIN
-            )
-
-            if spm <= down_threshold:
-                self.lane_index -= 1
-
+        self.lane_index = self._lane_for_spm(spm)
         self._target_net_y = self._net_y_for_lane(self.lane_index)
 
     # -------------------------------------------------------------------------
     def update_game(self, dt: float, game_input: GameInput) -> None:
 
         self._game_time += dt
-        stroke_delta = max(0, getattr(game_input, "stroke_delta", 0))
+        stroke_delta = clamp_to_zero(getattr(game_input, "stroke_delta", 0))
         if game_input.stroke_event and stroke_delta == 0:
             stroke_delta = 1
 
@@ -153,10 +133,22 @@ class FishingGame(Game):
                     if self._last_stroke_time is not None else 0.0
                 )
                 measured_spm = input_cadence(game_input)
-                if measured_spm is not None:
-                    self.current_spm = measured_spm
-                elif interval > 0.0:
-                    self.current_spm = 60.0 * stroke_delta / interval
+                interval_spm = (
+                    60.0 * stroke_delta / interval
+                    if interval > 0.0
+                    else None
+                )
+
+                if self._is_valid_cadence(measured_spm):
+                    candidate_spm = measured_spm
+                elif self._is_valid_cadence(interval_spm):
+                    candidate_spm = interval_spm
+                else:
+                    candidate_spm = None
+
+                if candidate_spm is not None:
+                    self.current_spm = candidate_spm
+
                 if self.current_spm is not None:
                     for _ in range(stroke_delta):
                         self._update_lane_from_spm(self.current_spm)
@@ -166,25 +158,42 @@ class FishingGame(Game):
                     # After a long pause, the first stroke establishes a new
                     # timing baseline; do not treat the pause as a real cadence.
                     if is_between(interval, 0.01, 60.0 / self.CADENCE_LEVELS[0]):
-                        self.current_spm = 60.0 / interval
-                        self._update_lane_from_spm(self.current_spm)
+                        # Priorité à la mesure effective commune fournie par
+                        # GameWidget ; le chronométrage local reste un secours.
+                        measured_spm = input_cadence(game_input)
+                        interval_spm = 60.0 / interval
+                        if self._is_valid_cadence(measured_spm):
+                            candidate_spm = measured_spm
+                        elif self._is_valid_cadence(interval_spm):
+                            candidate_spm = interval_spm
+                        else:
+                            candidate_spm = None
+
+                        if candidate_spm is not None:
+                            self.current_spm = candidate_spm
+                            self._update_lane_from_spm(self.current_spm)
 
             self._last_stroke_time = self._game_time
             self._rest_offset = 0.0
 
-        # Predict the cadence while waiting for the next stroke. This moves
-        # down through the same discrete levels without inventing a stroke.
+        # Keep the selected lane stable between strokes. The instantaneous
+        # value 60 / elapsed_time is only a prediction of the *next* stroke,
+        # not the cadence actually held by the rower; using it to select a lane
+        # makes the net jump to the fastest lane immediately after every stroke.
+        # Only begin a small downward drift when the next stroke is noticeably
+        # late. A real stroke resets this offset above.
         if self._last_stroke_time is not None and not stroke_delta:
             interval = self._game_time - self._last_stroke_time
-            if interval > 0.0:
-                predicted_spm = 60.0 / interval
-                self._anticipate_lane_from_spm(predicted_spm)
-                if self.lane_index == 0 and predicted_spm < self.CADENCE_LEVELS[0]:
+            if self.current_spm is not None and self.current_spm > 0.0:
+                expected_interval = 60.0 / self.current_spm
+                grace_interval = expected_interval * 1.35
+                if interval > grace_interval:
                     max_offset = self.LANE_HEIGHT * 0.40
-                    # After reaching the lowest lane, continue lowering the
-                    # net over the next ~2 seconds of inactivity.
-                    excess_time = max(0.0, interval - 60.0 / self.CADENCE_LEVELS[0])
-                    self._rest_offset = min(max_offset, max_offset * excess_time / 2.0)
+                    excess_time = interval - grace_interval
+                    self._rest_offset = clamp_to_max(
+                        max_offset * excess_time / 2.0,
+                        max_offset,
+                    )
 
         target_y = self._net_y_for_lane(self.lane_index) + self._rest_offset
         alpha = 1.0 - math.exp(-self.NET_LERP_SPEED * dt)
@@ -206,17 +215,13 @@ class FishingGame(Game):
         ]
 
     # -------------------------------------------------------------------------
-    def _anticipate_lane_from_spm(self, spm: float) -> None:
-        """Apply downward hysteresis thresholds during the expected stroke gap."""
+    @classmethod
+    def _is_valid_cadence(cls, spm: float | None) -> bool:
+        """Écarte les valeurs aberrantes avant qu'elles changent de couloir."""
 
-        if self.lane_index > 0:
-            current = self.CADENCE_LEVELS[self.lane_index]
-            previous = self.CADENCE_LEVELS[self.lane_index - 1]
-            down_threshold = (current + previous) / 2 - self.CADENCE_MARGIN
-
-            if spm <= down_threshold:
-                self.lane_index -= 1
-                self._target_net_y = self._net_y_for_lane(self.lane_index)
+        return spm is not None and is_between(
+            spm, cls.MIN_VALID_CADENCE, cls.MAX_VALID_CADENCE
+        )
 
     # -------------------------------------------------------------------------
     def _spawn(self) -> None:

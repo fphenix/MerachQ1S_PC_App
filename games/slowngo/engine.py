@@ -3,7 +3,7 @@
 import random
 
 from setup.lang import get_text
-from setup.utils import is_within
+from setup.utils import is_within, clamp_to_zero
 
 from games.game import Game
 from games.game_input import GameInput, input_cadence
@@ -11,46 +11,40 @@ from games.game_input import GameInput, input_cadence
 # =============================================================================
 class SlowNGoGame(Game):
 
-    WIDTH = 1000
-    HEIGHT = 700
-    HUD_HEIGHT = 70
-    DURATION_SECONDS = 240.0
-    STINT_MIN_SECONDS = 20.0
-    STINT_MAX_SECONDS = 50.0
-    CADENCE_HOLD_SECONDS = 2.0
-    SCORE_PER_SECOND = 1.0
-    PERFECT_TOLERANCE = 1.5
+    WIDTH: int = 1000
+    HEIGHT: int = 700
+    HUD_HEIGHT: int = 70
+    DURATION_SECONDS: float = 240.0
 
-    CADENCE_TARGETS = {"slow": 18, "medium": 24, "fast": 30}
-    CADENCE_MARGIN = 2.0
+    STINT_MIN_SECONDS: float = 20.0
+    STINT_MAX_SECONDS: float = 50.0
+    CADENCE_HOLD_SECONDS: float = 2.0
+    SCORE_PER_SECOND: float = 1.0
+    PERFECT_TOLERANCE: float = 1.5
+
+    CADENCE_TARGETS: dict[str, float] = {"slow": 18.0, "medium": 24.0, "fast": 30.0}
+    CADENCE_MARGIN: float = 2.0
 
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
 
         super().__init__("slowngo", get_text("MENU_GAMES_SLOWNGO"), self.DURATION_SECONDS)
 
-        self.current_spm: float | None = None
-        self._last_valid_spm: float | None = None
-        self._cadence_hold_remaining = 0.0
-        self.target_band = "medium"
-        self.target_spm = 24
-        self.stint_remaining = 0.0
-        self.match_quality = 0.0
-        self._score_fraction = 0.0
-        self._last_band: str | None = None
+        self.reset()
 
     # -------------------------------------------------------------------------
     def reset(self) -> None:
 
-        self.current_spm = None
-        self._last_valid_spm = None
-        self._cadence_hold_remaining = 0.0
-        self.target_band = "medium"
-        self.target_spm = 24
-        self.stint_remaining = random.uniform(self.STINT_MIN_SECONDS, self.STINT_MAX_SECONDS)
-        self.match_quality = 0.0
-        self._score_fraction = 0.0
-        self._last_band = None
+        self.current_spm: float | None = None
+        self._last_valid_spm: float | None = None
+        self._cadence_hold_remaining: float = 0.0
+        self.target_band: str = "medium"
+        self.target_spm: float = self.CADENCE_TARGETS[self.target_band]
+        self.stint_remaining: float = random.uniform(self.STINT_MIN_SECONDS, self.STINT_MAX_SECONDS)
+        self.match_quality: float = 0.0
+        self._score_fraction: float = 0.0
+        self._last_band: str | None = None
+        
         self._choose_target(initial=True)
 
     # -------------------------------------------------------------------------
@@ -63,8 +57,12 @@ class SlowNGoGame(Game):
             self._cadence_hold_remaining = self.CADENCE_HOLD_SECONDS
             self.current_spm = measured_spm
         else:
-            self._cadence_hold_remaining = max(0.0, self._cadence_hold_remaining - dt)
-            self.current_spm = self._last_valid_spm if self._cadence_hold_remaining > 0.0 else None
+            self._cadence_hold_remaining = clamp_to_zero(self._cadence_hold_remaining - dt)
+            self.current_spm = (
+                self._last_valid_spm
+                if self._cadence_hold_remaining > 0.0
+                else None
+            )
 
         self.stint_remaining -= dt
         if self.stint_remaining <= 0.0:

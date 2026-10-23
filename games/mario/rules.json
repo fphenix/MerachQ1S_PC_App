@@ -1,4 +1,4 @@
 {
-    "en": "Super Ramio Buds:\n\nEach rowing stroke triggers a jump.\nCollect coins by jumping into them.",
-    "fr": "Super Ramio Buds:\n\nChaque coup de rame déclenche un saut.\nAttrapez les pièces en sautant."
+    "en": "Super Ramio Buds:\n\nRow at a cadence around 24 SPM to run. Running speed decreases below 22 SPM and eventually comes to a stop at 18 CPM.\nAt and above 30 SPM a rowing stroke triggers a jump while running continues.\n\nCollect coins to earn points. Enemy collisions cost a few points.",
+    "fr": "Super Ramio Buds:\n\nRamez à une cadence cible de 24 CPM pour courir. La vitesse diminue sous 22 CPM jusqu'à l'arrêt à 18 CPM.\nUne cadence de 30 CPM environ déclenche un saut tout en continuant à courir.\n\nCollectez des pièces pour gagner des points. Une collision avec un ennemi coûte quelques points."
 }

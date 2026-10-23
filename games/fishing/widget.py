@@ -8,31 +8,38 @@ from setup.constants import GAME_FONT
 from setup.lang import get_text
 
 from games.game import Game
+from games.game_painter import GamePainter
 from games.pulsator import Pulsator
 from games.fishing.engine import Insect
 
 # =============================================================================
-class FishingWidget:
+class FishingWidget(GamePainter):
     """Objet de rendu, utilisé par GameWidget sans hériter de QWidget."""
 
-    PULSATOR = Pulsator(min_radius=2.0, max_radius=10.0, pen_width=1.5)
+    PULSATOR = Pulsator(min_radius= 2.0, max_radius= 16.0, pen_width= 1.5)
 
     # -------------------------------------------------------------------------
     def paint(self, painter: QPainter, game: Game) -> None:
         """Dessine le terrain dans un repère dont l'origine est le haut du jeu."""
 
         painter.save()
+
         painter.translate(0, game.HUD_HEIGHT)
 
         # Couloirs
-        lane_height = game.LANE_HEIGHT
-        painter.setPen(QPen(Qt.GlobalColor.darkGray))
-        for lane in range(1, game.LANE_COUNT):
-            y = round(lane * lane_height)
-            painter.drawLine(0, y, game.WIDTH, y)
+        bg_color = QColor("#91c252")
+        bg_color_light = [125, 110, 100, 75, 50]
+        for lane in range(0, game.LANE_COUNT):
+            painter.setPen(QPen(bg_color.lighter(bg_color_light[lane])))
+            y = round(lane * game.LANE_HEIGHT)
+            painter.fillRect(
+                0, y,
+                game.WIDTH, game.LANE_HEIGHT,
+                bg_color.lighter(bg_color_light[lane])
+            )
 
         # Repères de cadence et pulse
-        lane_font = QFont(GAME_FONT, 14)
+        lane_font = QFont(GAME_FONT, 14, QFont.Weight.Bold)
         painter.setFont(lane_font)
         pulse_time = (
             game.elapsed
@@ -40,26 +47,40 @@ class FishingWidget:
             else game.phase_elapsed
         )
 
+        # Gameplay A: one pulse per lane
+        if game.game_id == "fishing":
+            for row, spm in enumerate(reversed(game.CADENCE_LEVELS)):
+                center_y = round((row + 0.5) * game.LANE_HEIGHT)
+                painter.setPen(QPen(Qt.GlobalColor.black))
+                painter.drawText(
+                    5, center_y - 3,
+                    f"{spm} {get_text('SPM_UNIT')}"
+                )
+                self.PULSATOR.paint(
+                    painter, 36, center_y + 18, pulse_time, spm,
+                    QColor(Qt.GlobalColor.black)
+                )
+
         # Gameplay B : trois consignes, sans afficher les niveaux du mode A.
-        if game.game_id == "fishing2":
+        else:
             pulse_specs = (
                 (1, game.CADENCE_UP, "↑"),
                 (3, game.CADENCE_STAY, "="),
                 (5, game.CADENCE_DOWN, "↓"),
             )
 
-            symbol_font = QFont(GAME_FONT, 18, QFont.Weight.Bold)
+            symbol_font = QFont(GAME_FONT, 20, QFont.Weight.Bold)
             painter.setFont(symbol_font)
             for row_position, spm, symbol in pulse_specs:
-                center_y = round((row_position - 0.5) * lane_height)
+                center_y = round((row_position - 0.5) * game.LANE_HEIGHT)
                 self.PULSATOR.paint(
                     painter,
                     36, center_y,
                     pulse_time,
                     spm,
-                    QColor(Qt.GlobalColor.white)
+                    QColor(Qt.GlobalColor.black)
                 )
-                painter.setPen(QPen(Qt.GlobalColor.white))
+                painter.setPen(QPen(Qt.GlobalColor.black))
                 painter.setFont(symbol_font)
                 painter.drawText(
                     55, center_y - 14, 30, 28,
@@ -69,21 +90,7 @@ class FishingWidget:
                 painter.drawText(
                     5, center_y + 18, 90, 22,
                     Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop,
-                    f"{spm} {get_text('SPM_UNIT')}"
-                )
-
-        # Gameplay A: one pulse per lane
-        else:
-            for row, spm in enumerate(reversed(game.CADENCE_LEVELS)):
-                center_y = round((row + 0.5) * lane_height)
-                painter.setPen(QPen(Qt.GlobalColor.white))
-                painter.drawText(
-                    5, center_y - 3,
-                    f"{spm} {get_text('SPM_UNIT')}"
-                )
-                self.PULSATOR.paint(
-                    painter, 36, center_y + 18, pulse_time, spm,
-                    QColor(Qt.GlobalColor.white)
+                    f"{round(spm)} {get_text('SPM_UNIT')}"
                 )
 
         # Filet stylisé : cadre sombre, maille visible et manche latéral.
@@ -175,7 +182,8 @@ class FishingWidget:
         canvas.drawLine(-10, 1, -15, 5)
         canvas.drawLine(-5, 6, -8, 11)
         canvas.drawLine(4, 6, 7, 11)
-        # Stinger
+
+        # Stinger if Hornet
         if is_hornet:
             canvas.setPen(QPen(sting_color, 2))
             canvas.drawLine(-10, 0, -15, 0)

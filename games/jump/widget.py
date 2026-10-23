@@ -6,20 +6,22 @@ from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QColor, QBrush, QPen, QPainter, QPolygonF, QFont
 
 from setup.lang import get_text
-from setup.utils import is_between
+from setup.utils import is_between, clamp_to_zero
 from setup.constants import GAME_FONT
 
 from games.game import Game
+from games.game_painter import GamePainter
 from games.pulsator import Pulsator
 from games.jump.engine import Obstacle
 
 # =============================================================================
-class JumpWidget:
+class JumpWidget(GamePainter):
 
-    PULSATOR = Pulsator(min_radius= 2.0, max_radius= 15.0, pen_width= 2.0)
+    PULSATOR = Pulsator(min_radius= 2.0, max_radius= 20.0, pen_width= 2.0)
 
     HORIZON_HEIGHT: int = 135
-    ZONES_COLOR = {
+
+    ZONES_COLOR: dict[str, QColor] = {
         "slow": QColor("#267c8a"),
         "medium": QColor("#72543c"),
         "fast": QColor("#26753d"),
@@ -32,7 +34,7 @@ class JumpWidget:
 
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
 
-        # Ciel et montagnes en couches de parallaxe.
+        # Sol et Ciel
         horizon = game.HUD_HEIGHT + self.HORIZON_HEIGHT
         painter.fillRect(
             0, horizon + 75,
@@ -49,6 +51,8 @@ class JumpWidget:
             game.WIDTH, self.HORIZON_HEIGHT,
             QColor("#abf2ff")
         )
+
+        # Chaînes de Montagnes en couches de parallaxe
         self._mountain_layer(painter, game, 420, horizon + 28, 0.12, QColor("#9bbfa9"), 115.0)
         self._mountain_layer(painter, game, 480, horizon + 75, 0.27, QColor("#6e9c79"), 175.0)
         self._mountain_layer(painter, game, 520, horizon + 105, 0.48, QColor("#386b44"), 105.0)
@@ -72,7 +76,7 @@ class JumpWidget:
                 f"{label} {target} {get_text('SPM_UNIT')}"
             )
 
-        # Sol et bande de déplacement.
+        # Route et bande de déplacement.
         ground_y = game.PLAYER_GROUND_Y + 6
         painter.setPen(QPen(QColor("#6a4b32"), 4))
         painter.drawLine(0, ground_y, game.WIDTH, ground_y)
@@ -81,15 +85,14 @@ class JumpWidget:
             x = (index * 90 - game.scroll_offset) % (game.WIDTH + 90) - 30
             painter.drawLine(round(x), ground_y + 17, round(x + 22), ground_y + 17)
 
-        # Bande de zones à la même échelle que la route : un pixel de bande
-        # défile à la même vitesse qu’un pixel d’obstacle.
+        # Bande de zones à la même échelle que la route : la bande
+        # défile à la même vitesse que les obstacles.
         band_y = ground_y + 23
         band_height = 17
         painter.setPen(Qt.PenStyle.NoPen)
-        zone_remaining = max(0.0, game.zone_duration - game.zone_elapsed)
+        zone_remaining = clamp_to_zero(game.zone_duration - game.zone_elapsed)
         # Le bord de la zone est à une distance temporelle * SCROLL_SPEED,
-        # comme les obstacles. Il peut rester hors écran pendant la majeure
-        # partie d'une zone de 30–45 secondes.
+        # comme les obstacles. Il peut être hors écran
         marker_x = round(zone_remaining * game.SCROLL_SPEED)
         current_color = self.ZONES_COLOR.get(game.zone_kind, QColor("#c6c9b9"))
         next_color = self.ZONES_COLOR.get(game.next_zone_kind, current_color)
@@ -114,22 +117,22 @@ class JumpWidget:
         # petits éléments non interactifs, avec des vitesses de parallaxe.
         self._draw_background_decor(painter, game, ground_y)
 
-        # Fleurs décoratives régulières au sol.
+        # Fleurs décoratives régulières le long de la route.
         for index in range(-1, 12):
             x = (index * 135 - game.scroll_offset * 1.05) % (game.WIDTH + 135)
             self._draw_flower(painter, x, ground_y - 2, False)
         for flower in game.flowers:
             self._draw_flower(painter, flower.x, ground_y - 2, flower.rare)
 
-        # Obstacle sprites (Rocher ou Cactus).
+        # Obstacles (Rocher (Zone MID) ou Cactus (Zone Fast)).
+        # Les événements "empty" (Zone Slow) sont volontairement invisibles.
         for obstacle in game.obstacles:
             if obstacle.kind == "rock":
                 self._draw_rock(painter, obstacle, ground_y)
             elif obstacle.kind == "cactus":
                 self._draw_cactus(painter, obstacle, ground_y)
-            # Les événements "empty" sont volontairement invisibles.
-
-        # Dino simple mais animé par une alternance des pattes.
+            
+        # Dino animé
         jump_offset = 0.0
         if game.jump_type is not None and game.jump_duration > 0.0:
             phase = min(1.0, game.jump_elapsed / game.jump_duration)
@@ -137,9 +140,9 @@ class JumpWidget:
         dino_y = game.PLAYER_GROUND_Y - game.PLAYER_HEIGHT - jump_offset
         self._draw_dino(painter, game.PLAYER_X, dino_y, game.elapsed, jumping= game.jump_type is not None)
 
-        # points animés quand on réussi un saut (si on est à la bonne cadence)
+        # Anim des points liés aux sauts réussis
         painter.setFont(QFont(GAME_FONT, 17, QFont.Weight.Bold))
-        for x, y, points, age in game._score_popups:
+        for x, y, points, _age in game._score_popups:
             painter.setPen(QPen(QColor("#176c36")))
             painter.drawText(round(x), round(y), f"+{points}")
 
@@ -195,40 +198,35 @@ class JumpWidget:
                 seed = (world_index * 37 + row_index * 19 + 11) % 17
                 if seed in (0, 5, 12):
                     continue
+                
                 x = round(slot * spacing - offset + (seed % 5) * 9)
-                kind = (seed + row_index * 2) % 3
-                scale = 1.12 + (seed % 4) * 0.10
-                painter.save()
-                painter.translate(x, y)
-                painter.scale(scale, scale)
-                if kind == 0:
-                    # Petit rocher arrondi.
-                    painter.setPen(QPen(QColor("#655f55"), 1.5))
-                    painter.setBrush(QBrush(QColor("#918779")))
-                    painter.drawPolygon(QPolygonF([
-                        QPointF(-11, 0), QPointF(-8, -8), QPointF(-1, -12),
-                        QPointF(7, -9), QPointF(12, 0),
-                    ]))
-                elif kind == 1:
-                    # Fleur minuscule, purement décorative.
-                    painter.setPen(QPen(QColor("#3b7139"), 1.5))
-                    painter.drawLine(0, 0, 0, -11)
-                    petal = QColor("#e6a5c8" if seed % 2 else "#f0d978")
-                    painter.setPen(QPen(petal, 1))
-                    painter.setBrush(QBrush(petal))
-                    painter.drawEllipse(-4, -16, 5, 5)
-                    painter.drawEllipse(1, -16, 5, 5)
-                    painter.drawEllipse(-2, -19, 5, 5)
-                else:
-                    # Cactus bas, nettement plus petit que l'obstacle jouable.
-                    cactus = QColor("#4b8752")
-                    painter.setPen(QPen(QColor("#326540"), 1.5))
-                    painter.setBrush(QBrush(cactus))
-                    painter.drawRoundedRect(-3, -19, 7, 19, 2, 2)
-                    painter.drawRoundedRect(-8, -13, 5, 8, 2, 2)
-                    painter.drawRoundedRect(4, -11, 5, 7, 2, 2)
 
-                painter.restore()
+                self._draw_bg_scenery_item(painter, x, y, row_index, seed)
+
+    # -------------------------------------------------------------------------
+    def _draw_bg_scenery_item(
+        self,
+        painter: QPainter,
+        x: int, y: int,
+        row_index: int,
+        seed: int
+    ) -> None:
+
+        kind = (seed + row_index * 2) % 3
+
+        painter.save()
+
+        painter.translate(x, y)
+        scale = 1.12 + (seed % 4) * 0.10
+        painter.scale(scale, scale)
+        if kind == 0:
+            self._draw_small_rock(painter)
+        elif kind == 1:
+            self._draw_small_flower(painter, seed)
+        else:
+            self._draw_small_cactus(painter)
+
+        painter.restore()
 
     # -------------------------------------------------------------------------
     def _draw_rock(
@@ -241,9 +239,21 @@ class JumpWidget:
         painter.setPen(QPen(QColor("#5b5148"), 2))
         painter.setBrush(QBrush(QColor("#82796e")))
         painter.drawPolygon(QPolygonF([
-            QPointF(obstacle.x, ground_y), QPointF(obstacle.x + 8, ground_y - 25),
-            QPointF(obstacle.x + 28, ground_y - 37), QPointF(obstacle.x + 47, ground_y - 20),
+            QPointF(obstacle.x, ground_y),
+            QPointF(obstacle.x + 8, ground_y - 25),
+            QPointF(obstacle.x + 28, ground_y - 37),
+            QPointF(obstacle.x + 47, ground_y - 20),
             QPointF(obstacle.x + 53, ground_y),
+        ]))
+
+    # -------------------------------------------------------------------------
+    def _draw_small_rock(self, painter: QPainter) -> None:
+
+        painter.setPen(QPen(QColor("#655f55"), 1.5))
+        painter.setBrush(QBrush(QColor("#918779")))
+        painter.drawPolygon(QPolygonF([
+            QPointF(-11, 0), QPointF(-8, -8), QPointF(-1, -12),
+            QPointF(7, -9), QPointF(12, 0),
         ]))
 
     # -------------------------------------------------------------------------
@@ -262,6 +272,15 @@ class JumpWidget:
         painter.setPen(QPen(QColor("#b3e0a0"), 2))
         painter.drawLine(round(obstacle.x + 22), round(ground_y - 82), round(obstacle.x + 22), round(ground_y - 63))
 
+    # -------------------------------------------------------------------------
+    def _draw_small_cactus(self, painter: QPainter) -> None:
+
+        painter.setPen(QPen(QColor("#326540"), 1.5))
+        painter.setBrush(QBrush(QColor("#4b8752")))
+        painter.drawRoundedRect(-3, -19, 7, 19, 2, 2)
+        painter.drawRoundedRect(-8, -13, 5, 8, 2, 2)
+        painter.drawRoundedRect(4, -11, 5, 7, 2, 2)
+        
     # -------------------------------------------------------------------------
     def _draw_flower(
         self,
@@ -287,6 +306,18 @@ class JumpWidget:
         # Anthers & Filaments
         painter.setBrush(QBrush(QColor("#e2d734")))
         painter.drawEllipse(round(ground_x - 2), round(ground_y - 13), 4, 4)
+
+    # -------------------------------------------------------------------------
+    def _draw_small_flower(self, painter: QPainter, seed: int) -> None:
+    
+        painter.setPen(QPen(QColor("#3b7139"), 1.5))
+        painter.drawLine(0, 0, 0, -11)
+        petal = QColor("#e6a5c8" if seed % 2 else "#f0d978")
+        painter.setPen(QPen(petal, 1))
+        painter.setBrush(QBrush(petal))
+        painter.drawEllipse(-4, -16, 5, 5)
+        painter.drawEllipse(1, -16, 5, 5)
+        painter.drawEllipse(-2, -19, 5, 5)
 
     # -------------------------------------------------------------------------
     def _draw_dino(

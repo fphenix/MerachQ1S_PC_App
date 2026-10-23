@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from setup.lang import get_text
+from setup.utils import clamp_to_zero
 
 from games.highscore import HighScoreManager
 from games.game_registry import GAME_CLASSES
@@ -32,8 +33,8 @@ class HighScoreDialog(QDialog):
         super().__init__(parent)
 
         self.highscores: HighScoreManager = highscores
-        self.user_id = user_id
-        self.selected_game_id = selected_game_id
+        self.user_id: str = user_id
+        self.selected_game_id: str = selected_game_id
 
         self._create_ui()
 
@@ -100,13 +101,16 @@ class HighScoreDialog(QDialog):
 
     # -------------------------------------------------------------------------
     @staticmethod
-    def _format_score(game_id: str, score: int) -> str:
+    def _format_score(game_id: str, score: int | float) -> str:
 
         if game_id in {"race_1000", "race_2000"}:
-            minutes, seconds = divmod(max(0, score), 60)
+            minutes, seconds = divmod(clamp_to_zero(int(score)), 60)
             return f"{minutes:02d}:{seconds:02d}"
+
+        elif game_id == "real_fishing":
+            return f"{float(score):.2f}"
         
-        return str(score)
+        return str(int(score))
 
     # -------------------------------------------------------------------------
     def _update_scores(self) -> None:
@@ -115,8 +119,9 @@ class HighScoreDialog(QDialog):
 
         personal_scores = self.highscores.scores(game_id)
         personal_lines = [
-            f"{index:2d}. {self._format_score(game_id, int(entry['score'])):>7}  "
-            f"{entry.get('date', '--/--/--')}"
+            f"{index:2d}. {self._format_score(game_id, entry['score']):>7}  "
+            + (f"{get_text('GAME_DOOM_INJURIES')}: {entry.get('injuries', 0):02d}  " if game_id == "doom" else "")
+            + f"{entry.get('date', '--/--/--')}"
             for index, entry in enumerate(personal_scores, start=1)
         ]
         self.personal_label.setText(
@@ -128,8 +133,9 @@ class HighScoreDialog(QDialog):
         common_scores = self.highscores.scores(game_id, common= True)
         common_lines = [
             f"{index:2d}. {entry.get('user_id') or '???'}  :   "
-            f"{self._format_score(game_id, int(entry['score'])):>7}  "
-            f"{entry.get('date', '--/--/--')}"
+            f"{self._format_score(game_id, entry['score']):>7}  "
+            + (f"{get_text('GAME_DOOM_INJURIES')}: {entry.get('injuries', 0):02d}  " if game_id == "doom" else "")
+            + f"{entry.get('date', '--/--/--')}"
             for index, entry in enumerate(common_scores, start= 1)
         ]
         self.common_label.setText(

@@ -13,61 +13,78 @@ from games.game_input import GameInput, input_cadence
 # =============================================================================
 @dataclass(slots=True)
 class PathSegment:
+    
     distance: float
     lane: int
 
 # =============================================================================
+@dataclass(slots=True)
+class PathScenery:
+    """Objet décoratif dont la distance diminue comme les segments de route."""
+
+    distance: float
+    side: int
+    kind: str
+    size: float
+    delta_x: float
+
+# =============================================================================
 class PathGame(Game):
 
-    WIDTH = 1000
-    HEIGHT = 700
-    HUD_HEIGHT = 70
-    DURATION_SECONDS = 240.0
-    PLAYER_Y = 620.0
-    SCROLL_SPEED = 105.0
-    SEGMENT_LENGTH = 330.0
-    POINTS_PER_SECOND = 1.0
+    WIDTH: int = 1000
+    HEIGHT: int = 700
+    HUD_HEIGHT: int = 70
+    DURATION_SECONDS: float = 240.0
+
+    SCROLL_SPEED: float = 105.0
+    SEGMENT_LENGTH: float = 330.0
+    POINTS_PER_SECOND: float = 1.0
 
     CADENCE_LEFT: float = 18.0
     CADENCE_MIDDLE: float = 24.0
     CADENCE_RIGHT: float = 30.0
-    CADENCE_TARGETS = (CADENCE_LEFT, CADENCE_MIDDLE, CADENCE_RIGHT)
-    CADENCE_MARGIN = 2.0
+    CADENCE_MARGIN: float = 3.0
+
+    OBJECTS_DELTA_X: float = 32.0
 
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
 
         super().__init__("path", get_text("MENU_GAMES_PATH"), self.DURATION_SECONDS)
 
-        self.current_spm: float | None = None
-        self.player_lane: int | None = 1
-        self.segments: list[PathSegment] = []
-        self.matching = False
-        self._score_fraction = 0.0
-        self._stint_lane: int | None = None
-        self._stint_tiles_remaining = 0
+        self.reset()
 
     # -------------------------------------------------------------------------
     def reset(self) -> None:
 
-        self.current_spm = None
-        self.player_lane = 1
-        self.segments = []
-        self.matching = False
-        self._score_fraction = 0.0
-        distance = 0.0
-        self._stint_lane = random.randrange(3)
-        self._stint_tiles_remaining = 0
+        self.current_spm: float | None = None
+        self.player_lane: int | None = 1
+        self.segments: list[PathSegment] = []
+        self.scenery: list[PathScenery] = []
+        self.matching: bool = False
+        self._score_fraction: float = 0.0
+        self._stint_lane: int = random.randrange(3)
+        self._stint_tiles_remaining: int = 0
+
+        distance: float = 0.0
         while len(self.segments) < 7:
             lane = self._next_stint_lane()
             self.segments.append(PathSegment(distance, lane))
             distance += self.SEGMENT_LENGTH
 
+        # Les objets de décor sont placés sur les bas-côtés, à des profondeurs variées.
+        scenery_distance = 180.0
+        while scenery_distance < 1900.0:
+            self._add_scenery(scenery_distance)
+            scenery_distance += random.uniform(150.0, 310.0)
+
     # -------------------------------------------------------------------------
     def update_game(self, dt: float, game_input: GameInput) -> None:
         
         self.current_spm = input_cadence(game_input)
-        self.player_lane = self._cadence_lane(self.current_spm)
+        target_lane = self._cadence_lane(self.current_spm)
+        if target_lane is not None:
+            self.player_lane = target_lane
         self.matching = bool(
             self.segments
             and self.player_lane is not None
@@ -81,6 +98,13 @@ class PathGame(Game):
                 self._score_fraction -= points
         for segment in self.segments:
             segment.distance -= self.SCROLL_SPEED * dt
+        for item in self.scenery:
+            item.distance -= self.SCROLL_SPEED * dt
+        self.scenery = [item for item in self.scenery if item.distance > -180.0]
+        farthest_scenery = max((item.distance for item in self.scenery), default=0.0)
+        while farthest_scenery < 1700.0:
+            farthest_scenery += random.uniform(150.0, 310.0)
+            self._add_scenery(farthest_scenery)
         while self.segments and self.segments[0].distance <= -self.SEGMENT_LENGTH:
             self.segments.pop(0)
         while len(self.segments) < 7:
@@ -92,28 +116,39 @@ class PathGame(Game):
             ))
 
     # -------------------------------------------------------------------------
+    def _add_scenery(self, distance: float) -> None:
+        self.scenery.append(PathScenery(
+            distance= distance,
+            side= random.choice((-1, 1)),
+            kind= random.choice(("bush", "rock", "tree")),
+            size= random.uniform(0.75, 1.25),
+            delta_x= random.uniform(-self.OBJECTS_DELTA_X, self.OBJECTS_DELTA_X),
+        ))
+
+    # -------------------------------------------------------------------------
     @classmethod
     def _cadence_lane(cls, cadence: float | None) -> int | None:
         """Convertit la cadence en voie : gauche=0, centre=1, droite=2."""
 
         if cadence is None:
             return None
-        
-        for lane, target in enumerate(cls.CADENCE_TARGETS):
-            if is_within(cadence, target, cls.CADENCE_MARGIN):
-                return lane
 
-        return None
+        if is_within(cadence, cls.CADENCE_MIDDLE, cls.CADENCE_MARGIN):
+            return 1
+        elif cadence > (cls.CADENCE_RIGHT - cls.CADENCE_MARGIN):
+            return 2
+        else:
+            return 0
 
     # -------------------------------------------------------------------------
     def _next_stint_lane(self) -> int:
         """Maintient chaque voie 5 à 7 tuiles avant de changer de voie."""
 
         if self._stint_tiles_remaining <= 0:
-            previous = self._stint_lane if self._stint_lane is not None else 1
+            previous = self._stint_lane
             choices = [lane for lane in range(3) if lane != previous]
             self._stint_lane = random.choice(choices)
             self._stint_tiles_remaining = random.randint(5, 7)
 
         self._stint_tiles_remaining -= 1
-        return self._stint_lane if self._stint_lane is not None else 1
+        return self._stint_lane

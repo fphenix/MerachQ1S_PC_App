@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import random
 
 from setup.lang import get_text
-from setup.utils import is_within, is_between
+from setup.utils import is_within, is_between, clamp_to_zero
 
 from games.game import Game
 from games.game_input import GameInput, input_cadence
@@ -30,30 +30,35 @@ class Flower:
 # =============================================================================
 class JumpGame(Game):
 
-    WIDTH = 1000
-    HEIGHT = 700
-    HUD_HEIGHT = 70
-    DURATION_SECONDS = 240.0
-    PLAYER_X = 175.0
-    PLAYER_GROUND_Y = 565.0
-    PLAYER_WIDTH = 54.0
-    PLAYER_HEIGHT = 64.0
-    SCROLL_SPEED = 145.0
-    ZONE_DURATION_MIN = 20.0 # seconds
-    ZONE_DURATION_MAX = 45.0 # seconds
-    OBSTACLE_TRAVEL_SECONDS = (WIDTH + 20.0 - (PLAYER_X + PLAYER_WIDTH)) / SCROLL_SPEED
-    ZONE_WEIGHTS = (("slow", 1), ("medium", 3), ("fast", 2))
-    RARE_FLOWER_FREQ = 5 # in percent
-    JUMP_TRIGGER_DISTANCE = 55.0 # pix
-    CADENCE_HOLD_SECONDS = 5.0 # seconds
-    FIRST_OBSTACLE_DELAY_SECONDS = 7.0 # seconds
-    ZONE_TRANSITION_GAP_SECONDS = 3.5 # seconds
-    MIN_OBSTACLE_GAP_SECONDS = 3.8 # seconds
-    MAX_OBSTACLES_PER_ZONE = 6 # number
-    SIMPLE_JUMP_DURATION = 0.72
-    DOUBLE_JUMP_DURATION = 0.98
-    SIMPLE_JUMP_HEIGHT = 76.0
-    DOUBLE_JUMP_HEIGHT = 154.0
+    WIDTH: int = 1000
+    HEIGHT: int = 700
+    HUD_HEIGHT: int = 70
+    DURATION_SECONDS: float = 240.0
+    
+    PLAYER_X: float = 175.0
+    PLAYER_GROUND_Y: float = 565.0
+    PLAYER_WIDTH: float = 54.0
+    PLAYER_HEIGHT: float = 64.0
+    SCROLL_SPEED: float = 145.0
+    ZONE_DURATION_MIN: float = 20.0 # seconds
+    ZONE_DURATION_MAX: float = 45.0 # seconds
+    OBSTACLE_TRAVEL_SECONDS: float = (WIDTH + 20.0 - (PLAYER_X + PLAYER_WIDTH)) / SCROLL_SPEED
+    ZONE_WEIGHTS: list[tuple[str, int]] = [("slow", 1), ("medium", 3), ("fast", 2)]
+    RARE_FLOWER_FREQ: float = 5.0 # in percent
+    JUMP_TRIGGER_DISTANCE: float = 55.0 # pix
+    CADENCE_HOLD_SECONDS: float = 5.0 # seconds
+    CADENCE_OBSTACLE_MARGIN: float = 2.0
+    CADENCE_RUN_MARGIN: float = 2.0
+    CADENCE_RARE_FLOWER_MARGIN: float = 1.5
+    FIRST_FLOWER_DELAY_SECONDS: float = 4.0
+    FIRST_OBSTACLE_DELAY_SECONDS: float = 7.0 # seconds
+    ZONE_TRANSITION_GAP_SECONDS: float = 3.5 # seconds
+    MIN_OBSTACLE_GAP_SECONDS: float = 3.8 # seconds
+    MAX_OBSTACLES_PER_ZONE: int = 6 # number
+    SIMPLE_JUMP_DURATION: float = 0.72
+    DOUBLE_JUMP_DURATION: float = 0.98
+    SIMPLE_JUMP_HEIGHT: float = 76.0
+    DOUBLE_JUMP_HEIGHT: float = 154.0
 
     CADENCE_RUN: int = 22.0 # CPM
     CADENCE_ROCK: float = 26.0 # CPM
@@ -70,46 +75,29 @@ class JumpGame(Game):
 
         super().__init__("jump", get_text("MENU_GAMES_JUMP"), self.DURATION_SECONDS)
 
-        self.current_spm: float | None = None
-        self._last_valid_spm: float | None = None
-        self._cadence_hold_remaining = 0.0
-        self.scroll_offset = 0.0
-        self.obstacles: list[Obstacle] = []
-        self.flowers: list[Flower] = []
-        self.zone_kind = "medium"
-        self.next_zone_kind = "fast"
-        self.zone_duration = 0.0
-        self.zone_elapsed = 0.0
-        self._zone_obstacle_times: list[float] = []
-        self._zone_obstacles_spawned = 0
-        self._flower_spawn_remaining = 4.0
-        self.jump_type: str | None = None
-        self.jump_elapsed = 0.0
-        self.jump_duration = 0.0
-        self.jump_height = 0.0
-        self._score_popups: list[tuple[float, float, int, float]] = []
+        self.reset()
 
     # -------------------------------------------------------------------------
     def reset(self) -> None:
 
-        self.current_spm = None
-        self._last_valid_spm = None
-        self._cadence_hold_remaining = 0.0
-        self.scroll_offset = 0.0
-        self.obstacles = []
-        self.flowers = []
-        self.zone_kind = self._choose_zone_kind()
-        self.next_zone_kind = self._choose_zone_kind(previous=self.zone_kind)
-        self.zone_duration = random.uniform(self.ZONE_DURATION_MIN, self.ZONE_DURATION_MAX)
-        self.zone_elapsed = 0.0
-        self._zone_obstacle_times = self._make_zone_obstacle_times(self.zone_duration)
-        self._zone_obstacles_spawned = 0
-        self._flower_spawn_remaining = random.uniform(3.0, 5.0)
-        self.jump_type = None
-        self.jump_elapsed = 0.0
-        self.jump_duration = 0.0
-        self.jump_height = 0.0
-        self._score_popups = []
+        self.current_spm: float | None = None
+        self._last_valid_spm: float | None = None
+        self._cadence_hold_remaining: float = 0.0
+        self.scroll_offset: float = 0.0
+        self.obstacles: list[Obstacle] = []
+        self.flowers: list[Flower] = []
+        self.zone_kind: str = self._choose_zone_kind()
+        self.next_zone_kind: str = self._choose_zone_kind(previous=self.zone_kind)
+        self.zone_duration: float = random.uniform(self.ZONE_DURATION_MIN, self.ZONE_DURATION_MAX)
+        self.zone_elapsed: float = 0.0
+        self._zone_obstacle_times: list[float] = self._make_zone_obstacle_times(self.zone_duration)
+        self._zone_obstacles_spawned: int = 0
+        self._flower_spawn_remaining: float = random.uniform(3.0, 5.0)
+        self.jump_type: str | None = None
+        self.jump_elapsed: float = 0.0
+        self.jump_duration: float = 0.0
+        self.jump_height: float = 0.0
+        self._score_popups: list[tuple[float, float, int, float]] = [] # x, y, points, age
 
     # -------------------------------------------------------------------------
     def update_game(self, dt: float, game_input: GameInput) -> None:
@@ -120,10 +108,10 @@ class JumpGame(Game):
             self._cadence_hold_remaining = self.CADENCE_HOLD_SECONDS
             self.current_spm = measured_spm
         else:
-            self._cadence_hold_remaining = max(0.0, self._cadence_hold_remaining - dt)
+            self._cadence_hold_remaining = clamp_to_zero(self._cadence_hold_remaining - dt)
             self.current_spm = self._last_valid_spm if self._cadence_hold_remaining > 0.0 else None
         # Ne pas reboucler à 1000 px : les couches de montagnes ont leur propre
-        # modulo (420 px). Le rebouclage ici provoquait un saut visuel.
+        # modulo. Le rebouclage ici provoquait un saut visuel.
         self.scroll_offset += self.SCROLL_SPEED * dt
 
         if self.jump_type is not None:
@@ -183,17 +171,22 @@ class JumpGame(Game):
                 and is_between(distance, 20.0, self.JUMP_TRIGGER_DISTANCE)
             ):
                 cadence = self.current_spm
-                if obstacle.kind == "rock" and cadence is not None and is_within(cadence, self.CADENCE_ROCK, 2.0):
+                if obstacle.kind == "rock" and cadence is not None and is_within(cadence, self.CADENCE_ROCK, self.CADENCE_OBSTACLE_MARGIN):
                     self._start_jump("simple", obstacle)
-                elif obstacle.kind == "cactus" and cadence is not None and is_within(cadence, self.CADENCE_CACTUS, 2.0):
+                elif obstacle.kind == "cactus" and cadence is not None and is_within(cadence, self.CADENCE_CACTUS, self.CADENCE_OBSTACLE_MARGIN):
                     self._start_jump("double", obstacle)
 
             if not obstacle.resolved and obstacle.x <= self.PLAYER_X + self.PLAYER_WIDTH:
                 obstacle.resolved = True
                 if obstacle.kind == "empty":
-                    if self.current_spm is not None and is_within(self.current_spm, self.CADENCE_RUN, 2.0):
+                    if self.current_spm is not None and is_within(self.current_spm, self.CADENCE_RUN, self.CADENCE_RUN_MARGIN):
                         self.add_score(self.POINTS_NONE)
-                        self._score_popups.append((self.PLAYER_X + 20.0, self.PLAYER_GROUND_Y - 35.0, self.POINTS_NONE, 0.0))
+                        # x, y, points, age
+                        self._score_popups.append((
+                            self.PLAYER_X + 20.0, self.PLAYER_GROUND_Y - 35.0,
+                            self.POINTS_NONE,
+                            0.0
+                        ))
                 else:
                     correct_jump = (
                         (obstacle.kind == "rock" and obstacle.jump_type == "simple")
@@ -202,7 +195,12 @@ class JumpGame(Game):
                     if correct_jump:
                         points = self.POINTS_ROCK if obstacle.kind == "rock" else self.POINTS_CACTUS
                         self.add_score(points)
-                        self._score_popups.append((obstacle.x, self.PLAYER_GROUND_Y - 80.0, points, 0.0))
+                        # x, y, points, age
+                        self._score_popups.append((
+                            obstacle.x, self.PLAYER_GROUND_Y - 80.0,
+                            points,
+                            0.0
+                        ))
 
         for flower in self.flowers:
             flower.x -= self.SCROLL_SPEED * dt
@@ -212,12 +210,17 @@ class JumpGame(Game):
                 and flower.x + 12.0 >= self.PLAYER_X
             ):
                 flower.resolved = True
-                if flower.rare and self.current_spm is not None and is_within(self.current_spm, self.CADENCE_RARE_FLOWER, 1.5):
+                if flower.rare and self.current_spm is not None and is_within(self.current_spm, self.CADENCE_RARE_FLOWER, self.CADENCE_RARE_FLOWER_MARGIN):
                     self.add_score(self.POINTS_RARE_FLOWER)
-                    self._score_popups.append((flower.x, self.PLAYER_GROUND_Y - 35.0, 100, 0.0))
+                    # x, y, points, _age
+                    self._score_popups.append((
+                        flower.x, self.PLAYER_GROUND_Y - 35.0,
+                        100,
+                        0.0
+                    ))
 
-        self.obstacles = [o for o in self.obstacles if o.x > -90.0]
-        self.flowers = [f for f in self.flowers if f.x > -35.0]
+        self.obstacles = [obs for obs in self.obstacles if obs.x > -90.0]
+        self.flowers = [flo for flo in self.flowers if flo.x > -35.0]
         updated_popups = []
         for x, y, points, age in self._score_popups:
             age += dt

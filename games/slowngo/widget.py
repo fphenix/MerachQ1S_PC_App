@@ -6,19 +6,22 @@ from PySide6.QtGui import QColor, QBrush, QPen, QPainter, QFont
 from setup.lang import get_text
 from setup.constants import GAME_FONT
 
-from games.pulsator import Pulsator
 from games.game import Game
+from games.game_painter import GamePainter
+from games.pulsator import Pulsator
 
 # =============================================================================
-class SlowNGoWidget:
+class SlowNGoWidget(GamePainter):
 
-    PULSATOR = Pulsator(min_radius= 12.0, max_radius= 22.0, pen_width= 3.0)
+    PULSATOR = Pulsator(min_radius= 4.0, max_radius= 32.0, pen_width= 3.0, outlined= True)
 
-    COLORS = {
+    BOX_COLORS: dict[str, QColor] = {
         "slow": QColor("#174a78"),
         "medium": QColor("#176b68"),
         "fast": QColor("#794124"),
     }
+
+    PEN_COLOR = QColor("#FFFFFF")
 
     # -------------------------------------------------------------------------
     def paint(self, painter: QPainter, game: Game) -> None:
@@ -39,16 +42,16 @@ class SlowNGoWidget:
         }
 
         # draw the 3 boxes
-        for index, band in enumerate(("slow", "medium", "fast")):
+        for index, band in enumerate(game.CADENCE_TARGETS.keys()):
             x = margin + index * (col_w + gap)
             active = band == game.target_band
-            color = self.COLORS[band]
+            color = self.BOX_COLORS[band]
 
-            painter.setPen(QPen(QColor("#ffffff") if active else color.darker(105), 4 if active else 1))
+            painter.setPen(QPen(QColor(self.PEN_COLOR) if active else color.darker(105), 4 if active else 1))
             painter.setBrush(QBrush(color if active else color.darker(190)))
             painter.drawRoundedRect(QRectF(x, area_y, col_w, area_h), 16, 16)
 
-            painter.setPen(QPen(QColor("#ffffff" if active else "#697781")))
+            painter.setPen(QPen(QColor(self.PEN_COLOR if active else "#697781")))
             painter.setFont(QFont(GAME_FONT, 20, QFont.Weight.Bold))
             painter.drawText(
                 QRectF(x + 8, area_y + 22, col_w - 16, 42),
@@ -74,7 +77,7 @@ class SlowNGoWidget:
                 center_y = area_y + 210
                 self.PULSATOR.paint(
                     painter, center_x, center_y, game.elapsed,
-                    game.target_spm, QColor("#ffffff")
+                    game.target_spm, QColor(self.PEN_COLOR)
                 )
                 painter.setFont(QFont(GAME_FONT, 25, QFont.Weight.Bold))
                 painter.drawText(
@@ -84,7 +87,7 @@ class SlowNGoWidget:
                 )
 
         # Target Cadence text
-        painter.setPen(QPen(QColor("#ffffff")))
+        painter.setPen(QPen(QColor(self.PEN_COLOR)))
         painter.setFont(QFont(GAME_FONT, 25, QFont.Weight.Bold))
         painter.drawText(
             QRectF(50, area_y + area_h + 24, game.WIDTH - 100, 50),

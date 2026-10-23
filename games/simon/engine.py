@@ -3,7 +3,7 @@
 import random
 
 from setup.lang import get_text
-from setup.utils import is_within
+from setup.utils import is_within, clamp_to_zero
 
 from games.game import Game
 from games.game_input import GameInput, input_cadence
@@ -11,24 +11,24 @@ from games.game_input import GameInput, input_cadence
 # =============================================================================
 class SimonGame(Game):
 
-    WIDTH = 1000
-    HEIGHT = 700
-    HUD_HEIGHT = 70
-    DURATION_SECONDS = 240.0
+    WIDTH: int = 1000
+    HEIGHT: int = 700
+    HUD_HEIGHT: int = 70
+    DURATION_SECONDS: float = 240.0
 
-    PLAYBACK_ON_SECONDS = 1.95
-    PLAYBACK_GAP_SECONDS = 0.45
-    INPUT_FLASH_SECONDS = 0.45
+    PLAYBACK_ON_SECONDS: float = 1.95
+    PLAYBACK_GAP_SECONDS: float = 0.45
+    INPUT_FLASH_SECONDS: float = 0.45
 
-    STABLE_STROKES_REQUIRED = 3
-    STABLE_CADENCE_DELTA = 1.5
+    STABLE_STROKES_REQUIRED: int = 3
+    STABLE_CADENCE_DELTA: float = 1.5
 
-    CADENCE_REPLAY_THRESHOLD = 16.0
-    CADENCE_LOW = 18.0
-    CADENCE_MID = 24.0
-    CADENCE_HIGH = 30.0
-    CADENCE_MARGIN = 2.0
-    CADENCE_TARGETS = (CADENCE_LOW, CADENCE_MID, CADENCE_HIGH)
+    CADENCE_REPLAY_THRESHOLD: float = 16.0
+    CADENCE_LOW: float = 18.0
+    CADENCE_MID: float = 24.0
+    CADENCE_HIGH: float = 30.0
+    CADENCE_MARGIN: float = 2.0
+    CADENCE_TARGETS: list[float] = [CADENCE_LOW, CADENCE_MID, CADENCE_HIGH]
 
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
@@ -39,64 +39,89 @@ class SimonGame(Game):
             duration=self.DURATION_SECONDS,
         )
 
-        self.current_spm: float | None = None
-        self.sequence: list[int] = []
-        self.input_index = 0
-        self.showing_sequence = True
-        self._candidate_lane: int | None = None
-        self._candidate_cadences: list[float] = []
-        self.playback_index = 0
-        self.playback_elapsed = 0.0
-        self.active_lane: int | None = None
-        self.flash_remaining = 0.0
-        self.round_number = 0
-        self.message_key = "GAME_SIMON_WATCH"
-        self.result_key = ""
+        self.reset()
 
     # -------------------------------------------------------------------------
     def reset(self) -> None:
 
-        self.current_spm = None
-        self.sequence = []
-        self.input_index = 0
-        self.showing_sequence = True
-        self.playback_index = 0
-        self.playback_elapsed = 0.0
-        self.active_lane = None
-        self.flash_remaining = 0.0
-        self.round_number = 0
-        self.message_key = "GAME_SIMON_WATCH"
-        self.result_key = ""
+        self.current_spm: float | None = None
+        self.max_successful_sequence_length: int = 0
+
+        self.input_index: int = 0
+        self.showing_sequence: bool = True
+        self.playback_index: int = 0
+        self.playback_repeat_count: int = 0
+        self.playback_elapsed: float = 0.0
+        self.flash_remaining: float = 0.0
+        self.message_key: str = "GAME_SIMON_WATCH"
+        self.result_key: str = ""
+
         self._reset_cadence_candidate()
+
+        self.sequence: list[int] = []
+        self.round_number: int = 0
+        self.active_lane: int | None = None
+
         self._start_round()
+
+    # -------------------------------------------------------------------------
+    def _reset_cadence_candidate(self) -> None:
+
+        self._candidate_lane: int | None = None
+        self._candidate_cadences: list[float] = []
 
     # -------------------------------------------------------------------------
     def _start_round(self) -> None:
 
-        self.sequence.append(random.randrange(3))
-        self.round_number = len(self.sequence)
+        # Prépare le tour suivant sans effacer la séquence déjà mémorisée.
         self.input_index = 0
         self.showing_sequence = True
         self.playback_index = 0
+        self.playback_repeat_count = 0
         self.playback_elapsed = 0.0
-        self.active_lane = None
-        self._reset_cadence_candidate()
+        self.flash_remaining = 0.0
         self.message_key = "GAME_SIMON_WATCH"
+        self.result_key = ""
+
+        self._reset_cadence_candidate()
+
+        self.sequence.append(random.randrange(3))
+        self.round_number = len(self.sequence)
+        self.active_lane = self.sequence[0]
+
+    # -------------------------------------------------------------------------
+    def _replay_sequence(self) -> None:
+        """Redémontre la séquence actuelle sans la modifier."""
+
+        self.input_index = 0
+        self.showing_sequence = True
+        self.playback_index = 0
+        self.playback_repeat_count = 0
+        self.playback_elapsed = 0.0
+        self.flash_remaining = 0.0
+        self.message_key = "GAME_SIMON_WATCH"
+
+        self._reset_cadence_candidate()
+
+        self.active_lane = self.sequence[0] if self.sequence else None
 
     # -------------------------------------------------------------------------
     def update_game(self, dt: float, game_input: GameInput) -> None:
 
         self.current_spm = input_cadence(game_input)
-        self.flash_remaining = max(0.0, self.flash_remaining - dt)
+        self.flash_remaining = clamp_to_zero(self.flash_remaining - dt)
         if self.flash_remaining <= 0.0:
             self.active_lane = None
 
         if self.showing_sequence:
             self.playback_elapsed += dt
             cycle = self.PLAYBACK_ON_SECONDS + self.PLAYBACK_GAP_SECONDS
-            if self.playback_elapsed >= cycle:
+            while self.playback_elapsed >= cycle and self.showing_sequence:
                 self.playback_elapsed -= cycle
-                self.playback_index += 1
+                self.playback_repeat_count += 1
+                if self.playback_repeat_count >= 3:
+                    self.playback_repeat_count = 0
+                    self.playback_index += 1
                 if self.playback_index >= len(self.sequence):
                     self.showing_sequence = False
                     self.input_index = 0
@@ -105,13 +130,16 @@ class SimonGame(Game):
                     self.message_key = "GAME_SIMON_REPEAT"
                 else:
                     self.active_lane = self.sequence[self.playback_index]
-            elif self.playback_elapsed < self.PLAYBACK_ON_SECONDS:
-                self.active_lane = self.sequence[self.playback_index]
-            else:
-                self.active_lane = None
 
-            # Le joueur peut continuer à ramer, mais les coups de démonstration
-            # ne sont jamais comptés dans sa réponse.
+            if self.showing_sequence:
+                self.active_lane = (
+                    self.sequence[self.playback_index]
+                    if self.playback_elapsed < self.PLAYBACK_ON_SECONDS
+                    else None
+                )
+
+            # La séquence entière est montrée trois fois, chaque étape à son
+            # tour. Les coups de rame pendant la démonstration sont ignorés.
             return
 
         if not game_input.stroke_event:
@@ -142,9 +170,11 @@ class SimonGame(Game):
             self._candidate_cadences = [cadence]
         elif (
             self._candidate_cadences
-            and max(self._candidate_cadences + [cadence])
-            - min(self._candidate_cadences + [cadence])
-            > self.STABLE_CADENCE_DELTA
+            and (
+                max(self._candidate_cadences + [cadence])
+                - min(self._candidate_cadences + [cadence])
+                > self.STABLE_CADENCE_DELTA
+            )
         ):
             # La fenêtre entière doit rester stable : une hausse graduelle
             # traversant la zone Moyen ne doit pas valider une fausse réponse.
@@ -161,35 +191,19 @@ class SimonGame(Game):
 
         self._reset_cadence_candidate()
         if lane != self.sequence[self.input_index]:
+            # Une erreur fait recommencer la séquence courante, sans la rallonger.
             self.result_key = "GAME_SIMON_MISSED"
-            self.finished = True
-            self.phase = self.PHASE_FINISHED
-            self.phase_elapsed = 0.0
+            self._replay_sequence()
             return
 
         self.input_index += 1
         if self.input_index >= len(self.sequence):
-            self.add_score(self.round_number * 100)
+            self.max_successful_sequence_length = max(
+                self.max_successful_sequence_length,
+                len(self.sequence),
+            )
+            self.score = self.max_successful_sequence_length
             self._start_round()
-
-    # -------------------------------------------------------------------------
-    def _replay_sequence(self) -> None:
-        """Redémontre la séquence actuelle sans la modifier."""
-
-        self.showing_sequence = True
-        self.input_index = 0
-        self.playback_index = 0
-        self.playback_elapsed = 0.0
-        self.active_lane = None
-        self.flash_remaining = 0.0
-        self._reset_cadence_candidate()
-        self.message_key = "GAME_SIMON_WATCH"
-
-    # -------------------------------------------------------------------------
-    def _reset_cadence_candidate(self) -> None:
-
-        self._candidate_lane = None
-        self._candidate_cadences = []
 
     # -------------------------------------------------------------------------
     @classmethod
@@ -211,3 +225,8 @@ class SimonGame(Game):
             return get_text(self.result_key)
 
         return ""
+
+    # -------------------------------------------------------------------------
+    def on_finished(self) -> None:
+        # Le score final est la longueur de la plus longue séquence réussie.
+        self.score = self.max_successful_sequence_length

@@ -6,7 +6,7 @@ import math
 import random
 
 from setup.lang import get_text
-from setup.utils import is_between, is_within
+from setup.utils import clamp_between, is_between, is_within
 
 from games.game import Game
 from games.game_input import GameInput, input_cadence
@@ -31,23 +31,30 @@ class Bullet:
 # =============================================================================
 class PigeonGame(Game):
 
-    WIDTH = 1000
-    HEIGHT = 700
-    HUD_HEIGHT = 70
-    DURATION_SECONDS = 240.0
+    WIDTH: int = 1000
+    HEIGHT: int = 700
+    HUD_HEIGHT: int = 70
+    DURATION_SECONDS: float = 240.0
 
-    OPENING_MIN = 20.0
-    OPENING_MAX = 45.0
-    SHOOTING_MIN = 20.0
-    SHOOTING_MAX = 40.0
-    BULLET_SPEED = 620.0
-    BULLET_INTERVAL_LOW = 0.50  # 2 balles/s à 28 CPM
-    BULLET_INTERVAL_HIGH = 0.22  # environ 4,5 balles/s à 32 CPM
-    PIGEON_SIZE = 26
+    OPENING_MIN: float = 20.0
+    OPENING_MAX: float = 45.0
+    SHOOTING_MIN: float = 20.0
+    SHOOTING_MAX: float = 40.0
+    BULLET_SPEED: float = 620.0
+    BULLET_INTERVAL_LOW: float = 0.50   # 2 balles/s à CADENCE_MIN_SHOOT_CLAMP CPM
+    BULLET_INTERVAL_HIGH: float = 0.22  # environ 4,5 balles/s à CADENCE_MAX_SHOOT_CLAMP CPM
+    PIGEON_SIZE: int = 26 # pix
+    PIGEON_POINTS: int = 10
 
-    CADENCE_OPEN = 24.0
-    CADENCE_SHOOT = 30.0
-    CADENCE_MARGIN = 2.0
+    CADENCE_OPEN: float = 24.0
+    CADENCE_OPEN_MARGIN: float = 2.0
+    CADENCE_SHOOT: float = 30.0
+    CADENCE_SHOOT_MARGIN: float = 2.0
+    CADENCE_MIN_SHOOT_CLAMP: float = CADENCE_SHOOT - CADENCE_SHOOT_MARGIN
+    CADENCE_MAX_SHOOT_CLAMP: float = CADENCE_SHOOT + CADENCE_SHOOT_MARGIN
+    # À la descente, on garde le tir actif jusqu'à quitter la zone d'ouverture.
+    # Cela évite des salves qui s'allument/s'éteignent autour de 28 CPM.
+    CADENCE_SHOOT_RELEASE: float = CADENCE_OPEN + CADENCE_OPEN_MARGIN
 
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
@@ -58,28 +65,21 @@ class PigeonGame(Game):
             duration=self.DURATION_SECONDS,
         )
         
-        self.current_spm: float | None = None
-        self.phase_name = "opening"
-        self.phase_duration = 0.0
-        self._phase_remaining = 0.0
-        self._spawn_remaining = 0.0
-        self._bullet_remaining = 0.0
-        self.pigeons: list[Pigeon] = []
-        self.bullets: list[Bullet] = []
-        self.shots_fired = 0
+        self.reset()
 
     # -------------------------------------------------------------------------
     def reset(self) -> None:
 
-        self.current_spm = None
-        self.phase_name = "opening"
-        self.phase_duration = random.uniform(self.OPENING_MIN, self.OPENING_MAX)
-        self._phase_remaining = self.phase_duration
-        self._spawn_remaining = 0.0
-        self._bullet_remaining = 0.0
-        self.pigeons.clear()
-        self.bullets.clear()
-        self.shots_fired = 0
+        self.current_spm: float | None = None
+        self.phase_name: str = "opening"
+        self.phase_duration: float = random.uniform(self.OPENING_MIN, self.OPENING_MAX)
+        self._phase_remaining: float = self.phase_duration
+        self._spawn_remaining: float = 0.0
+        self._bullet_remaining: float = 0.0
+        self.pigeons: list[Pigeon] = []
+        self.bullets: list[Bullet] = []
+        self.shots_fired: int = 0
+        self._shooting_active: bool = False
 
     # -------------------------------------------------------------------------
     @property
@@ -87,7 +87,7 @@ class PigeonGame(Game):
         
         return (
             self.current_spm is not None
-            and is_within(self.current_spm, self.CADENCE_OPEN, self.CADENCE_MARGIN)
+            and is_within(self.current_spm, self.CADENCE_OPEN, self.CADENCE_OPEN_MARGIN)
         )
 
     # -------------------------------------------------------------------------
@@ -99,25 +99,37 @@ class PigeonGame(Game):
 
         self.current_spm = input_cadence(game_input)
 
-        # Les phases ne sont plus chronométrées : le rameur choisit lui-même
-        # quand ouvrir les cages (22–26 CPM) et quand tirer (28 CPM ou plus).
+        # Ouverture à 24 CPM +/-2. Le tir s'active à 28 CPM et se désactive
+        # sous 26 CPM : une petite fluctuation autour de 28 ne déclenche pas
+        # une succession de tirs isolés.
+        if self.current_spm is not None:
+            if self.current_spm >= self.CADENCE_MIN_SHOOT_CLAMP:
+                self._shooting_active = True
+            elif self.current_spm < self.CADENCE_SHOOT_RELEASE:
+                self._shooting_active = False
+
         self.phase_name = (
-            "opening"
-            if self.cages_open
-            else "shooting"
+            "shooting" if self._shooting_active
+            else "opening" if self.cages_open
+            else "idle"
         )
 
-        if self.cages_open:
+        if self.cages_open and not self._shooting_active:
             self._spawn_remaining -= dt
             if self._spawn_remaining <= 0.0:
                 self._spawn_pigeon()
                 self._spawn_remaining = random.uniform(2.0, 3.0)
 
-        if self.current_spm is not None and self.current_spm >= (self.CADENCE_SHOOT - self.CADENCE_MARGIN):
-            if self.current_spm >= 32.0:
+        if self._shooting_active and self.current_spm is not None:
+            if self.current_spm >= self.CADENCE_MAX_SHOOT_CLAMP:
                 interval = self.BULLET_INTERVAL_HIGH
             else:
-                factor = (self.current_spm - 28.0) / 4.0
+                factor = clamp_between(
+                    (self.current_spm - self.CADENCE_MIN_SHOOT_CLAMP)
+                    / (self.CADENCE_MAX_SHOOT_CLAMP - self.CADENCE_MIN_SHOOT_CLAMP),
+                    0.0,
+                    1.0,
+                )
                 interval = self.BULLET_INTERVAL_LOW + factor * (
                     self.BULLET_INTERVAL_HIGH - self.BULLET_INTERVAL_LOW
                 )
@@ -152,7 +164,7 @@ class PigeonGame(Game):
                     break
             if hit_index is not None:
                 hit_pigeons.add(hit_index)
-                self.add_score(10)
+                self.add_score(self.PIGEON_POINTS)
             elif bullet.y + 5 >= self.HUD_HEIGHT:
                 live_bullets.append(bullet)
         self.bullets = live_bullets

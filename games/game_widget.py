@@ -16,12 +16,17 @@ from PySide6.QtWidgets import (
 )
 
 from setup.lang import get_text, get_language
-from setup.constants import AVERAGE_FONT_SIZE, MAIN_FONT, GAME_FONT
+from setup.constants import (
+    AVERAGE_FONT_SIZE, MAIN_FONT, GAME_FONT,
+    ALLOW_DEBUG_HISCORES,
+)
 from setup.utils import is_between
 
 from engine.state import RowState
 
-from games.game_input import GameInput
+from games.game import Game
+from games.game_painter import GamePainter
+from games.game_input import GameInput, resolve_game_cadence
 from games.game_registry import GAME_CLASSES, GAME_VIEWS, GAME_RULES
 from games.highscore import HighScoreManager
 
@@ -43,25 +48,26 @@ class GameWidget(QWidget):
 
         super().__init__(parent)
 
-        self.state = state
-        self.user_id = user_id
+        self.state: RowState = state
+        self.user_id: str = user_id
         
         self.highscores = HighScoreManager(
             personal_highscore_file,
             common_highscore_file
         )
-        self.personal_highscore_file = personal_highscore_file
-        self.personal_hiscore = False
-        self.common_hiscore = False
+        self.personal_highscore_file: Path = personal_highscore_file
+        self.personal_hiscore: bool = False
+        self.common_hiscore: bool = False
 
-        self.game = GAME_CLASSES["fishing"]()
-        self.game_view = GAME_VIEWS["fishing"]()
+        self.game: Game = GAME_CLASSES["fishing"]()
+        self.game_view: GamePainter = GAME_VIEWS["fishing"]()
         # Au démarrage, Fishing est le jeu sélectionné par défaut dans les Hi-Scores.
-        self.last_played_game_id = "fishing"
+        self.last_played_game_id: str = "fishing"
         
         self._last_time: float | None = None
-        self._last_stroke_count = 0
-        self._manual_stroke_pending = False
+        self._last_stroke_count: int = 0
+        self._manual_stroke_pending: bool = False
+        self._debug_input_used: bool = False
         self._last_manual_stroke_time: float | None = None
         self._last_manual_stroke_input_time: float | None = None
         self._manual_spm: float | None = None
@@ -96,6 +102,13 @@ class GameWidget(QWidget):
 
         self.game = GAME_CLASSES[game_id]()
         self.game_view = GAME_VIEWS[game_id]()
+        if game_id == "doom":
+            self.rules_btn_rect = QRect(820, 658, 160, 30)
+        else:
+            self.rules_btn_rect = QRect(
+                self.game.WIDTH // 2 + 20, 12,
+                155, 40,
+            )
 
         if hasattr(self.game, "set_profile_level"):
             self.game.set_profile_level(profile_level_norm)
@@ -107,6 +120,7 @@ class GameWidget(QWidget):
         self._last_time = None
         self._last_stroke_count = self.state.snapshot().rowerdata.stroke_count
         self._manual_stroke_pending = False
+        self._debug_input_used = False
         self._last_manual_stroke_time = None
         self._last_manual_stroke_input_time = None
         self._manual_spm = None
@@ -231,14 +245,20 @@ class GameWidget(QWidget):
         # une cadence lissée. En secours, on estime la cadence entre deux
         # changements du compteur de coups (utile notamment vers 18 SPM).
         if stroke_delta > 0:
+            # Un coup réel reprend la main sur une éventuelle simulation ESPACE.
+            self._last_manual_stroke_time = None
+            self._manual_spm = None
             if self._last_rower_stroke_time is not None:
                 interval = current - self._last_rower_stroke_time
-                if is_between(interval, 1.0, 6.0):
-                    estimated_spm = 60.0 * stroke_delta / interval
-                    if is_between(estimated_spm, 8.0, 50.0):
-                        self._estimated_rower_spm = estimated_spm
-                    else:
-                        self._estimated_rower_spm = None
+                # Une estimation par intervalle n'est fiable que si un seul
+                # coup a été ajouté. Si plusieurs coups arrivent dans le même
+                # paquet, intervalle = délai entre paquets, pas entre coups.
+                if stroke_delta == 1 and is_between(interval, 1.0, 6.0):
+                    estimated_spm = 60.0 / interval
+                    self._estimated_rower_spm = (
+                        estimated_spm if is_between(estimated_spm, 8.0, 50.0)
+                        else None
+                    )
                 else:
                     self._estimated_rower_spm = None
             self._last_rower_stroke_time = current
@@ -261,6 +281,7 @@ class GameWidget(QWidget):
 
         if manual_stroke:
             stroke_delta = 1
+            self._debug_input_used = True
         stroke_event = stroke_delta > 0
 
         manual_spm = self._manual_spm or 0.0
@@ -273,23 +294,45 @@ class GameWidget(QWidget):
         )
         measured_spm = data.cadence or 0.0
         raw_spm = data.raw_stroke_rate or 0.0
-        # Après un nouveau coup, l'intervalle entre coups est la mesure la plus
-        # fraîche : ne pas la masquer par une cadence brute/lissée encore ancienne.
-        fresh_estimate = estimated_spm if stroke_delta > 0 and estimated_spm > 0.0 else 0.0
-        effective_spm = (
-            fresh_estimate if fresh_estimate > 0.0
-            else measured_spm if measured_spm > 0.0
-            else raw_spm if raw_spm > 0.0
-            else estimated_spm if estimated_spm > 0.0
-            else manual_spm
-        )
-        effective_raw_spm = (
-            fresh_estimate if fresh_estimate > 0.0
-            else raw_spm if raw_spm > 0.0
-            else estimated_spm if estimated_spm > 0.0
-            else manual_spm
+        # Une série de frappes ESPACE doit utiliser sa propre cadence, même si
+        # une valeur Q1S ancienne est encore présente dans le snapshot.
+        manual_input_active = (
+            self._last_manual_stroke_time is not None
+            and current - self._last_manual_stroke_time <= self.MAX_SECONDS_BETWEEN_STROKES
         )
        
+        # elapsed_time du Q1S a une résolution d'une seconde. La cadence
+        # calculée sur ces horodatages est donc quantifiée (typiquement 20/30
+        # CPM autour d'une vraie cadence de 24 CPM). Pour les jeux, l'intervalle
+        # perf_counter entre changements du compteur de coups est plus précis.
+        # La cadence calculée/raw reste un secours si l'estimation n'est pas
+        # encore disponible ou si le compteur a avancé de plusieurs coups.
+        if manual_input_active:
+            effective_spm = manual_spm
+            effective_raw_spm = manual_spm
+        else:
+            # La sélection commune privilégie la mesure FTMS, sans appliquer
+            # de facteur correctif dépendant de la cible ou du jeu.
+            effective_spm = resolve_game_cadence(
+                raw_spm, measured_spm, estimated_spm
+            )
+            effective_raw_spm = (
+                raw_spm if raw_spm > 0.0
+                else measured_spm if measured_spm > 0.0
+                else estimated_spm if estimated_spm > 0.0
+                else 0.0
+            )
+
+        if manual_input_active:
+            cadence_age = (
+                current - self._last_manual_stroke_time
+                if manual_spm is not None else float("inf")
+            )
+        elif self._last_rower_stroke_time is not None:
+            cadence_age = current - self._last_rower_stroke_time
+        else:
+            cadence_age = float("inf")
+
         game_input = GameInput(
             spm= effective_spm,
             raw_spm= effective_raw_spm,
@@ -297,6 +340,7 @@ class GameWidget(QWidget):
             stroke_event= stroke_event,
             stroke_count= stroke_count,
             stroke_delta= stroke_delta,
+            cadence_age= cadence_age,
         )
         self._manual_stroke_pending = False
 
@@ -307,16 +351,22 @@ class GameWidget(QWidget):
             self.personal_hiscore = False
             self.common_hiscore = False
 
-        if self.game.finished and not was_finished and self.game.records_score():
+        record_hiscore = (
+            self.game.records_score()
+            and (ALLOW_DEBUG_HISCORES or not self._debug_input_used)
+        )
+        if self.game.finished and not was_finished and record_hiscore:
             self.personal_hiscore = self.highscores.add_hiscore(
                 self.game.game_id,
-                self.game.score
+                self.game.score,
+                tie_break_score=getattr(self.game, "injuries", None),
             )
             self.common_hiscore = self.highscores.add_hiscore(
                 self.game.game_id,
                 self.game.score,
                 common= True,
-                user_id= self.user_id
+                user_id= self.user_id,
+                tie_break_score=getattr(self.game, "injuries", None),
             )
 
         self.update()
@@ -336,67 +386,93 @@ class GameWidget(QWidget):
         painter.setPen(QPen(Qt.GlobalColor.white))
         painter.scale(self.width() / self.game.WIDTH, self.height() / self.game.HEIGHT)
 
-        painter.drawLine(0, self.game.HUD_HEIGHT, self.game.WIDTH, self.game.HUD_HEIGHT)
-        painter.drawLine(self.game.WIDTH // 2, 0, self.game.WIDTH // 2, self.game.HUD_HEIGHT)
+        if self.game.game_id != "doom":
+            painter.drawLine(0, self.game.HUD_HEIGHT, self.game.WIDTH, self.game.HUD_HEIGHT)
+            painter.drawLine(
+                self.game.WIDTH // 2, 0,
+                self.game.WIDTH // 2, self.game.HUD_HEIGHT,
+            )
 
-        # Bouton "Regles" dessiné dans le HUD pour éviter de dépendre d'un jeu précis.
-        painter.drawRect(self.rules_btn_rect)
-        painter.setFont(QFont(GAME_FONT, 16))
-        painter.drawText(
-            self.game.WIDTH // 2 + 40, 38,
-            get_text("GAME_RULES_BUTTON")
-        )
+            # Bouton "Regles" dessiné dans le HUD commun.
+            painter.drawRect(self.rules_btn_rect)
+            painter.setFont(QFont(GAME_FONT, 16))
+            painter.drawText(
+                self.game.WIDTH // 2 + 40, 38,
+                get_text("GAME_RULES_BUTTON")
+            )
 
-        # HUD : Score, CPM, Time
-        painter.setFont(QFont(GAME_FONT, 20))
-        painter.drawText(20, 40, self.game.hud_score_text())
-        painter.drawText(790, 40, self.game.hud_time_text())
+            # HUD commun : score, CPM et temps.
+            painter.setFont(QFont(GAME_FONT, 20))
+            painter.drawText(20, 40, self.game.hud_score_text())
+            painter.drawText(790, 40, self.game.hud_time_text())
 
-        current_spm = self.game.current_spm
-        spm_text = "--" if current_spm is None else f"{current_spm:.1f}"
-        painter.drawText(300, 40, f"{get_text("SPM_UNIT")}: {spm_text}")
+            current_spm = self.game.current_spm
+            spm_text = "--" if current_spm is None else f"{current_spm:.1f}"
+            painter.drawText(
+                300, 40,
+                f"{get_text('SPM_UNIT')}: {spm_text}",
+            )
 
         # Rendu spécifique quan un jeu est actif.
         if self.game.phase == self.game.PHASE_PLAYING:
             self.game_view.paint(painter, self.game)
 
-        # Hors jeu actif: Messages (Game Over, Hi-Score, ...)
+        # Avant jeu actif: Messages
         if self.game.phase == self.game.PHASE_WAITING:
             if self.game.phase_elapsed >= self.game.START_DELAY_SECONDS:
-                self.paint_hcentered_text(
-                    painter, y=300, text=self.game.title
-                )
-                self.paint_hcentered_text(
-                    painter, y=360, text=get_text("GAME_WAIT_FOR_STROKE")
-                )
+                # Doom has its own separated HUD
+                if self.game.game_id == "doom":
+                    painter.setFont(QFont(GAME_FONT, 30, QFont.Weight.Bold))
+                    self.paint_hcentered_text(
+                        painter, y=300, text=self.game.title
+                    )
+                    painter.setFont(QFont(GAME_FONT, 22, QFont.Weight.Bold))
+                    self.paint_hcentered_text(
+                        painter, y=360, text=get_text("GAME_WAIT_FOR_STROKE")
+                    )
+                # HUD, all games but Doom
+                else:
+                    self.paint_hcentered_text(
+                        painter, y=300, text=self.game.title
+                    )
+                    self.paint_hcentered_text(
+                        painter, y=360, text=get_text("GAME_WAIT_FOR_STROKE")
+                    )
 
+        # Après jeu: Game Over, Hi-Score
         elif self.game.phase == self.game.PHASE_FINISHED:
+            painter.setFont(QFont(GAME_FONT, 34, QFont.Weight.Bold))
             self.paint_hcentered_text(
-                painter, y=285, text=self.game.title
+                painter, y=280, text=self.game.title
             )
             result_text = getattr(self.game, "hud_result_text", lambda: "")()
+
+            painter.setFont(QFont(GAME_FONT, 26, QFont.Weight.Bold))
             if result_text:
                 self.paint_hcentered_text(
-                    painter, y=330, text=result_text
+                    painter, y=335, text=result_text
                 )
             else:
                 self.paint_hcentered_text(
-                    painter, y=330, text=get_text("GAME_OVER")
+                    painter, y=335, text=get_text("GAME_OVER")
                 )
 
             if self.personal_hiscore or self.common_hiscore:
+                painter.setFont(QFont(GAME_FONT, 22, QFont.Weight.Bold))
                 self.paint_hcentered_text(
                     painter,
-                    y= 370,
+                    y= 385,
                     text= get_text("GAME_NEW_HISCORE")
                 )
 
             if self.game.phase_elapsed >= self.game.RESTART_DELAY_SECONDS:
+                 painter.setFont(QFont(GAME_FONT, 20, QFont.Weight.Bold))
                  self.paint_hcentered_text(
                     painter,
-                    y= 410,
+                    y= 430,
                     text= get_text("GAME_WAIT_FOR_STROKE")
                 )
+
 
     # -------------------------------------------------------------------------
     def paint_hcentered_text(

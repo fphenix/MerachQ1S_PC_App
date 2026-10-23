@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 
 from setup.lang import get_text
-from setup.utils import format_duration
+from setup.utils import clamp_to_zero, format_duration
 
 from games.game_input import GameInput
 
@@ -11,7 +11,7 @@ from games.game_input import GameInput
 class Game(ABC):
 
     START_DELAY_SECONDS: float = 1.0
-    RESTART_DELAY_SECONDS: float = 1.0
+    RESTART_DELAY_SECONDS: float = 10.0
 
     PHASE_WAITING: str = "waiting"
     PHASE_PLAYING: str = "playing"
@@ -85,11 +85,11 @@ class Game(ABC):
 
     # -------------------------------------------------------------------------
     def add_score(self, points: int) -> None:
-        self.score = max(0, self.score + points)
+        self.score = clamp_to_zero(self.score + points)
 
     # -------------------------------------------------------------------------
     def remaining(self) -> float:
-        return max(0.0, self.duration - self.elapsed)
+        return clamp_to_zero(self.duration - self.elapsed)
 
     # -------------------------------------------------------------------------
     def hud_score_text(self) -> str:

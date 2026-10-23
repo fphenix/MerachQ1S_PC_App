@@ -11,7 +11,8 @@ class Fishing2Game(FishingGame):
     CADENCE_UP: float   = 28.0
     CADENCE_STAY: float = 24.0
     CADENCE_DOWN: float = 20.0
-    CADENCE_MARGIN: float = 2.0
+    CADENCE_MARGIN: float = 1.5
+    CADENCE_ANTICIPATION_STEP: float = 4.0
 
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
@@ -24,8 +25,8 @@ class Fishing2Game(FishingGame):
     # -------------------------------------------------------------------------
     def _update_lane_from_spm(self, spm: float) -> None:
 
-        # Gameplay B: >28 CPM monte d'un couloir, <20 descend d'un.
-        # Les bornes 20 et 28 sont inclusives : elles maintiennent le couloir.
+        # Gameplay B: >28 CPM monte d'un couloir, <20 descend d'un
+        # couloir, sinon reste dans le même couloir.
         if (
             spm > (self.CADENCE_UP - self.CADENCE_MARGIN)
             and self.lane_index < self.LANE_COUNT - 1
@@ -47,7 +48,7 @@ class Fishing2Game(FishingGame):
         # niveau (20, puis 16 CPM), sans répéter le mouvement à chaque frame.
         if self.lane_index > 0:
         
-            down_threshold = self.CADENCE_LEVELS[self.lane_index] - 4.0
+            down_threshold = self.CADENCE_LEVELS[self.lane_index] - self.CADENCE_ANTICIPATION_STEP
         
             if spm < down_threshold:
                 self.lane_index -= 1
