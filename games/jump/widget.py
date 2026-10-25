@@ -6,7 +6,7 @@ from PySide6.QtCore import Qt, QPointF
 from PySide6.QtGui import QColor, QBrush, QPen, QPainter, QPolygonF, QFont
 
 from setup.lang import get_text
-from setup.utils import is_between, clamp_to_zero
+from setup.utils import is_between, clamp_to_zero, clamp_to_max
 from setup.constants import GAME_FONT
 
 from games.game import Game
@@ -17,7 +17,7 @@ from games.jump.engine import Obstacle
 # =============================================================================
 class JumpWidget(GamePainter):
 
-    PULSATOR = Pulsator(min_radius= 2.0, max_radius= 20.0, pen_width= 2.0)
+    PULSATOR: Pulsator = Pulsator(min_radius= 2.0, max_radius= 20.0, pen_width= 2.0)
 
     HORIZON_HEIGHT: int = 135
 
@@ -135,7 +135,7 @@ class JumpWidget(GamePainter):
         # Dino animé
         jump_offset = 0.0
         if game.jump_type is not None and game.jump_duration > 0.0:
-            phase = min(1.0, game.jump_elapsed / game.jump_duration)
+            phase = clamp_to_max(game.jump_elapsed / game.jump_duration, 1.0)
             jump_offset = math.sin(math.pi * phase) * game.jump_height
         dino_y = game.PLAYER_GROUND_Y - game.PLAYER_HEIGHT - jump_offset
         self._draw_dino(painter, game.PLAYER_X, dino_y, game.elapsed, jumping= game.jump_type is not None)

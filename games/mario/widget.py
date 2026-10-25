@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt, QRectF, QPointF
 from PySide6.QtGui import QColor, QBrush, QPen, QPainter, QFont, QPolygonF
 
 from setup.constants import GAME_FONT
-from setup.utils import is_between
+from setup.utils import is_between, clamp_to_min
 
 from games.game import Game
 from games.game_painter import GamePainter
@@ -13,7 +13,7 @@ from games.pulsator import Pulsator
 # =============================================================================
 class MarioWidget(GamePainter):
 
-    PULSATOR = Pulsator(min_radius= 2.0, max_radius= 20.0, pen_width= 2.0, outlined= True)
+    PULSATOR: Pulsator = Pulsator(min_radius= 2.0, max_radius= 20.0, pen_width= 2.0, outlined= True)
 
     # -------------------------------------------------------------------------
     def paint(self, painter: QPainter, game: Game) -> None:
@@ -87,7 +87,7 @@ class MarioWidget(GamePainter):
                 # Triangle/marches : montée accessible en courant.
                 painter.setPen(QPen(QColor("#68452f"), 2))
                 painter.setBrush(QBrush(QColor("#a9774b")))
-                steps = max(3, int(platform.width // 35))
+                steps = clamp_to_min(int(platform.width // 35), 3)
                 step_w = platform.width / steps
                 for step in range(steps):
                     step_h = (ground_y - top) * (step + 1) / steps

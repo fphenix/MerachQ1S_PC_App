@@ -11,7 +11,7 @@ from PySide6.QtGui import (
 
 from setup.lang import get_text
 from setup.constants import GAME_FONT
-from setup.utils import clamp_between
+from setup.utils import clamp_between, clamp_to_zero, clamp_to_min
 
 from games.game import Game
 from games.game_painter import GamePainter
@@ -20,7 +20,7 @@ from games.pulsator import Pulsator
 # =============================================================================
 class PathWidget(GamePainter):
 
-    PULSATOR = Pulsator(min_radius= 3.0, max_radius= 20.0, pen_width= 2.0)
+    PULSATOR: Pulsator = Pulsator(min_radius= 3.0, max_radius= 20.0, pen_width= 2.0)
 
     PLAYER_Y: float = 620.0
 
@@ -102,7 +102,7 @@ class PathWidget(GamePainter):
             (2, game.CADENCE_RIGHT, 650, get_text("GAME_PATH_RIGHT"))
         )
 
-        section_ahead = min(3, max(0, len(game.segments) - 1))
+        section_ahead = clamp_between(len(game.segments) - 1, 0, 3)
         painter.setFont(QFont(GAME_FONT, 12, QFont.Weight.Bold))
         for lane, target, center_x, label in pulse_specs:
             pulse_color = (
@@ -140,7 +140,7 @@ class PathWidget(GamePainter):
 
         for index, segment in enumerate(visible):
             farther = visible[index - 1] if index > 0 else None
-            near_distance = max(0.0, segment.distance)
+            near_distance = clamp_to_zero(segment.distance)
             far_distance = min(
                 segment.distance + game.SEGMENT_LENGTH,
                 self.SEGMENT_FAR_LIMIT,
@@ -190,7 +190,7 @@ class PathWidget(GamePainter):
         # compteur temporel et tout reset de phase indépendant du moteur.
         ordered = sorted(game.segments, key=lambda item: item.distance)
         for segment in ordered:
-            near_d = max(0.0, segment.distance)
+            near_d = clamp_to_zero(segment.distance)
             far_d = min(segment.distance + length, self.SEGMENT_FAR_LIMIT)
             if far_d <= near_d:
                 continue
@@ -321,7 +321,7 @@ class PathWidget(GamePainter):
             # Le centre de l’objet reste à l’extérieur du bord, avec une
             # marge visible qui augmente avec la taille apparente.
             x = road_edge + item.side * (game.OBJECTS_DELTA_X + (4.0 + delta_x) * progress)
-            painter.setPen(QPen(QColor("#3b5137"), max(1, round(2 * scale))))
+            painter.setPen(QPen(QColor("#3b5137"), clamp_to_min(round(2 * scale), 1)))
 
             # moving scenery items
             if item.kind == "tree":
@@ -352,7 +352,7 @@ class PathWidget(GamePainter):
         scale: float
     ) -> None:
 
-        trunk_w = max(2.0, 7.0 * scale)
+        trunk_w = clamp_to_min(7.0 * scale, 2.0)
         trunk_h = 25.0 * scale
         crown_w = 32.0 * scale
         crown_h = 42.0 * scale
@@ -387,14 +387,14 @@ class PathWidget(GamePainter):
     ) -> None:
 
         radius=12.0*scale
-        painter.setPen(QPen(QColor("#654a32"),max(1,round(1.5*scale))))
+        painter.setPen(QPen(QColor("#654a32"), clamp_to_min(round(1.5*scale), 1)))
         painter.setBrush(QBrush(QColor("#79583a")))
-        painter.drawRect(QRectF(x-2*scale,y-scale,4*scale,7*scale))
-        painter.setPen(QPen(QColor("#315c36"),max(1,round(scale))))
+        painter.drawRect(QRectF(x-2*scale, y-scale, 4*scale, 7*scale))
+        painter.setPen(QPen(QColor("#315c36"), clamp_to_min(round(scale), 1)))
         painter.setBrush(QBrush(QColor("#477d43")))
-        painter.drawEllipse(QPointF(x,y-radius*.55),radius,radius*.70)
-        painter.drawEllipse(QPointF(x-radius*.55,y-radius*.32),radius*.72,radius*.62)
-        painter.drawEllipse(QPointF(x+radius*.55,y-radius*.32),radius*.72,radius*.62)
+        painter.drawEllipse(QPointF(x,y-radius*.55), radius,radius*.70)
+        painter.drawEllipse(QPointF(x-radius*.55, y-radius*.32), radius*.72, radius*.62)
+        painter.drawEllipse(QPointF(x+radius*.55, y-radius*.32), radius*.72, radius*.62)
 
     # -------------------------------------------------------------------------
     def _draw_runner(

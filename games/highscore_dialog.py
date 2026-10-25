@@ -11,13 +11,15 @@ from PySide6.QtWidgets import (
     QLabel,
     QRadioButton,
     QVBoxLayout,
+    QWidget,
 )
 
 from setup.lang import get_text
-from setup.utils import clamp_to_zero
+from setup.utils import clamp_to_zero, clamp_to_min
 
 from games.highscore import HighScoreManager
 from games.game_registry import GAME_CLASSES
+from games.game_widget import GameWidget
 
 # =============================================================================
 class HighScoreDialog(QDialog):
@@ -26,8 +28,8 @@ class HighScoreDialog(QDialog):
         self,
         highscores: HighScoreManager,
         user_id: str = "",
-        selected_game_id: str = "fishing",
-        parent= None
+        selected_game_id: str = GameWidget.DEFAULT_GAME,
+        parent: QWidget | None = None,
     ) -> None:
 
         super().__init__(parent)
@@ -41,7 +43,7 @@ class HighScoreDialog(QDialog):
         self._update_scores()
 
     # -------------------------------------------------------------------------
-    def _create_ui(self):
+    def _create_ui(self) -> None:
 
         self.setMinimumWidth(400)
 
@@ -113,14 +115,22 @@ class HighScoreDialog(QDialog):
         return str(int(score))
 
     # -------------------------------------------------------------------------
+    @classmethod
+    def _format_entry_score(cls, game_id: str, entry: dict[str, object]) -> str:
+        score = cls._format_score(game_id, entry["score"])
+        if game_id == "doom":
+            injuries = clamp_to_min(int(entry.get("injuries", 0)), 0)
+            return f"{score} (-{injuries})"
+        return f"{score:>7}"
+
+    # -------------------------------------------------------------------------
     def _update_scores(self) -> None:
 
         game_id = self._selected_game_id()
 
         personal_scores = self.highscores.scores(game_id)
         personal_lines = [
-            f"{index:2d}. {self._format_score(game_id, entry['score']):>7}  "
-            + (f"{get_text('GAME_DOOM_INJURIES')}: {entry.get('injuries', 0):02d}  " if game_id == "doom" else "")
+            f"{index:2d}. {self._format_entry_score(game_id, entry)}  "
             + f"{entry.get('date', '--/--/--')}"
             for index, entry in enumerate(personal_scores, start=1)
         ]
@@ -133,8 +143,7 @@ class HighScoreDialog(QDialog):
         common_scores = self.highscores.scores(game_id, common= True)
         common_lines = [
             f"{index:2d}. {entry.get('user_id') or '???'}  :   "
-            f"{self._format_score(game_id, entry['score']):>7}  "
-            + (f"{get_text('GAME_DOOM_INJURIES')}: {entry.get('injuries', 0):02d}  " if game_id == "doom" else "")
+            f"{self._format_entry_score(game_id, entry)}  "
             + f"{entry.get('date', '--/--/--')}"
             for index, entry in enumerate(common_scores, start= 1)
         ]

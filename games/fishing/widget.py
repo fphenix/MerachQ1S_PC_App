@@ -16,7 +16,7 @@ from games.fishing.engine import Insect
 class FishingWidget(GamePainter):
     """Objet de rendu, utilisé par GameWidget sans hériter de QWidget."""
 
-    PULSATOR = Pulsator(min_radius= 2.0, max_radius= 16.0, pen_width= 1.5)
+    PULSATOR: Pulsator = Pulsator(min_radius= 2.0, max_radius= 16.0, pen_width= 1.5)
 
     # -------------------------------------------------------------------------
     def paint(self, painter: QPainter, game: Game) -> None:
@@ -34,7 +34,7 @@ class FishingWidget(GamePainter):
             y = round(lane * game.LANE_HEIGHT)
             painter.fillRect(
                 0, y,
-                game.WIDTH, game.LANE_HEIGHT,
+                game.WIDTH, game.LANE_HEIGHT + 1,
                 bg_color.lighter(bg_color_light[lane])
             )
 
@@ -43,7 +43,7 @@ class FishingWidget(GamePainter):
         painter.setFont(lane_font)
         pulse_time = (
             game.elapsed
-            if game.phase == game.PHASE_PLAYING
+            if game.phase == game.Phase.PLAYING
             else game.phase_elapsed
         )
 
@@ -65,8 +65,8 @@ class FishingWidget(GamePainter):
         else:
             pulse_specs = (
                 (1, game.CADENCE_UP, "↑"),
-                (3, game.CADENCE_STAY, "="),
-                (5, game.CADENCE_DOWN, "↓"),
+                (2.5, game.CADENCE_STAY, "="),
+                (4, game.CADENCE_DOWN, "↓"),
             )
 
             symbol_font = QFont(GAME_FONT, 20, QFont.Weight.Bold)
@@ -110,7 +110,7 @@ class FishingWidget(GamePainter):
         canvas.setPen(QPen(QColor("#4b3527"), 5))
         canvas.drawLine(
             net_x + game.NET_WIDTH // 2, net_y + game.NET_HEIGHT - 4,
-            net_x - 13, net_y + game.NET_HEIGHT + 15
+            net_x + game.NET_WIDTH // 2 - 3, net_y + game.NET_HEIGHT + 32
         )
         canvas.setPen(QPen(QColor("#d7e7e8"), 3))
         canvas.setBrush(QBrush(QColor(210, 237, 240, 65)))
@@ -133,7 +133,7 @@ class FishingWidget(GamePainter):
 
     # -------------------------------------------------------------------------
     def _draw_bug(self, canvas: QPainter, game: Game, insect: Insect) -> None:
-        """Dessine une abeille, un papillon ou un frelon avec quelques formes Qt."""
+        """ Dessine une abeille, un papillon ou un frelon """
 
         canvas.save()
 
@@ -159,53 +159,57 @@ class FishingWidget(GamePainter):
     def _draw_bee(self, canvas: QPainter, is_hornet: bool) -> None:
             
         dark_color = QColor("#29252a")
+        ant_color = QColor("#402010")
         body_color = QColor("#e9a72f" if is_hornet else "#f58f3b")
         wing_color = QColor(221, 246, 255, 210)
         sting_color = QColor("#c64a2e")
 
+        # Ailes
         canvas.setPen(QPen(QColor("#688b94"), 1))
         canvas.setBrush(QBrush(wing_color))
-        canvas.drawEllipse(-9, -12, 12, 10)
-        canvas.drawEllipse(0, -12, 12, 10)
+        canvas.drawEllipse(-4, -18, 9, 14)
+        canvas.drawEllipse(0, -18, 9, 14)
+        # Corps
         canvas.setPen(QPen(dark_color, 1.5))
         canvas.setBrush(QBrush(body_color))
         canvas.drawEllipse(-11, -5, 22, 12)
-        # Rayures sombres pour rendre l'abeille et le frelon identifiables.
+        # Rayures
         canvas.setPen(QPen(dark_color, 2.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
         canvas.drawLine(-3, -4, -3, 6)
         canvas.drawLine(3, -4, 3, 6)
-        canvas.setBrush(QBrush(dark_color))
+        # Antennas and Eye
+        canvas.setBrush(QBrush(ant_color))
         canvas.drawEllipse(8, -4, 7, 7)
         canvas.drawLine(13, -3, 17, -7)
-        canvas.drawLine(13, -3, 17, 0)
+        canvas.drawLine(12, -4, 12, -8)
+        # Pattes
         canvas.setPen(QPen(dark_color, 1.5))
-        canvas.drawLine(-10, 1, -15, 5)
         canvas.drawLine(-5, 6, -8, 11)
+        canvas.drawLine(0, 7, 0, 11)
         canvas.drawLine(4, 6, 7, 11)
 
         # Stinger if Hornet
         if is_hornet:
             canvas.setPen(QPen(sting_color, 2))
-            canvas.drawLine(-10, 0, -15, 0)
+            canvas.drawLine(-11, 2, -15, 3)
 
     # -------------------------------------------------------------------------
     def _draw_butterfly(self, canvas: QPainter) -> None:
 
         # Deux paires d'ailes colorées et un corps fin.
         canvas.setPen(QPen(QColor("#6c3b9c"), 1.5))
-        canvas.setBrush(QBrush(QColor("#d8a8ff")))
-        canvas.drawEllipse(-14, -10, 13, 14)
+        canvas.setBrush(QBrush(QColor("#d8a8ff"))) # ailes hautes
+        canvas.drawEllipse(-13, -10, 13, 14)
         canvas.drawEllipse(1, -10, 13, 14)
-        canvas.setBrush(QBrush(QColor("#79d9e8")))
-        canvas.drawEllipse(-12, 2, 10, 8)
-        canvas.drawEllipse(2, 2, 10, 8)
-        # Corps allongé et tête distincte : le papillon ne ressemble plus
-        # à deux paires d'ailes sans anatomie centrale.
+        canvas.setBrush(QBrush(QColor("#79d9e8"))) # ailes basses
+        canvas.drawEllipse(-14, 2, 14, 15)
+        canvas.drawEllipse(2, 2, 14, 15)
+        # Corps allongé et tête
         canvas.setPen(QPen(QColor("#51305f"), 1))
-        canvas.setBrush(QBrush(QColor("#49304f")))
+        canvas.setBrush(QBrush(QColor("#49304f"))) # corps
         canvas.drawEllipse(-2.5, -5, 5, 18)
-        canvas.setBrush(QBrush(QColor("#f4e8ff")))
+        canvas.setBrush(QBrush(QColor("#f4e8ff"))) # tête
         canvas.drawEllipse(-3.5, -10, 7, 7)
-        canvas.setPen(QPen(QColor("#29252a"), 1.5))
+        canvas.setPen(QPen(QColor("#29252a"), 1.5)) # antennes
         canvas.drawLine(-1, -8, -5, -13)
         canvas.drawLine(1, -8, 5, -13)

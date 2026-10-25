@@ -6,7 +6,10 @@ from pathlib import Path
 from time import perf_counter
 
 from PySide6.QtCore import Qt, QTimer, QRect
-from PySide6.QtGui import QPainter, QPen, QFont, QFontMetrics
+from PySide6.QtGui import (
+    QPainter, QPen, QFont, QFontMetrics,
+    QKeyEvent, QMouseEvent, QPaintEvent,
+)
 from PySide6.QtWidgets import (
     QWidget,
     QDialog,
@@ -20,13 +23,13 @@ from setup.constants import (
     AVERAGE_FONT_SIZE, MAIN_FONT, GAME_FONT,
     ALLOW_DEBUG_HISCORES,
 )
-from setup.utils import is_between
+from setup.utils import is_between, clamp_to_max, clamp_to_min
 
 from engine.state import RowState
 
 from games.game import Game
 from games.game_painter import GamePainter
-from games.game_input import GameInput, resolve_game_cadence
+from games.game_input import GameInput, resolve_game_cadence, ShortWindowCadenceFilter
 from games.game_registry import GAME_CLASSES, GAME_VIEWS, GAME_RULES
 from games.highscore import HighScoreManager
 
@@ -35,6 +38,7 @@ class GameWidget(QWidget):
 
     FRAME_MS: int = 33
     MAX_SECONDS_BETWEEN_STROKES: float = 6.0
+    DEFAULT_GAME: str = "fishing"
 
     # -------------------------------------------------------------------------
     def __init__(
@@ -43,7 +47,7 @@ class GameWidget(QWidget):
         personal_highscore_file: Path,
         common_highscore_file: Path,
         user_id: str = "",
-        parent= None,
+        parent: QWidget | None = None,
     ) -> None:
 
         super().__init__(parent)
@@ -59,10 +63,10 @@ class GameWidget(QWidget):
         self.personal_hiscore: bool = False
         self.common_hiscore: bool = False
 
-        self.game: Game = GAME_CLASSES["fishing"]()
-        self.game_view: GamePainter = GAME_VIEWS["fishing"]()
+        self.game: Game = GAME_CLASSES[self.DEFAULT_GAME]()
+        self.game_view: GamePainter = GAME_VIEWS[self.DEFAULT_GAME]()
         # Au démarrage, Fishing est le jeu sélectionné par défaut dans les Hi-Scores.
-        self.last_played_game_id: str = "fishing"
+        self.last_played_game_id: str = self.DEFAULT_GAME
         
         self._last_time: float | None = None
         self._last_stroke_count: int = 0
@@ -73,6 +77,7 @@ class GameWidget(QWidget):
         self._manual_spm: float | None = None
         self._last_rower_stroke_time: float | None = None
         self._estimated_rower_spm: float | None = None
+        self._game_cadence_filter: ShortWindowCadenceFilter = ShortWindowCadenceFilter()
         
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
@@ -97,7 +102,8 @@ class GameWidget(QWidget):
 
     # -------------------------------------------------------------------------
     def start_game(
-        self, game_id: str = "fishing", profile_level_norm: float = 0.35
+        self, game_id: str = DEFAULT_GAME,
+        profile_level_norm: float = 0.35
     ) -> None:
 
         self.game = GAME_CLASSES[game_id]()
@@ -126,6 +132,7 @@ class GameWidget(QWidget):
         self._manual_spm = None
         self._last_rower_stroke_time = None
         self._estimated_rower_spm = None
+        self._game_cadence_filter.reset()
         self.personal_hiscore = False
         self.common_hiscore = False
         self.setFocus()
@@ -156,7 +163,7 @@ class GameWidget(QWidget):
         self._manual_stroke_pending = True
 
     # -------------------------------------------------------------------------
-    def keyPressEvent(self, event) -> None:
+    def keyPressEvent(self, event: QKeyEvent) -> None:
 
         if (
             event.key() == Qt.Key.Key_Space
@@ -169,10 +176,10 @@ class GameWidget(QWidget):
         super().keyPressEvent(event)
 
     # -------------------------------------------------------------------------
-    def mousePressEvent(self, event) -> None:
+    def mousePressEvent(self, event: QMouseEvent) -> None:
 
-        x = event.position().x() * self.game.WIDTH / max(1, self.width())
-        y = event.position().y() * self.game.HEIGHT / max(1, self.height())
+        x = event.position().x() * self.game.WIDTH / clamp_to_min(self.width(), 1)
+        y = event.position().y() * self.game.HEIGHT / clamp_to_min(self.height(), 1)
 
         if self.rules_btn_rect.contains(round(x), round(y)):
             self._show_rules()
@@ -230,7 +237,7 @@ class GameWidget(QWidget):
             self._last_time = current
             return
 
-        dt = min(0.1, current - self._last_time)
+        dt = clamp_to_max(current - self._last_time, 0.1)
         self._last_time = current
 
         data = self.state.snapshot().rowerdata
@@ -239,6 +246,7 @@ class GameWidget(QWidget):
 
         if stroke_delta < 0:  # nouvelle session ou compteur remis à zéro
             stroke_delta = 0
+            self._game_cadence_filter.reset()
         self._last_stroke_count = stroke_count
 
         # Le calculateur du rameur attend plusieurs coups avant de fournir
@@ -294,6 +302,14 @@ class GameWidget(QWidget):
         )
         measured_spm = data.cadence or 0.0
         raw_spm = data.raw_stroke_rate or 0.0
+        filtered_raw_spm = self._game_cadence_filter.update(
+            raw_spm,
+            (
+                data.raw_elapsed_time,
+                data.raw_stroke_count,
+                raw_spm,
+            ),
+        )
         # Une série de frappes ESPACE doit utiliser sa propre cadence, même si
         # une valeur Q1S ancienne est encore présente dans le snapshot.
         manual_input_active = (
@@ -314,7 +330,10 @@ class GameWidget(QWidget):
             # La sélection commune privilégie la mesure FTMS, sans appliquer
             # de facteur correctif dépendant de la cible ou du jeu.
             effective_spm = resolve_game_cadence(
-                raw_spm, measured_spm, estimated_spm
+                raw_spm,
+                measured_spm,
+                estimated_spm,
+                filtered_raw_spm,
             )
             effective_raw_spm = (
                 raw_spm if raw_spm > 0.0
@@ -372,7 +391,7 @@ class GameWidget(QWidget):
         self.update()
 
     # -------------------------------------------------------------------------
-    def paintEvent(self, event) -> None:
+    def paintEvent(self, event: QPaintEvent) -> None:
 
         del event
 
@@ -414,11 +433,11 @@ class GameWidget(QWidget):
             )
 
         # Rendu spécifique quan un jeu est actif.
-        if self.game.phase == self.game.PHASE_PLAYING:
+        if self.game.phase == self.game.Phase.PLAYING:
             self.game_view.paint(painter, self.game)
 
         # Avant jeu actif: Messages
-        if self.game.phase == self.game.PHASE_WAITING:
+        if self.game.phase == self.game.Phase.WAITING:
             if self.game.phase_elapsed >= self.game.START_DELAY_SECONDS:
                 # Doom has its own separated HUD
                 if self.game.game_id == "doom":
@@ -440,37 +459,44 @@ class GameWidget(QWidget):
                     )
 
         # Après jeu: Game Over, Hi-Score
-        elif self.game.phase == self.game.PHASE_FINISHED:
+        elif self.game.phase == self.game.Phase.FINISHED:
             painter.setFont(QFont(GAME_FONT, 34, QFont.Weight.Bold))
             self.paint_hcentered_text(
                 painter, y=280, text=self.game.title
             )
-            result_text = getattr(self.game, "hud_result_text", lambda: "")()
+            result_text = self.game.hud_result_text()
+            result_lines = (
+                result_text.splitlines()
+                if result_text
+                else [get_text("GAME_OVER")]
+            )
+            has_score_line = len(result_lines) > 1
 
             painter.setFont(QFont(GAME_FONT, 26, QFont.Weight.Bold))
-            if result_text:
+            for line_index, line in enumerate(result_lines):
                 self.paint_hcentered_text(
-                    painter, y=335, text=result_text
+                    painter,
+                    y=335 + line_index * 38,
+                    text=line,
                 )
-            else:
-                self.paint_hcentered_text(
-                    painter, y=335, text=get_text("GAME_OVER")
-                )
+
+            hiscore_y = 410 if has_score_line else 385
+            restart_y = 455 if has_score_line else 430
 
             if self.personal_hiscore or self.common_hiscore:
                 painter.setFont(QFont(GAME_FONT, 22, QFont.Weight.Bold))
                 self.paint_hcentered_text(
                     painter,
-                    y= 385,
-                    text= get_text("GAME_NEW_HISCORE")
+                    y=hiscore_y,
+                    text=get_text("GAME_NEW_HISCORE"),
                 )
 
             if self.game.phase_elapsed >= self.game.RESTART_DELAY_SECONDS:
                  painter.setFont(QFont(GAME_FONT, 20, QFont.Weight.Bold))
                  self.paint_hcentered_text(
                     painter,
-                    y= 430,
-                    text= get_text("GAME_WAIT_FOR_STROKE")
+                    y=restart_y,
+                    text=get_text("GAME_WAIT_FOR_STROKE"),
                 )
 
 

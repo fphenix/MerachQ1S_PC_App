@@ -16,7 +16,7 @@ from games.pulsator import Pulsator
 # =============================================================================
 class PigeonWidget(GamePainter):
 
-    PULSATOR = Pulsator(min_radius= 2.0, max_radius= 20.0, pen_width= 2.0, outlined= True)
+    PULSATOR: Pulsator = Pulsator(min_radius= 2.0, max_radius= 20.0, pen_width= 2.0, outlined= True)
 
     # -------------------------------------------------------------------------
     def paint(self, painter: QPainter, game: Game) -> None:
@@ -134,7 +134,7 @@ class PigeonWidget(GamePainter):
         canvas.drawLine(-6, 3, -13, 6) # tail
         canvas.drawLine(-11, -1, -13, 6) # tail
         canvas.drawLine(-8, 2, -12, 2) # tail
-        canvas.setPen(QPen(QColor("#bbbbbb"), 4)) # wing
+        canvas.setPen(QPen(QColor("#aaaaaa"), 4)) # wing
         wing_y = round(math.sin(bird.phase * 2) * 4)
         canvas.drawLine(-1, 0, -11, wing_y - 7)
             

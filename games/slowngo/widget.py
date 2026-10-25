@@ -13,7 +13,7 @@ from games.pulsator import Pulsator
 # =============================================================================
 class SlowNGoWidget(GamePainter):
 
-    PULSATOR = Pulsator(min_radius= 4.0, max_radius= 32.0, pen_width= 3.0, outlined= True)
+    PULSATOR: Pulsator = Pulsator(min_radius= 4.0, max_radius= 32.0, pen_width= 3.0, outlined= True)
 
     BOX_COLORS: dict[str, QColor] = {
         "slow": QColor("#174a78"),
@@ -21,7 +21,7 @@ class SlowNGoWidget(GamePainter):
         "fast": QColor("#794124"),
     }
 
-    PEN_COLOR = QColor("#FFFFFF")
+    PEN_COLOR: QColor = QColor("#FFFFFF")
 
     # -------------------------------------------------------------------------
     def paint(self, painter: QPainter, game: Game) -> None:

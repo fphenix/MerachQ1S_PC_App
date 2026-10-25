@@ -1,6 +1,7 @@
 """Socle commun des jeux."""
 
 from abc import ABC, abstractmethod
+from enum import Enum
 
 from setup.lang import get_text
 from setup.utils import clamp_to_zero, format_duration
@@ -10,12 +11,13 @@ from games.game_input import GameInput
 # =============================================================================
 class Game(ABC):
 
-    START_DELAY_SECONDS: float = 1.0
+    START_DELAY_SECONDS: float = 0.5
     RESTART_DELAY_SECONDS: float = 10.0
 
-    PHASE_WAITING: str = "waiting"
-    PHASE_PLAYING: str = "playing"
-    PHASE_FINISHED: str = "finished"
+    class Phase(Enum):
+        WAITING: str = "waiting"
+        PLAYING: str = "playing"
+        FINISHED: str = "finished"
 
     # -------------------------------------------------------------------------
     def __init__(
@@ -32,7 +34,7 @@ class Game(ABC):
         self.score: int = 0
         self.elapsed: float = 0.0
         self.finished: bool = False
-        self.phase: str = self.PHASE_WAITING
+        self.phase: Game.Phase = self.Phase.WAITING
         self.phase_elapsed: float = 0.0
 
     # -------------------------------------------------------------------------
@@ -41,7 +43,7 @@ class Game(ABC):
         self.score = 0
         self.elapsed = 0.0
         self.finished = False
-        self.phase = self.PHASE_WAITING
+        self.phase = self.Phase.WAITING
         self.phase_elapsed = 0.0
 
         self.reset()
@@ -51,23 +53,23 @@ class Game(ABC):
 
         self.phase_elapsed += dt
 
-        if self.phase == self.PHASE_WAITING:
+        if self.phase == self.Phase.WAITING:
             if self.phase_elapsed < self.START_DELAY_SECONDS:
                 return
 
             if not game_input.stroke_event:
                 return
             
-            self.phase = self.PHASE_PLAYING
+            self.phase = self.Phase.PLAYING
             self.phase_elapsed = 0.0
 
-        if self.phase == self.PHASE_FINISHED:
+        if self.phase == self.Phase.FINISHED:
             if self.phase_elapsed < self.RESTART_DELAY_SECONDS:
                 return
 
             if game_input.stroke_event:
                 self.start()
-                self.phase = self.PHASE_PLAYING
+                self.phase = self.Phase.PLAYING
                 self.phase_elapsed = 0.0
 
             return
@@ -79,7 +81,7 @@ class Game(ABC):
             
             self.elapsed = self.duration
             self.finished = True
-            self.phase = self.PHASE_FINISHED
+            self.phase = self.Phase.FINISHED
             self.phase_elapsed = 0.0
             self.on_finished()
 
@@ -102,6 +104,11 @@ class Game(ABC):
     # -------------------------------------------------------------------------
     def records_score(self) -> bool:
         return True
+
+    # -------------------------------------------------------------------------
+    def hud_result_text(self) -> str:
+        """Return optional result-screen text, empty when the game has no custom result."""
+        return ""
 
     # -------------------------------------------------------------------------
     def reset(self) -> None:

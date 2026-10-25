@@ -16,6 +16,7 @@ from PySide6.QtGui import (
 
 from setup.constants import GAME_FONT
 from setup.lang import get_text
+from setup.utils import clamp_to_max, clamp_to_min
 
 from games.game import Game
 from games.game_painter import GamePainter
@@ -25,10 +26,10 @@ from games.real_fishing.engine import RealFishingGame
 # =============================================================================
 class RealFishingWidget(GamePainter):
 
-    PULSATOR = Pulsator(min_radius= 2.0, max_radius= 17.0, pen_width= 2.0, outlined=True)
+    PULSATOR: Pulsator = Pulsator(min_radius= 2.0, max_radius= 17.0, pen_width= 2.0, outlined=True)
 
     # enter_x, target_cadence, color
-    PULSES_DATA: list[int, float, QColor] = [
+    PULSES_DATA: list[tuple[int, float, QColor]] = [
         (180, 22.0, QColor("#ff7dff")),
         (395, 26.0, QColor("#0daf4b")),
         (610, 30.0, QColor("#ffad42")),
@@ -65,7 +66,7 @@ class RealFishingWidget(GamePainter):
     # -------------------------------------------------------------------------
     def _draw_cadence_targets(self, painter: QPainter, game: Game) -> None:
 
-        target_cadence = getattr(game, "target_cadence", 26)
+        target_cadence = game.target_cadence
         painter.setFont(QFont(GAME_FONT, 13, QFont.Weight.Bold))
         for center_x, cadence, color in self.PULSES_DATA:
             active = (cadence == target_cadence)
@@ -143,7 +144,7 @@ class RealFishingWidget(GamePainter):
 
         # Touffes d'herbe
         for x, y in ((25, 264), (72, 263), (156, 270), (265, 287), (380, 280),
-                     (505, 277), (630, 278), (760, 275), (890, 260), (965, 252)):
+                    (505, 277), (630, 278), (760, 275), (890, 260), (965, 252)):
             self._draw_grass(painter, x, y)
 
     # -------------------------------------------------------------------------
@@ -253,11 +254,11 @@ class RealFishingWidget(GamePainter):
         bobber_y = 350.0
         if game.bobber_on_bank:
             bobber_x, bobber_y = 760.0, 278.0
-        elif game.fishing_state == RealFishingGame.STATE_BITE:
+        elif game.fishing_state == RealFishingGame.State.BITE:
             bobber_y += math.sin(game.elapsed * 18.0) * 9.0
             bobber_x += math.sin(game.elapsed * 13.0) * 5.0
-        elif game.fishing_state == RealFishingGame.STATE_REELING:
-            progress = min(1.0, game.state_elapsed / max(0.1, game.reel_duration))
+        elif game.fishing_state == RealFishingGame.State.REELING:
+            progress = clamp_to_max(game.state_elapsed / clamp_to_min(game.reel_duration, 0.1), 1.0)
             bobber_x += 145.0 * progress
             bobber_y -= 58.0 * progress
             bobber_y += math.sin(game.elapsed * 7.0) * 4.0
@@ -271,11 +272,11 @@ class RealFishingWidget(GamePainter):
         x, y = 585.0, 350.0
         if game.bobber_on_bank:
             x, y = 760.0, 278.0
-        elif game.fishing_state == RealFishingGame.STATE_BITE:
+        elif game.fishing_state == RealFishingGame.State.BITE:
             y += math.sin(game.elapsed * 18.0) * 9.0
             x += math.sin(game.elapsed * 13.0) * 5.0
-        elif game.fishing_state == RealFishingGame.STATE_REELING:
-            progress = min(1.0, game.state_elapsed / max(0.1, game.reel_duration))
+        elif game.fishing_state == RealFishingGame.State.REELING:
+            progress = clamp_to_max(game.state_elapsed / clamp_to_min(game.reel_duration, 0.1), 1.0)
             x += 145.0 * progress
             y -= 58.0 * progress
             y += math.sin(game.elapsed * 7.0) * 4.0
@@ -318,9 +319,9 @@ class RealFishingWidget(GamePainter):
             return
 
         fish_visible_phases = (
-            RealFishingGame.STATE_BITE,
-            RealFishingGame.STATE_REELING,
-            RealFishingGame.STATE_UNHOOK
+            RealFishingGame.State.BITE,
+            RealFishingGame.State.REELING,
+            RealFishingGame.State.UNHOOK
         )
         if game.fishing_state not in fish_visible_phases:
             return
@@ -328,12 +329,12 @@ class RealFishingWidget(GamePainter):
         color = self.FISH_COLORS[game.current_fish]
         x = 580.0
         y = 395.0 + math.sin(game.elapsed * 2.4) * 7.0
-        underwater = game.fishing_state != RealFishingGame.STATE_UNHOOK
-        if game.fishing_state == RealFishingGame.STATE_REELING:
-            progress = min(1.0, game.state_elapsed / max(0.1, game.reel_duration))
+        underwater = game.fishing_state != RealFishingGame.State.UNHOOK
+        if game.fishing_state == RealFishingGame.State.REELING:
+            progress = clamp_to_max(game.state_elapsed / clamp_to_min(game.reel_duration, 0.1), 1.0)
             x += 155.0 * progress
             y -= 105.0 * progress
-        if game.fishing_state == RealFishingGame.STATE_UNHOOK:
+        if game.fishing_state == RealFishingGame.State.UNHOOK:
             # Le poisson est désormais sur la berge, au-dessus de la ligne d'eau.
             x = 760.0
             y = 278.0
@@ -398,15 +399,15 @@ class RealFishingWidget(GamePainter):
         )
 
         if game.current_fish is not None and game.fishing_state in (
-            RealFishingGame.STATE_BITE,
-            RealFishingGame.STATE_REELING,
-            RealFishingGame.STATE_UNHOOK,
+            RealFishingGame.State.BITE,
+            RealFishingGame.State.REELING,
+            RealFishingGame.State.UNHOOK,
         ):
             painter.setFont(QFont(GAME_FONT, 15, QFont.Weight.Bold))
             painter.setPen(QPen(QColor("#f5e276" if game.is_golden_fish else "#f5f5e8")))
             label_rect = (
                 QRectF(610, 238, 300, 28)
-                if game.fishing_state == RealFishingGame.STATE_UNHOOK
+                if game.fishing_state == RealFishingGame.State.UNHOOK
                 else QRectF(350, 355, 300, 28)
             )
             painter.drawText(label_rect, Qt.AlignmentFlag.AlignCenter, game.fish_label)

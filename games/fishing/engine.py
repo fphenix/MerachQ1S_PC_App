@@ -9,7 +9,6 @@ import math
 
 from setup.lang import get_text
 from setup.utils import is_between, clamp_to_zero, clamp_to_max
-from setup.utils import debug
 
 from games.game import Game
 from games.game_input import GameInput, input_cadence
@@ -27,6 +26,8 @@ class Insect:
 # =============================================================================
 class FishingGame(Game):
 
+    GAME_ID: str = "fishing"
+
     WIDTH: int = 1000
     HEIGHT: int = 700
     HUD_HEIGHT: int = 70
@@ -38,23 +39,22 @@ class FishingGame(Game):
     NET_WIDTH: int = 55
     NET_RETURN_SPEED: float = 90.0
     NET_SPEED: float = 60.0
-    NET_GRAVITY_SPEED: float = 20.0
     NET_LERP_SPEED: float = 3.0
     NET_LEFT_MARGIN: int = 90
     
-    SPAWN_MIN: float = 0.65
-    SPAWN_MAX: float = 1.20
+    SPAWN_MIN: float = 0.55
+    SPAWN_MAX: float = 1.05
 
     INSECTS_DATA: dict[str, dict[str, int|float]] = {
-        "bee":       {"pxsize": 35, "speed":  70.0, "points":  60, "freq": 55.0},
-        "butterfly": {"pxsize": 40, "speed":  50.0, "points":  30, "freq": 25.0},
-        "hornet":    {"pxsize": 50, "speed": 100.0, "points": -45, "freq": 20.0},
+        "bee":       {"pxsize": 50, "speed": 50.0, "points":  60, "freq": 55.0},
+        "butterfly": {"pxsize": 60, "speed": 30.0, "points":  30, "freq": 25.0},
+        "hornet":    {"pxsize": 80, "speed": 70.0, "points": -45, "freq": 20.0},
     }
-
-    CADENCE_LEVELS: tuple[int] = (16, 20, 24, 28, 32)
 
     MIN_VALID_CADENCE: float = 10.0
     MAX_VALID_CADENCE: float = 40.0
+
+    CADENCE_LEVELS: tuple[int] = (20, 24, 28, 32)
 
     LANE_COUNT: int = len(CADENCE_LEVELS)
     LANE_HEIGHT: float = PLAYFIELD_HEIGHT / LANE_COUNT
@@ -63,7 +63,7 @@ class FishingGame(Game):
     def __init__(self) -> None:
 
         super().__init__(
-            game_id= "fishing",
+            game_id= self.GAME_ID,
             title= get_text("MENU_GAMES_FISHING"),
             duration= self.DURATION_SECONDS,
         )
@@ -120,7 +120,7 @@ class FishingGame(Game):
     def update_game(self, dt: float, game_input: GameInput) -> None:
 
         self._game_time += dt
-        stroke_delta = clamp_to_zero(getattr(game_input, "stroke_delta", 0))
+        stroke_delta = clamp_to_zero(game_input.stroke_delta)
         if game_input.stroke_event and stroke_delta == 0:
             stroke_delta = 1
 

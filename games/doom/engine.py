@@ -4,12 +4,14 @@ from dataclasses import dataclass
 
 import math
 import random
+from enum import Enum
 
 from setup.lang import get_text
 from setup.utils import (
-     clamp_to_zero, clamp_between,
-     is_between, is_within,
-     format_duration,
+    clamp_to_zero, clamp_between,
+    clamp_to_max, clamp_to_min,
+    is_between, is_within,
+    format_duration,
 )
 
 from games.game import Game
@@ -19,7 +21,7 @@ from games.game_input import GameInput, input_cadence
 @dataclass
 class Monster:
     
-    kind: str
+    kind: "DoomGame.MonsterType"
     hits: int
     side: int
     blood: int
@@ -29,11 +31,13 @@ class Monster:
 
     # -------------------------------------------------------------------------
     @property
-    def is_alive(self):
+    def is_alive(self) -> bool:
         return self.hits > 0
 
 # =============================================================================
 class DoomGame(Game):
+
+    GAME_ID: str = "doom"
 
     WIDTH: int = 1000
     HEIGHT: int = 700
@@ -60,19 +64,30 @@ class DoomGame(Game):
     COMBAT_SECONDS: float = 20.0
     SHOT_INTERVAL: float = 60.0 / FIRE_CADENCE
     TURN_DURATION: float = 6.4
-    SPAWN_PERCENT: float = 35.0
+    SPAWN_PERCENT: float = 40.0
     MAX_INJURIES: int = 5
 
     BOSS_HITS_REQUIRED: int = 12
     MONSTER_LIVES_ARMORED: int = 5
-    MONSTER_LIVES_FAST: int = 2
-    MONSTER_TYPE_ARMORED: str = "armored"
-    MONSTER_TYPE_FAST: str = "fast"
+    MONSTER_LIVES_FAST: int = 3
+
+    class MonsterType(Enum):
+        ARMORED: str = "armored"
+        FAST: str = "fast"
+
+    class GamePhase(Enum):
+        EXPLORE: str = "explore"
+        COMBAT: str = "combat"
+        BOSSFIGHT: str = "boss"
 
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
 
-        super().__init__("doom", get_text("MENU_GAMES_DOOM"), self.DURATION_SECONDS)
+        super().__init__(
+            game_id= self.GAME_ID,
+            title= get_text("MENU_GAMES_DOOM"),
+            duration= self.DURATION_SECONDS
+        )
 
         self.reset()
 
@@ -83,7 +98,7 @@ class DoomGame(Game):
         self.kills: int = 0
         self.injuries: int = 0
         self.enemies: list[Monster] = []
-        self.phase_name: str = "explore"
+        self.phase_name: DoomGame.GamePhase = self.GamePhase.EXPLORE
         self.explore_remaining: float = random.uniform(self.EXPLORE_MIN_SECONDS, self.EXPLORE_MAX_SECONDS)
         self.combat_remaining: float = 0.0
         self.shot_flash: float = 0.0
@@ -122,9 +137,12 @@ class DoomGame(Game):
         is_boss_cadence = is_within(cadence, self.BOSS_CADENCE, self.BOSS_CADENCE_TOLERANCE)
 
         # Après les 300 secondes de niveau, le boss impose 35 secondes à 34 SPM.
-        if self.elapsed >= self.LEVEL_DURATION_SECONDS and self.phase_name != "boss":
+        if (
+            self.elapsed >= self.LEVEL_DURATION_SECONDS
+            and self.phase_name != self.GamePhase.BOSSFIGHT
+        ):
             # Le boss remplace immédiatement tout ennemi en cours de combat.
-            self.phase_name = "boss"
+            self.phase_name = self.GamePhase.BOSSFIGHT
             self.boss_remaining = self.BOSS_DURATION_SECONDS
             self.boss_approach_elapsed = 0.0
             self.boss_hits = 0
@@ -135,7 +153,7 @@ class DoomGame(Game):
             self.message_key = "GAME_DOOM_BOSS"
 
         # Boss Fight
-        if self.phase_name == "boss":
+        if self.phase_name == self.GamePhase.BOSSFIGHT:
             # Le Cacodemon entre depuis le fond du couloir pendant trois secondes.
             # Ce temps d'arrivée ne consomme pas les 35 secondes du combat.
             if self.boss_approach_elapsed < self.boss_approach_duration:
@@ -153,29 +171,29 @@ class DoomGame(Game):
 
             if game_input.stroke_event:
                 if is_boss_cadence:
-                    stroke_count = max(1, game_input.stroke_delta)
+                    stroke_count = clamp_to_min(game_input.stroke_delta, 1)
                     self.boss_hits += stroke_count
                     self.shot_flash = 0.12
                     self.bullet_progress = 1.0
                 else:
-                    self.injuries += 1
+                    self.injuries += clamp_to_min(game_input.stroke_delta, 1)
                     self.hit_flash = 0.7
 
             # Boss fight result
             if self.boss_remaining <= 0.0:
-                self.boss_defeated = self.boss_hits >= self.BOSS_HITS_REQUIRED
+                self.boss_defeated = (self.boss_hits >= self.BOSS_HITS_REQUIRED)
                 self.message_key = (
                     "GAME_DOOM_BOSS_VICTORY" if self.boss_defeated else "GAME_OVER"
                 )
                 self.score = self.kills
                 self.finished = True
-                self.phase = self.PHASE_FINISHED
+                self.phase = self.Phase.FINISHED
                 self.phase_elapsed = 0.0
 
             return
 
         # Exploration
-        if self.phase_name == "explore":
+        if self.phase_name == self.GamePhase.EXPLORE:
             self.message_key = (
                 "GAME_DOOM_EXPLORE"
                 if is_explore_cadence
@@ -211,7 +229,7 @@ class DoomGame(Game):
                     and not self.enemies
                 ):
                     self._spawn_approaching_enemy()
-                elif self.enemies and self.phase_name == "explore":
+                elif self.enemies and self.phase_name == self.GamePhase.EXPLORE:
                     for enemy in self.enemies:
                         enemy.approach_progress = clamp_between(
                             1.0 - self.explore_remaining / 3.5,
@@ -233,11 +251,11 @@ class DoomGame(Game):
         )
         if is_combat_cadence:
             self._shot_elapsed += dt
-            self.shot_flash = 0.12
-            self.bullet_progress = min(1.0, self._shot_elapsed / self.SHOT_INTERVAL)
+            self.bullet_progress = clamp_to_max(self._shot_elapsed / self.SHOT_INTERVAL, 1.0)
             while self._shot_elapsed >= self.SHOT_INTERVAL and self.enemies:
                 self._shot_elapsed -= self.SHOT_INTERVAL
                 self.bullet_progress = 0.0
+                self.shot_flash = 0.15
                 self._hit_enemy()
         else:
             self._shot_elapsed = 0.0
@@ -258,7 +276,7 @@ class DoomGame(Game):
 
         armored = random.random() < (self.SPAWN_PERCENT / 100.0)
         self.enemies = [Monster(
-            kind= self.MONSTER_TYPE_ARMORED if armored else self.MONSTER_TYPE_FAST,
+            kind= self.MonsterType.ARMORED if armored else self.MonsterType.FAST,
             hits= self.MONSTER_LIVES_ARMORED if armored else self.MONSTER_LIVES_FAST,
             side= random.choice((-1, 1)),
             blood= 0,
@@ -276,21 +294,21 @@ class DoomGame(Game):
         for enemy in self.enemies:
             enemy.approach_progress = 1.0
 
-        self.phase_name = "combat"
+        self.phase_name = self.GamePhase.COMBAT
         self.combat_remaining = self.enemies[0].remaining if self.enemies else self.COMBAT_SECONDS
         self._shot_elapsed = 0.0
         self.bullet_progress = 0.0
-        enemy_kind = self.enemies[0].kind if self.enemies else self.MONSTER_TYPE_FAST
+        enemy_kind = self.enemies[0].kind if self.enemies else self.MonsterType.FAST
         self.message_key = (
             "GAME_DOOM_ENEMY_ARMORED"
-            if enemy_kind == self.MONSTER_TYPE_ARMORED
+            if enemy_kind == self.MonsterType.ARMORED
             else "GAME_DOOM_ENEMY_FAST"
         )
 
     # -------------------------------------------------------------------------
     def _resume_exploration(self) -> None:
 
-        self.phase_name = "explore"
+        self.phase_name = self.GamePhase.EXPLORE
         self.enemies.clear()
         self.explore_remaining = random.uniform(self.EXPLORE_MIN_SECONDS, self.EXPLORE_MAX_SECONDS)
         self._shot_elapsed = 0.0
@@ -330,13 +348,14 @@ class DoomGame(Game):
 
     # -------------------------------------------------------------------------
     def hud_time_text(self) -> str:
-        if self.phase_name == "boss":
+        if self.phase_name == self.GamePhase.BOSSFIGHT:
             remaining = self.boss_remaining
         else:
             remaining = clamp_to_zero(self.LEVEL_DURATION_SECONDS - self.elapsed)
         return f"{get_text('TIME')}: {format_duration(remaining)}"
 
     # -------------------------------------------------------------------------
-    # Overrides Game class records_score() to add the condition "Boss" killed in order to recard the score
+    # Overrides Game class records_score() to add the condition "Boss killed"
+    # to allow the recording of the score
     def records_score(self) -> bool:
         return self.boss_defeated

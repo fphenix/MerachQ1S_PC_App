@@ -1,6 +1,7 @@
 """Moteur du jeu de pêche au bouchon."""
 
 import random
+from enum import Enum
 
 from setup.lang import get_text
 from setup.utils import is_within
@@ -10,6 +11,8 @@ from games.game_input import GameInput, input_cadence
 
 # =============================================================================
 class RealFishingGame(Game):
+
+    GAME_ID: str = "real_fishing"
 
     WIDTH: int = 1000
     HEIGHT: int = 700
@@ -45,19 +48,20 @@ class RealFishingGame(Game):
         "golden": "GAME_REAL_FISHING_GOLDEN",
     }
 
-    STATE_CASTING: str = "casting"
-    STATE_FISHING: str = "fishing"
-    STATE_BITE: str = "bite"
-    STATE_REELING: str = "reeling"
-    STATE_UNHOOK: str = "unhook"
+    class State(Enum):
+        CASTING: str = "st_casting"
+        FISHING: str = "st_fishing"
+        BITE: str = "st_bite"
+        REELING: str = "st_reeling"
+        UNHOOK: str = "st_unhook"
 
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
 
         super().__init__(
-            game_id="real_fishing",
-            title=get_text("MENU_GAMES_REAL_FISHING"),
-            duration=self.DURATION_SECONDS,
+            game_id= self.GAME_ID,
+            title= get_text("MENU_GAMES_REAL_FISHING"),
+            duration= self.DURATION_SECONDS,
         )
 
         self.reset()
@@ -66,7 +70,7 @@ class RealFishingGame(Game):
     def reset(self) -> None:
 
         self.current_spm: float | None = None
-        self.fishing_state: str = self.STATE_CASTING
+        self.fishing_state: RealFishingGame.State = self.State.CASTING
         self.state_elapsed: float = 0.0
         self.bite_remaining: float = 0.0
         self.hook_window_remaining: float = 0.0
@@ -109,24 +113,25 @@ class RealFishingGame(Game):
     @property
     def status_key(self) -> str:
         return {
-            self.STATE_CASTING: "GAME_REAL_FISHING_CAST",
-            self.STATE_FISHING: "GAME_REAL_FISHING_WAITING",
-            self.STATE_BITE: "GAME_REAL_FISHING_BITE",
-            self.STATE_REELING: (
-                "GAME_REAL_FISHING_RARE_REEL" if self.is_golden_fish
+            self.State.CASTING: "GAME_REAL_FISHING_CAST",
+            self.State.FISHING: "GAME_REAL_FISHING_WAITING",
+            self.State.BITE: "GAME_REAL_FISHING_BITE",
+            self.State.REELING: (
+                "GAME_REAL_FISHING_RARE_REEL"
+                if self.is_golden_fish
                 else "GAME_REAL_FISHING_REEL"
             ),
-            self.STATE_UNHOOK: "GAME_REAL_FISHING_UNHOOK",
+            self.State.UNHOOK: "GAME_REAL_FISHING_UNHOOK",
         }[self.fishing_state]
 
     # -------------------------------------------------------------------------
     @property
     def target_cadence(self) -> int:
 
-        if self.fishing_state == self.STATE_UNHOOK:
+        if self.fishing_state == self.State.UNHOOK:
             return int(self.UNHOOK_CADENCE)
         
-        if self.fishing_state in (self.STATE_BITE, self.STATE_REELING):
+        if self.fishing_state in (self.State.BITE, self.State.REELING):
             return int(self.RARE_REEL_CADENCE if self.is_golden_fish else self.NORMAL_REEL_CADENCE)
 
         return int(self.CAST_CADENCE)
@@ -134,12 +139,12 @@ class RealFishingGame(Game):
     # -------------------------------------------------------------------------
     @property
     def bobber_on_bank(self) -> bool:
-        return self.fishing_state == self.STATE_UNHOOK or self._needs_recast
+        return self.fishing_state == self.State.UNHOOK or self._needs_recast
 
     # -------------------------------------------------------------------------
     @property
     def bobber_moving(self) -> bool:
-        return self.fishing_state == self.STATE_BITE
+        return self.fishing_state == self.State.BITE
 
     # -------------------------------------------------------------------------
     def update_game(self, dt: float, game_input: GameInput) -> None:
@@ -161,11 +166,11 @@ class RealFishingGame(Game):
         cadence = self.current_spm
         self.state_elapsed += dt
 
-        if self.fishing_state == self.STATE_CASTING:
+        if self.fishing_state == self.State.CASTING:
             if self._is_cast_cadence(cadence):
                 if self.state_elapsed >= self.CAST_DURATION_SECONDS:
                     self._needs_recast = False
-                    self.fishing_state = self.STATE_FISHING
+                    self.fishing_state = self.State.FISHING
                     self.state_elapsed = 0.0
                     self.bite_remaining = random.uniform(
                         self.BITE_WAIT_MIN_SECONDS,
@@ -177,7 +182,7 @@ class RealFishingGame(Game):
                 # ce que la cadence de lancer (26 CPM) soit reprise.
                 self.state_elapsed = 0.0
 
-        elif self.fishing_state == self.STATE_FISHING:
+        elif self.fishing_state == self.State.FISHING:
             # La ligne reste dans l'eau, mais les poissons ne mordent que si
             # le joueur conserve une cadence moyenne.
             if self._is_cast_cadence(cadence):
@@ -185,9 +190,9 @@ class RealFishingGame(Game):
                 if self.bite_remaining <= 0.0:
                     self._start_bite()
             
-        elif self.fishing_state == self.STATE_BITE:
+        elif self.fishing_state == self.State.BITE:
             if self._can_reel(cadence):
-                self.fishing_state = self.STATE_REELING
+                self.fishing_state = self.State.REELING
                 self.state_elapsed = 0.0
                 self.reel_duration = random.uniform(
                     self.REEL_DURATION_MIN_SECONDS,
@@ -199,17 +204,17 @@ class RealFishingGame(Game):
                 if self.hook_window_remaining <= 0.0:
                     self._fish_escaped()
 
-        elif self.fishing_state == self.STATE_REELING:
+        elif self.fishing_state == self.State.REELING:
             if self._can_reel(cadence):
                 if self.state_elapsed >= self.reel_duration:
-                    self.fishing_state = self.STATE_UNHOOK
+                    self.fishing_state = self.State.UNHOOK
                     self.state_elapsed = 0.0
                     self.unhook_progress = 0.0
                     self._set_event("landed")
             else:
                 self._fish_escaped()
 
-        elif self.fishing_state == self.STATE_UNHOOK:
+        elif self.fishing_state == self.State.UNHOOK:
             if self._is_unhook_cadence(cadence):
                 self.unhook_progress += dt
                 if self.unhook_progress >= self.UNHOOK_DURATION_SECONDS:
@@ -219,7 +224,7 @@ class RealFishingGame(Game):
                     # entière, points en deux décimales (ex. 5 poissons / 11 pts = 5.11).
                     self.score = round(self.fish_count + self.points_total / 100.0, 2)
                     self.current_fish = None
-                    self.fishing_state = self.STATE_CASTING
+                    self.fishing_state = self.State.CASTING
                     self._needs_recast = True
                     self.state_elapsed = 0.0
                     self.unhook_progress = 0.0
@@ -234,7 +239,7 @@ class RealFishingGame(Game):
             "golden" if random.random() < (self.GOLDEN_FISH_CHANCE / 100.0)
             else random.choice(self.FISH_REGULAR_TYPES)
         )
-        self.fishing_state = self.STATE_BITE
+        self.fishing_state = self.State.BITE
         self.state_elapsed = 0.0
         self.hook_window_remaining = self.BITE_REACTION_SECONDS
         self._set_event("bite")
@@ -243,7 +248,7 @@ class RealFishingGame(Game):
     def _fish_escaped(self) -> None:
 
         self.current_fish = None
-        self.fishing_state = self.STATE_FISHING
+        self.fishing_state = self.State.FISHING
         self.state_elapsed = 0.0
         self.bite_remaining = random.uniform(
             self.BITE_WAIT_MIN_SECONDS,

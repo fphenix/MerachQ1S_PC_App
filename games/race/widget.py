@@ -7,7 +7,11 @@ from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QPolygonF, QFont
 
 from setup.constants import GAME_FONT
 from setup.lang import get_text
-from setup.utils import clamp_between, clamp_to_zero, is_between
+from setup.utils import (
+    clamp_between, clamp_to_zero,
+    clamp_to_max, clamp_to_min,
+    is_between,
+)
 
 from games.game import Game
 from games.game_painter import GamePainter
@@ -31,7 +35,7 @@ class RaceWidget(GamePainter):
 
         # Lanes
         lane_count = len(game.boats)
-        lane_height = course_height / max(1, lane_count)
+        lane_height = course_height / clamp_to_min(lane_count, 1)
         for lane in range(lane_count + 1):
             y = round(top + lane * lane_height)
             painter.setPen(QPen(QColor("#7c9d8f"), 1, Qt.PenStyle.DashLine))
@@ -84,26 +88,32 @@ class RaceWidget(GamePainter):
             # Coup actif: pour un bâteau allant de gauche à droite, balayage de rame
             # de gauche à droite, bref (au plus 1 s).
             # Retour: de droite à gauche, récupération lente hors de l'eau.
-            period = max(0.1, boat.stroke_period)
+            period = clamp_to_min(boat.stroke_period, 0.1)
             # Le timer du joueur repart à zéro sur un vrai coup de rame. On ne
             # fait surtout pas de modulo : cela relancerait une propulsion fantôme
             # même si aucun nouveau coup n'arrive. Les adversaires, eux, gardent
             # leur cycle automatique.
             cycle_time = boat.stroke_timer if boat.is_player else boat.stroke_timer % period
-            active_duration = min(1.0, period * 0.32)
+            active_duration = clamp_to_max(period * 0.32, 1.0)
             if cycle_time >= period:
                 stroke_progress = 0.0
             elif cycle_time <= active_duration:
-                t = clamp_between(cycle_time / max(0.001, active_duration), 0.0, 1.0)
+                t = clamp_between(cycle_time / clamp_to_min(active_duration, 0.001), 0.0, 1.0)
                 stroke_progress = t * t * (3.0 - 2.0 * t)
             else:
-                t = clamp_between((cycle_time - active_duration) / max(0.001, period - active_duration), 0.0, 1.0)
+                t = clamp_between((cycle_time - active_duration) / clamp_to_min(period - active_duration, 0.001), 0.0, 1.0)
                 recovery = t * t * (3.0 - 2.0 * t)
                 stroke_progress = 1.0 - recovery
             stroke_progress = clamp_between(stroke_progress, 0.0, 1.0)
             hull_y = lane_center - 10
             if boat.is_player:
                 hull_y -= 7.0 * game.stroke_impulse
+
+            # Remous permanents autour de la coque, avec une phase propre à
+            # chaque bateau pour éviter une animation parfaitement synchronisée.
+            ripple_phase = game.race_elapsed * 0.72 + boat.lane * 0.31
+            self.draw_ripple(painter, x - 22.0, hull_y + 1.0, ripple_phase, 1.75)
+            self.draw_ripple(painter, x + 15.0, hull_y + 1.0, ripple_phase + 0.28, 1.45)
 
             # Hull
             color = QColor(boat.color)
@@ -120,6 +130,7 @@ class RaceWidget(GamePainter):
 
             # Coup de rame
             strength = stroke_progress
+            in_drive = cycle_time < period and cycle_time <= active_duration
             if strength > 0.03:
                 painter.setPen(QPen(QColor("#a8f0ff") if boat.is_player else color.lighter(150), 2))
                 angle = math.radians(-135.0 + 90.0 * strength)
@@ -133,6 +144,13 @@ class RaceWidget(GamePainter):
                 lower_tip_x = round(pivot_x + length * math.cos(lower_angle))
                 lower_tip_y = round(hull_y + length * math.sin(lower_angle))
                 painter.drawLine(round(pivot_x), round(hull_y), lower_tip_x, lower_tip_y)
+
+                # Petites rides à l'endroit où chaque pale touche l'eau.
+                # Leur taille suit le mouvement de la rame et reste contenue
+                # dans la voie du bateau.
+                if in_drive:
+                    self.draw_ripple(painter, tip_x, tip_y, ripple_phase + 0.16, 0.8 + 0.35 * strength)
+                    self.draw_ripple(painter, lower_tip_x, lower_tip_y, ripple_phase + 0.58, 0.8 + 0.35 * strength)
 
             # Nom sur le bâteau
             painter.setPen(QPen(QColor("#111111"), 1))
@@ -160,10 +178,10 @@ class RaceWidget(GamePainter):
             painter.drawEllipse(round(x - 5), ruler_top + 15, 10, 10)
 
         # 3..., 2..., 1... GO!
-        if game.phase == game.PHASE_PLAYING and not game.countdown_finished:
+        if game.phase == game.Phase.PLAYING and not game.countdown_finished:
             count = 3 - int(game.countdown_elapsed)
             message = (
-                str(max(1, count))
+                str(clamp_to_min(count, 1))
                 if game.countdown_elapsed < 3.0
                 else get_text("GAME_GO")
             )
@@ -173,3 +191,29 @@ class RaceWidget(GamePainter):
             painter.drawText(0, top + 140, game.WIDTH, 100, Qt.AlignmentFlag.AlignCenter, message)
 
         painter.restore()
+
+    # -------------------------------------------------------------------------
+    # Ondulations animées de l'eau : anneaux discrets qui s'élargissent
+    # autour d'un point, puis s'effacent avant le cycle suivant.
+    def draw_ripple(
+        self,
+        painter: QPainter,
+        cx: float, cy: float,
+        phase: float,
+        size: float = 1.0
+    ) -> None:
+
+        phase %= 1.0
+        # Trois anneaux déphasés
+        for ring_index, offset in enumerate((0.0, 0.34, 0.68)):
+            progress = (phase + offset) % 1.0
+            radius_x = (5.0 + progress * 22.0) * size
+            radius_y = (2.0 + progress * 6.0) * size
+            alpha = int(95 * (1.0 - progress) ** 0.8)
+            if alpha <= 0:
+                continue
+            ripple_color = QColor(174, 239, 234, alpha)
+            painter.setPen(QPen(ripple_color, 1.7 if ring_index == 0 else 1.3))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawEllipse(QPointF(cx, cy), radius_x, radius_y)
+

@@ -36,7 +36,7 @@ from games.simon.widget import SimonWidget
 from games.doom.engine import DoomGame
 from games.doom.widget import DoomWidget
 
-GAME_CLASSES: dict[str, Game] = {
+GAME_CLASSES: dict[str, type[Game]] = {
     "fishing": FishingGame,
     "fishing2": Fishing2Game,
     "pigeon": PigeonGame,
@@ -51,7 +51,7 @@ GAME_CLASSES: dict[str, Game] = {
     "doom": DoomGame,
 }
 
-GAME_VIEWS: dict[str, GamePainter] = {
+GAME_VIEWS: dict[str, type[GamePainter]] = {
     "fishing": FishingWidget,
     "fishing2": FishingWidget,
     "pigeon": PigeonWidget,

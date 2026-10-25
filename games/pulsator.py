@@ -16,7 +16,7 @@ class Pulsator:
         max_radius: float = 14.0,
         pen_width: float = 2.0,
         outlined: bool = False
-    ):
+    ) -> None:
  
         self.min_radius: float = float(min_radius)
         self.max_radius: float = float(max_radius)
@@ -51,10 +51,15 @@ class Pulsator:
         if self.outlined:
             painter.setBrush(Qt.BrushStyle.NoBrush)
             painter.setPen(QPen(QColor(color), 1))
-            painter.drawEllipse(QRectF(center_x - self.max_radius, center_y - self.max_radius, self.max_radius * 2.0, self.max_radius * 2.0))
+            painter.drawEllipse(QRectF(
+                center_x - self.max_radius, center_y - self.max_radius,
+                self.max_radius * 2.0, self.max_radius * 2.0)
+            )
 
         painter.setPen(QPen(QColor(color), self.pen_width))
         painter.setBrush(QBrush(QColor(color)))
-        painter.drawEllipse(QRectF(center_x - radius, center_y - radius, radius * 2.0, radius * 2.0))
+        painter.drawEllipse(QRectF(
+            center_x - radius, center_y - radius, radius * 2.0, radius * 2.0)
+        )
         
         painter.restore()

@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 from setup.constants import FILE_ENCODING
+from setup.utils import clamp_to_min
 
 from games.score_config import GAME_SCORE_ORDERS
 
@@ -58,7 +59,7 @@ class HighScoreManager:
         stored_score = round(float(score), 2) if game_id == "real_fishing" else int(score)
         entry = {"score": stored_score, "date": datetime.now().strftime("%d/%m/%y")}
         if game_id == "doom":
-            entry["injuries"] = max(0, int(tie_break_score or 0))
+            entry["injuries"] = clamp_to_min(int(tie_break_score or 0), 0)
 
         if common:
             entry["user_id"] = str(user_id)
@@ -80,10 +81,12 @@ class HighScoreManager:
     # -------------------------------------------------------------------------
     @staticmethod
     def _sort_key(game_id: str, item: dict[str, object]) -> tuple:
+
         if game_id == "doom":
             return (-float(item.get("score", 0)), int(item.get("injuries", 0)))
 
         score = float(item.get("score", 0))
+
         return (score if GAME_SCORE_ORDERS.get(game_id, "descending") == "ascending" else -score,)
 
     # -------------------------------------------------------------------------
@@ -136,7 +139,7 @@ class HighScoreManager:
                         }
 
                         if game == "doom":
-                            entry["injuries"] = max(0, int(value.get("injuries", 0)))
+                            entry["injuries"] = clamp_to_min(int(value.get("injuries", 0)), 0)
 
                         if common:
                             entry["user_id"] = str(value.get("user_id", ""))

@@ -8,6 +8,8 @@ from games.fishing.engine import FishingGame
 class Fishing2Game(FishingGame):
     """Même jeu que FishingGame, avec une règle de déplacement différente."""
 
+    GAME_ID: str = "fishing2"
+
     CADENCE_UP: float   = 28.0
     CADENCE_STAY: float = 24.0
     CADENCE_DOWN: float = 20.0
@@ -19,7 +21,7 @@ class Fishing2Game(FishingGame):
 
         super().__init__()
         
-        self.game_id = "fishing2"
+        self.game_id = self.GAME_ID
         self.title = get_text("MENU_GAMES_FISHING2")
 
     # -------------------------------------------------------------------------

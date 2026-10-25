@@ -31,6 +31,8 @@ class PathScenery:
 # =============================================================================
 class PathGame(Game):
 
+    GAME_ID: str = "path"
+
     WIDTH: int = 1000
     HEIGHT: int = 700
     HUD_HEIGHT: int = 70
@@ -50,7 +52,11 @@ class PathGame(Game):
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
 
-        super().__init__("path", get_text("MENU_GAMES_PATH"), self.DURATION_SECONDS)
+        super().__init__(
+            game_id= self.GAME_ID,
+            title= get_text("MENU_GAMES_PATH"),
+            duration= self.DURATION_SECONDS
+        )
 
         self.reset()
 

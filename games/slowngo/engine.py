@@ -11,6 +11,8 @@ from games.game_input import GameInput, input_cadence
 # =============================================================================
 class SlowNGoGame(Game):
 
+    GAME_ID: str = "slowngo"
+
     WIDTH: int = 1000
     HEIGHT: int = 700
     HUD_HEIGHT: int = 70
@@ -28,7 +30,11 @@ class SlowNGoGame(Game):
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
 
-        super().__init__("slowngo", get_text("MENU_GAMES_SLOWNGO"), self.DURATION_SECONDS)
+        super().__init__(
+            game_id= self.GAME_ID,
+            title= get_text("MENU_GAMES_SLOWNGO"),
+            duration= self.DURATION_SECONDS
+        )
 
         self.reset()
 

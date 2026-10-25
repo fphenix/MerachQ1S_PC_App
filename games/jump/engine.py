@@ -30,6 +30,8 @@ class Flower:
 # =============================================================================
 class JumpGame(Game):
 
+    GAME_ID: str = "jump"
+
     WIDTH: int = 1000
     HEIGHT: int = 700
     HUD_HEIGHT: int = 70
@@ -73,7 +75,11 @@ class JumpGame(Game):
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
 
-        super().__init__("jump", get_text("MENU_GAMES_JUMP"), self.DURATION_SECONDS)
+        super().__init__(
+            game_id= self.GAME_ID,
+            title= get_text("MENU_GAMES_JUMP"),
+            duration= self.DURATION_SECONDS
+        )
 
         self.reset()
 

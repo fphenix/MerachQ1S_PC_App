@@ -6,6 +6,7 @@ import math
 
 from setup.lang import get_text
 from setup.utils import interpolate
+from setup.utils import clamp_to_max
 
 from games.game import Game
 from games.game_input import GameInput, input_cadence
@@ -37,6 +38,8 @@ class Enemy:
 
 # =============================================================================
 class MarioGame(Game):
+
+    GAME_ID: str = "mario"
     
     WIDTH: int = 1000
     HEIGHT: int = 700
@@ -66,7 +69,11 @@ class MarioGame(Game):
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
 
-        super().__init__("mario", get_text("MENU_GAMES_MARIO"), self.DURATION_SECONDS)
+        super().__init__(
+            game_id= self.GAME_ID,
+            title= get_text("MENU_GAMES_MARIO"),
+            duration= self.DURATION_SECONDS
+        )
         
         self.reset()
 
@@ -271,7 +278,7 @@ class MarioGame(Game):
         if not self.jumping:
             return 0.0
         
-        phase = min(1.0, self.jump_elapsed / self.JUMP_DURATION)
+        phase = clamp_to_max(self.jump_elapsed / self.JUMP_DURATION, 1.0)
         return math.sin(math.pi * phase) * self.JUMP_HEIGHT
 
     # -------------------------------------------------------------------------

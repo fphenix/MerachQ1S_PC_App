@@ -15,7 +15,7 @@ from games.pulsator import Pulsator
 # =============================================================================
 class SimonWidget(GamePainter):
 
-    PULSATOR = Pulsator(min_radius= 3.0, max_radius= 18.0, pen_width= 2.0, outlined= True)
+    PULSATOR: Pulsator = Pulsator(min_radius= 3.0, max_radius= 18.0, pen_width= 2.0, outlined= True)
 
     SECTIONS_COLORS: list[QColor] = [
         QColor("#35a853"),  # 18 CPM : lent

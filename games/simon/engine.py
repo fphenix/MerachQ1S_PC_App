@@ -11,6 +11,8 @@ from games.game_input import GameInput, input_cadence
 # =============================================================================
 class SimonGame(Game):
 
+    GAME_ID: str = "simon"
+
     WIDTH: int = 1000
     HEIGHT: int = 700
     HUD_HEIGHT: int = 70
@@ -34,9 +36,9 @@ class SimonGame(Game):
     def __init__(self) -> None:
 
         super().__init__(
-            game_id="simon",
-            title=get_text("MENU_GAMES_SIMON"),
-            duration=self.DURATION_SECONDS,
+            game_id= self.GAME_ID,
+            title= get_text("MENU_GAMES_SIMON"),
+            duration= self.DURATION_SECONDS,
         )
 
         self.reset()

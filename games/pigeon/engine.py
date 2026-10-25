@@ -1,6 +1,7 @@
 """Jeu de tir automatique au pigeon."""
 
 from dataclasses import dataclass
+from enum import Enum
 
 import math
 import random
@@ -31,6 +32,8 @@ class Bullet:
 # =============================================================================
 class PigeonGame(Game):
 
+    GAME_ID: str = "pigeon"
+
     WIDTH: int = 1000
     HEIGHT: int = 700
     HUD_HEIGHT: int = 70
@@ -60,9 +63,9 @@ class PigeonGame(Game):
     def __init__(self) -> None:
 
         super().__init__(
-            game_id="pigeon",
-            title=get_text("MENU_GAMES_PIGEON"),
-            duration=self.DURATION_SECONDS,
+            game_id= self.GAME_ID,
+            title= get_text("MENU_GAMES_PIGEON"),
+            duration= self.DURATION_SECONDS,
         )
         
         self.reset()
@@ -71,7 +74,6 @@ class PigeonGame(Game):
     def reset(self) -> None:
 
         self.current_spm: float | None = None
-        self.phase_name: str = "opening"
         self.phase_duration: float = random.uniform(self.OPENING_MIN, self.OPENING_MAX)
         self._phase_remaining: float = self.phase_duration
         self._spawn_remaining: float = 0.0
@@ -108,12 +110,6 @@ class PigeonGame(Game):
             elif self.current_spm < self.CADENCE_SHOOT_RELEASE:
                 self._shooting_active = False
 
-        self.phase_name = (
-            "shooting" if self._shooting_active
-            else "opening" if self.cages_open
-            else "idle"
-        )
-
         if self.cages_open and not self._shooting_active:
             self._spawn_remaining -= dt
             if self._spawn_remaining <= 0.0:
@@ -127,8 +123,7 @@ class PigeonGame(Game):
                 factor = clamp_between(
                     (self.current_spm - self.CADENCE_MIN_SHOOT_CLAMP)
                     / (self.CADENCE_MAX_SHOOT_CLAMP - self.CADENCE_MIN_SHOOT_CLAMP),
-                    0.0,
-                    1.0,
+                    0.0, 1.0
                 )
                 interval = self.BULLET_INTERVAL_LOW + factor * (
                     self.BULLET_INTERVAL_HIGH - self.BULLET_INTERVAL_LOW

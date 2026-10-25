@@ -5,7 +5,7 @@ Options de classement des Hi-Scores propres à chaque jeu.
 "descending" (default) means the higher the score the better it is.
 """
 
-GAME_SCORE_ORDERS = {
+GAME_SCORE_ORDERS: dict[str, str] = {
     "race_1000": "ascending",
     "race_2000": "ascending",
 }

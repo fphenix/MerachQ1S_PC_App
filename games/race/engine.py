@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import random
 
 from setup.lang import get_text
-from setup.utils import clamp_between, clamp_to_zero, interpolate
+from setup.utils import clamp_between, clamp_to_zero, clamp_to_min, interpolate
 
 from games.game import Game
 from games.game_input import GameInput, input_cadence
@@ -27,6 +27,8 @@ class Boat:
 
 # =============================================================================
 class RaceGame(Game):
+
+    GAME_ID: str = "" # Overridden at inheritance in classes Race1000Game & Race2000Game
 
     WIDTH: int = 1000
     HEIGHT: int = 700
@@ -71,14 +73,16 @@ class RaceGame(Game):
     def __init__(
         self,
         distance_m: int,
-        game_id: str,
         title_key: str
     ) -> None:
 
+        super().__init__(
+            game_id= self.GAME_ID,
+            title= get_text(title_key),
+            duration= self.MAX_DURATION_SECONDS
+        )
+
         self.race_distance = float(distance_m)
-
-        super().__init__(game_id, get_text(title_key), self.MAX_DURATION_SECONDS)
-
         self.profile_level_norm: float = 0.35
 
         self.reset()
@@ -230,19 +234,19 @@ class RaceGame(Game):
             # la ligne dans la même frame.
             winner = min(
                 (boat for boat in self.boats if boat.distance >= self.race_distance),
-                key=lambda boat: (boat.distance - self.race_distance) / max(boat.speed, 0.01),
+                key=lambda boat: (boat.distance - self.race_distance) / clamp_to_min(boat.speed, 0.01),
             )
             self.player_won = winner.is_player
             self.score = int(round(self.race_elapsed)) if self.player_won else 0
             self.finished = True
-            self.phase = self.PHASE_FINISHED
+            self.phase = self.Phase.FINISHED
             self.phase_elapsed = 0.0
 
         elif self.race_elapsed >= self.MAX_DURATION_SECONDS - self.FINISH_TIMEOUT_MARGIN_SECONDS:
             self.player_won = False
             self.score = 0
             self.finished = True
-            self.phase = self.PHASE_FINISHED
+            self.phase = self.Phase.FINISHED
             self.phase_elapsed = 0.0
 
     # -------------------------------------------------------------------------
@@ -263,10 +267,24 @@ class RaceGame(Game):
 
 # =============================================================================
 class Race1000Game(RaceGame):
+
+    GAME_ID: str = "race_1000"
+
     def __init__(self) -> None:
-        super().__init__(1000, "race_1000", "MENU_GAMES_RACE_1000")
+
+        super().__init__(
+            distance_m= 1000,
+            title_key= "MENU_GAMES_RACE_1000"
+        )
 
 # =============================================================================
 class Race2000Game(RaceGame):
+
+    GAME_ID: str = "race_2000"
+
     def __init__(self) -> None:
-        super().__init__(2000, "race_2000", "MENU_GAMES_RACE_2000")
+
+        super().__init__(
+            distance_m= 2000,
+            title_key= "MENU_GAMES_RACE_2000"
+        )
