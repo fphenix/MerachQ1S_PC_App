@@ -39,12 +39,12 @@ class WorkoutEditorDialog(QDialog):
     def __init__(
         self,
         workout: Workout | None = None,
-        parent= None,
+        parent: QWidget | None = None,
     ) -> None:
 
         super().__init__(parent)
 
-        self.workout: Workout = workout
+        self.workout: Workout | None = workout
         self.step_editors: list = []
 
         self.field_keys: list[str] = []

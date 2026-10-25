@@ -26,7 +26,7 @@ class WorkoutPlotWindow(QMainWindow):
     def __init__(
         self,
         filename: str | Path,
-        parent= None,
+        parent: QWidget | None = None,
     ) -> None:
         
         super().__init__(parent)

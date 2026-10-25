@@ -2,6 +2,7 @@
 
 from collections import Counter
 from datetime import datetime
+from enum import Enum
 import tempfile
 import json
 import os
@@ -11,13 +12,16 @@ from uuid import uuid4
 from setup.constants import VERSION
 from setup.lang import get_text
 
+from rowers.data import RowerData
+
 # =============================================================================
 class HistoryManager:
     """Stocke une entrée par segment de séance, entre deux resets."""
 
-    HISTORY_ACTIVITY_TYPE_GAME: str = "game"
-    HISTORY_ACTIVITY_TYPE_WORKOUT: str = "workout"
-    HISTORY_ACTIVITY_TYPE_FREE: str = "free"
+    class HistoryActivityType(str, Enum):
+        GAME: str = "game"
+        WORKOUT: str = "workout"
+        FREE: str = "free"
 
     # -------------------------------------------------------------------------
     def __init__(self, filename: Path, enabled: bool = True) -> None:
@@ -45,7 +49,7 @@ class HistoryManager:
 
     # -------------------------------------------------------------------------
     @staticmethod
-    def _positive(value) -> float | int | None:
+    def _positive(value: float | int | None) -> float | int | None:
 
         try:
             number = float(value)
@@ -81,7 +85,7 @@ class HistoryManager:
     # -------------------------------------------------------------------------
     def finalize(
         self,
-        rowerdata,
+        rowerdata: RowerData,
         workout_file: str | None = None,
         rower_name: str | None = None,
     ) -> dict | None:
@@ -89,9 +93,8 @@ class HistoryManager:
         if not self.enabled or self._finalized:
             return None
 
-        elapsed = self._positive(getattr(rowerdata, "elapsed_time", None))
-        strokes = self._positive(getattr(rowerdata, "stroke_count", None))
-        distance = self._positive(getattr(rowerdata, "distance", None))
+        strokes = self._positive(rowerdata.stroke_count)
+        distance = self._positive(rowerdata.distance)
         # Seules les sessions réelles sur Q1S autorisent l'enregistrement.
         if not strokes:
             return None
@@ -109,23 +112,23 @@ class HistoryManager:
         )
 
         if self.games:
-            activity_type = self.HISTORY_ACTIVITY_TYPE_GAME
+            activity_type = self.HistoryActivityType.GAME
             activity = games_text or get_text("HISTORY_FILTER_GAME")
         elif workout_file:
-            activity_type = self.HISTORY_ACTIVITY_TYPE_WORKOUT
+            activity_type = self.HistoryActivityType.WORKOUT
             activity = Path(workout_file).name
         else:
-            activity_type = self.HISTORY_ACTIVITY_TYPE_FREE
+            activity_type = self.HistoryActivityType.FREE
             activity = get_text("HISTORY_FILTER_FREE")
 
-        duration = self._positive(getattr(rowerdata, "elapsed_time", None))
+        duration = self._positive(rowerdata.elapsed_time)
         session = {
             "id": str(uuid4()),
             "source_id": None,
             "date": self.started_at.date().isoformat(),
             "time": self.started_at.strftime("%H:%M:%S"),
             "started_at": self.started_at.isoformat(timespec="seconds"),
-            "activity_type": activity_type,
+            "activity_type": activity_type.value,
             "activity": activity,
             "games": self.games.copy(),
             "workout_file": workout_file,

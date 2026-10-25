@@ -15,7 +15,7 @@ from setup.utils import load_workout, format_duration
 # =============================================================================
 class WorkoutFinderDialog(QDialog):
 
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
 
         super().__init__(parent)
 
@@ -25,7 +25,7 @@ class WorkoutFinderDialog(QDialog):
         self._search()
 
     # -------------------------------------------------------------------------
-    def _create_ui(self):
+    def _create_ui(self) -> None:
 
         self.setWindowTitle(get_text("WORKOUT_FINDER_TITLE"))
         self.resize(660, 620)

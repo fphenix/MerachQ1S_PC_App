@@ -6,7 +6,7 @@
 import asyncio
 from bleak import BleakScanner
 
-COMPANIES = {
+COMPANIES: dict[int, str] = {
     # Computing
     0: "<Placeholder> or Ericsson",
     2: "Intel",
@@ -63,7 +63,7 @@ COMPANIES = {
 
 # Scan for Bluetooth emitters
 
-async def main():
+async def main() -> None:
     devices = await BleakScanner.discover(timeout=5.0, return_adv=True)
 
     print(f"Found {len(devices)} BLE device{"s" if len(devices) > 1 else ""}\n")
@@ -110,7 +110,7 @@ from bleak import BleakScanner
 
 # Scan for Bluetooth emitters
 
-async def main():
+async def main() -> None:
     devices = await BleakScanner.discover()
 
     for d in devices:

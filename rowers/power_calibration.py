@@ -142,7 +142,7 @@ class WorkoutPowerCalibration:
     # rowers: ~76% (60 min), ~85% (6k), 100% (2k), ~153% (60 s), ~173% (10 s).
     # These are deliberately kept here, in one place, so the model can be tuned
     # without touching the Q1S calculator.
-    DURATION_POWER_RATIOS = (
+    DURATION_POWER_RATIOS: tuple[float, float] = (
         (10.0, 1.73),
         (60.0, 1.53),
         (120.0, 1.30),
@@ -151,7 +151,7 @@ class WorkoutPowerCalibration:
         (3600.0, 0.76),
     )
 
-    DURATION_INTENSITY_EXPONENTS = {
+    DURATION_INTENSITY_EXPONENTS: dict[str, float] = {
         "R": 0.0,
         "E": 0.0,
         "N": 0.0,
@@ -211,7 +211,7 @@ class WorkoutPowerCalibration:
     def duration_reference_ratio(duration_seconds: float) -> float:
         """Return expected power relative to 2k power for a given duration."""
 
-        duration = max(10.0, float(duration_seconds))
+        duration = clamp_to_min(float(duration_seconds), 10.0)
 
         points = WorkoutPowerCalibration.DURATION_POWER_RATIOS
 
@@ -237,7 +237,7 @@ class WorkoutPowerCalibration:
     # reference effort, F is hard work and M is maximal/very hard work.
     # These are deliberately modest multipliers: the duration model supplies the
     # physiological scale, while the workout intensity moves around it.
-    INTENSITY_FACTORS = {
+    INTENSITY_FACTORS: dict[str, float] = {
         "R": 0.30,
         "E": 0.50,
         "N": 1.00, # ref
@@ -362,7 +362,7 @@ class WorkoutPowerCalibration:
     # OLD CALCULATION WAS:
     #    # Age: Seiler et al. reported approximately 3% power loss per decade
     #    # from 24-50 and ~7% per decade from 50-74 in indoor-rowing data.
-    #    age = max(18.0, float(context.age))
+    #    age = clamp_to_min(18.0, float(context.age), 18.0)
     #    if age > 24.0:
     #        if age <= 50.0:
     #            factor *= pow(0.97, (age - 24.0) / 10.0)

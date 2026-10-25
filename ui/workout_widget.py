@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QVBoxLayout,
     QFrame,
+    QWidget,
 )
 
 from setup.settings import Settings
@@ -61,7 +62,7 @@ class WorkoutWidget(QFrame):
         self,
         settings: Settings,
         metronome_bar: QProgressBar,
-        parent= None,
+        parent: QWidget | None = None,
     ) -> None:
 
         super().__init__(parent)

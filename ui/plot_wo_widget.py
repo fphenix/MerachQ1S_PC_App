@@ -1,3 +1,5 @@
+from PySide6.QtWidgets import QWidget
+
 from matplotlib.backends.backend_qtagg import (
     FigureCanvasQTAgg as FigureCanvas,
 )
@@ -27,7 +29,7 @@ class WorkoutPlotWidget(FigureCanvas):
     # ------------------------------------------------------------------
     def __init__(
         self,
-        parent= None,
+        parent: QWidget | None = None,
     ) -> None:
 
         self.current_workout = None
@@ -95,8 +97,8 @@ class WorkoutPlotWidget(FigureCanvas):
         )
 
         xmax = max(
-            1.0,
             total_minutes,
+            1.0
         )
 
         ax.set_xlim(

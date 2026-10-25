@@ -1,6 +1,5 @@
 from pathlib import Path
 from datetime import datetime
-from collections import Counter
 
 import csv
 import zipfile

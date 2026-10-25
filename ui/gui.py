@@ -8,7 +8,7 @@ from pathlib import Path
 import datetime
 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QActionGroup
+from PySide6.QtGui import QActionGroup, QKeyEvent, QCloseEvent
 from PySide6.QtWidgets import (
     QGridLayout,
     QMainWindow,
@@ -1035,6 +1035,35 @@ class MainWindow(QMainWindow):
                 )
 
     # -------------------------------------------------------------------------
+    def _start_automatic_session(self) -> None:
+        """Démarre un nouveau log et une nouvelle séance sans reset physique.
+
+        La première trame Q1S reçue après reset_session() sert de référence :
+        les compteurs bruts non nuls de la machine ne sont donc pas repris dans
+        le temps et le nombre de coups de la nouvelle séance. Le calculateur
+        local est également réinitialisé pour repartir à zéro en distance,
+        calories et moyennes dérivées.
+        """
+        self.max_power_list.clear()
+        self._finalize_history_session()
+
+        if self.logger is not None:
+            self.logger.flush()
+            self.logger.stop()
+            # Évite de réutiliser les métadonnées de l'activité précédente.
+            self.logger.set_workout_file(None)
+
+        self.state.reset_session()
+
+        if self.logger is not None:
+            self.logger.start()
+
+        self._workout_split_last_sample_index = 0
+        self.history.begin_session(
+            self.logger.session_started_at if self.logger is not None else None
+        )
+
+    # -------------------------------------------------------------------------
     def _callback_new_session(self) -> None:
 
         self.max_power_list.clear()
@@ -1069,6 +1098,7 @@ class MainWindow(QMainWindow):
                 self.load_workout_file(
                     filename= REPLAY_WORKOUT_FILE,
                     replay_mode= True,
+                    start_new_session= False,
                 )
 
             self.state.reset_session()
@@ -1090,8 +1120,9 @@ class MainWindow(QMainWindow):
                 get_text("MSG_RESET_ROWER"),
             )
 
-            # Reset du modèle/calculateur local.
-            self.state.rower.reset()
+            # reset_session réinitialise les métriques locales sans vider le
+            # cache FTMS ni interrompre la connexion Bluetooth.
+            # On ne fait donc pas de Reset du modèle/calculateur local (self.state.rower.reset())
 
             # La prochaine trame Bluetooth devient
             # la nouvelle référence de séance.
@@ -1417,6 +1448,10 @@ class MainWindow(QMainWindow):
             )
             return
 
+        # Chaque lancement depuis le menu Jeux ouvre son propre log. La remise
+        # à zéro est locale : aucun message ni reset matériel du Q1S n'est requis.
+        self._start_automatic_session()
+
         if self.workoutWidget.isVisible():
             self._close_workout()
 
@@ -1456,7 +1491,7 @@ class MainWindow(QMainWindow):
         ).exec()
 
     # -------------------------------------------------------------------------
-    def keyPressEvent(self, event) -> None:
+    def keyPressEvent(self, event: QKeyEvent) -> None:
 
         if (
             event.key() == Qt.Key.Key_Space
@@ -1521,6 +1556,7 @@ class MainWindow(QMainWindow):
         self,
         filename: Path | str | None = None,
         replay_mode: bool = False,
+        start_new_session: bool = True,
     ) -> bool:
 
         if not self.workoutWidget.open_setup(
@@ -1528,6 +1564,13 @@ class MainWindow(QMainWindow):
             replay_mode= replay_mode,
         ):
             return False
+
+        # Charger un nouveau .wo démarre une nouvelle séance et un nouveau log.
+        # Le setup est d'abord validé pour qu'une annulation du sélecteur ne crée
+        # pas de fichier vide ni ne clôture la séance en cours. Le bouton
+        # "Nouvelle session" passe False car il gère déjà ce cycle lui-même.
+        if start_new_session:
+            self._start_automatic_session()
 
         if self.logger is not None:
             self.logger.set_workout_file(
@@ -1680,7 +1723,7 @@ class MainWindow(QMainWindow):
 
     # -------------------------------------------------------------------------
     # Note: ceci est une méthode Qt, applelée à la fermeture du widget
-    def closeEvent(self, event) -> None:
+    def closeEvent(self, event: QCloseEvent) -> None:
 
         # Arrête d'abord la source pour figer le dernier instantané disponible.
         if self.state.source is not None:

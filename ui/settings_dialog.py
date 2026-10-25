@@ -42,7 +42,7 @@ class SettingsDialog(QDialog):
         self,
         settings: Settings,
         curr_user: str,
-        parent= None,
+        parent: QWidget | None = None,
     ) -> None:
 
         super().__init__(parent)

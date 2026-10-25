@@ -116,7 +116,6 @@ def load_settings(settings_file: Path) -> Settings:
         if profile_sex not in ("M", "F"):
             profile_sex = DEFAULT_PROFILE_SEX
 
-
         # newer config settings
         if "profile_level_norm" in data:
             profile_level_norm = float(data["profile_level_norm"])
@@ -129,8 +128,7 @@ def load_settings(settings_file: Path) -> Settings:
 
         profile_level_norm = clamp_between(
             profile_level_norm,
-            0.0,
-            1.0,
+            0.0, 1.0,
         )
         profile_level = profile_level_key_from_norm(profile_level_norm)
 

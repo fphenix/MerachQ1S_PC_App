@@ -1,34 +1,34 @@
 from pathlib import Path
 
-VERSION: str = "5.06"
+VERSION: str = "5.07"
 
-GUI_REFRESH_MS   = 100 # milliseconds
-WORKOUT_TIMER_MS =  20 # milliseconds
+GUI_REFRESH_MS: int   = 100 # milliseconds
+WORKOUT_TIMER_MS: int =  20 # milliseconds
 
-WINDOW_WIDTH = 1100 # pixels
-WINDOW_HEIGHT = 700 # pixels
+WINDOW_WIDTH: int = 1100 # pixels
+WINDOW_HEIGHT: int = 700 # pixels
 
 WINDOW_TO_SCREEN_LEFT_MARGIN: int  = 35 # pixels
 WINDOW_TO_SCREEN_TOP_MARGIN: float = 0.33 # 0.33 = 33% of the margin at the top, 66% at the bottom
 
-MAIN_FONT  = "Consolas"
-TITLE_FONT = "Segoe UI"
-GAME_FONT  = "Courier New"
+MAIN_FONT: str  = "Consolas"
+TITLE_FONT: str = "Segoe UI"
+GAME_FONT: str  = "Courier New"
 
-BIG_FONT_SIZE          = 22 # point
-AVERAGE_FONT_SIZE      = 16 # point
-SMALL_FONT_SIZE        = 12 # point
+BIG_FONT_SIZE: int          = 22 # point
+AVERAGE_FONT_SIZE: int      = 16 # point
+SMALL_FONT_SIZE: int        = 12 # point
 
-WIDGET_TITLE_FONT_SIZE = 11 # point
-WIDGET_VALUE_FONT_SIZE = 28 # point
-WIDGET_UNIT_FONT_SIZE  = 10 # point
-SPLIT_LIST_FONT_SIZE   = 12 # point
-WIDGET_SECONDARY_FONT_SIZE  = 12 # point
+WIDGET_TITLE_FONT_SIZE: int = 11 # point
+WIDGET_VALUE_FONT_SIZE: int = 28 # point
+WIDGET_UNIT_FONT_SIZE: int  = 10 # point
+SPLIT_LIST_FONT_SIZE: int   = 12 # point
+WIDGET_SECONDARY_FONT_SIZE: int  = 12 # point
 
 DEFAULT_SPLIT_LENGTH: float = 500.0 # meters
-MIN_SPLIT_LENGTH =  100  # meters
-MAX_SPLIT_LENGTH = 2000  # meters
-SPLIT_LENGTH_STEP = 100  # meters
+MIN_SPLIT_LENGTH : int=  100  # meters
+MAX_SPLIT_LENGTH: int = 2000  # meters
+SPLIT_LENGTH_STEP: int = 100  # meters
 
 SPLIT_MODES_NORMAL: str  = "normal"
 SPLIT_MODES_500M: str    = "500m"
@@ -60,7 +60,7 @@ MAX_POWER_WINDOW_WIDTH: int = 5 # average the N values after the filter
 # Files and Directories
 # ----------------------------------------------------------------------
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR: Path = Path(__file__).resolve().parent.parent
 
 CONFIG_DIR: Path   = BASE_DIR / "config"
 WORKOUTS_DIR: Path = BASE_DIR / "workouts"
@@ -79,19 +79,19 @@ FILE_ENCODING_BOM: str = "utf-8-sig"
 # Analyzer et Plot_Wo
 # ----------------------------------------------------------------------
 
-ANALYZER_WIDTH  = 1400 # pixels
-ANALYZER_HEIGHT = 1000 # pixels
+ANALYZER_WIDTH: int  = 1400 # pixels
+ANALYZER_HEIGHT: int = 1000 # pixels
 
-ANALYZER_STATS_FONT_SIZE =  11 # point
-ANALYZER_STATS_MIN_WIDTH = 260 # pixels
-ANALYZER_STATS_MAX_WIDTH = 320 # pixels
+ANALYZER_STATS_FONT_SIZE: int =  11 # point
+ANALYZER_STATS_MIN_WIDTH: int = 260 # pixels
+ANALYZER_STATS_MAX_WIDTH: int = 320 # pixels
 
-PLOTWO_WIDTH  = 1300 # pixels
-PLOTWO_HEIGHT =  800 # pixels
+PLOTWO_WIDTH: int  = 1300 # pixels
+PLOTWO_HEIGHT: int =  800 # pixels
 
-PLOTWO_CODE_FONT_SIZE =  12 # point
-PLOTWO_CODE_MIN_WIDTH = 300 # pixels
-PLOTWO_CODE_MAX_WIDTH = 600 # pixels
+PLOTWO_CODE_FONT_SIZE: int =  12 # point
+PLOTWO_CODE_MIN_WIDTH: int = 300 # pixels
+PLOTWO_CODE_MAX_WIDTH: int = 600 # pixels
 
 ANALYZER_SHOW_CHECKBUTTONS: bool = False
 
@@ -110,7 +110,7 @@ LOGGER_END_SESSION_TIMEOUT: float = 10.0 # seconds
 # LOGGER_FORMAT choisi de créer un .csv OU un .zip contenant un .csv
 LOGGER_FORMAT_CSV: str = "csv"
 LOGGER_FORMAT_ZIP: str = "zip"
-LOGGER_FORMAT = LOGGER_FORMAT_ZIP
+LOGGER_FORMAT: str = LOGGER_FORMAT_ZIP
 
 ALLOWED_REPLAY_EXT: list[str] = [
     LOGGER_FORMAT_CSV,
@@ -142,15 +142,14 @@ ALLOW_DEBUG_HISCORES: bool = False
 # * True  : (Mode Dvp/Debug) BT émulé en rejouant une session loggée précédente.
 USE_REPLAY: bool = False
 
-USE_REPLAY_WORKOUT: bool = True and USE_REPLAY
+USE_REPLAY_WORKOUT: bool = USE_REPLAY
 
 # Le fichier REPLAY_FILE peut être:
 # * un .csv
 # * un .zip ayant un (et un seul) .csv à l'intérieur
 REPLAY_USER: str = "Fred"
 REPLAY_FILE: Path = (
-    USERS_DIR / REPLAY_USER / LOGS_DIR_NAME
-    / "session_20260918_114100.zip"
+    USERS_DIR / REPLAY_USER / LOGS_DIR_NAME / "session_20260918_114100.zip"
 )
 REPLAY_WORKOUT_FILE: Path = WORKOUTS_DIR / "spm_power.wo"
 
@@ -196,30 +195,30 @@ MIN_DELAY_SECONDS: int = 0
 MAX_DELAY_SECONDS: int = 60
 DELAY_SECONDS_STEP: int = 5
 
-WORKOUT_WIDTH  = 720 # pixels
-WORKOUT_HEIGHT = WINDOW_HEIGHT # pixels
+WORKOUT_WIDTH: int  = 720 # pixels
+WORKOUT_HEIGHT: int = WINDOW_HEIGHT # pixels
 
-WORKOUT_EDIT_WIDTH  = 1200 # pixels
-WORKOUT_EDIT_HEIGHT =  800 # pixels
+WORKOUT_EDIT_WIDTH: int  = 1200 # pixels
+WORKOUT_EDIT_HEIGHT: int =  800 # pixels
 
-WORKOUT_TITLE_FONT_SIZE = 24 # point
-WORKOUT_LIST_FONT_SIZE  = 14 # point
-WORKOUT_INFO_FONT_SIZE  = 18 # point
+WORKOUT_TITLE_FONT_SIZE: int = 24 # point
+WORKOUT_LIST_FONT_SIZE: int  = 14 # point
+WORKOUT_INFO_FONT_SIZE: int  = 18 # point
 
-LIST_WIDTH = 220  # pixels
-BAR_HEIGHT =  28  # pixels
+LIST_WIDTH: int = 220  # pixels
+BAR_HEIGHT: int =  28  # pixels
 
-METRONOME_MARGIN = 100  # pixels
+METRONOME_MARGIN: int = 100  # pixels
 
-WINDOW_BACKGROUND   = "#303030"
-LIST_BACKGROUND     = "#202020"
-BAR_BACKGROUND      = "#202020"
-MENU_SEL_BACKGROUND = "#505050"
-BAR_BORDER          = "#666666"
-BAR_COLOR           = "#00CC44"
-WARNING_TIME_COLOR  = "#FF4444"
-TEXT_COLOR          = "white"
-LISTTEXT_COLOR = TEXT_COLOR
+WINDOW_BACKGROUND: str   = "#303030"
+LIST_BACKGROUND: str     = "#202020"
+BAR_BACKGROUND: str      = "#202020"
+MENU_SEL_BACKGROUND: str = "#505050"
+BAR_BORDER: str          = "#666666"
+BAR_COLOR: str           = "#00CC44"
+WARNING_TIME_COLOR: str  = "#FF4444"
+TEXT_COLOR: str          = "white"
+LISTTEXT_COLOR: str = TEXT_COLOR
 
 WO_KEYWORD: dict[str, str] = {
     "Comment" : "#",

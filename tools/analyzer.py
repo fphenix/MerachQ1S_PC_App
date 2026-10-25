@@ -10,6 +10,7 @@ from matplotlib.axes._axes import Axes
 from matplotlib.backends.backend_qtagg import (
     FigureCanvasQTAgg as FigureCanvas,
 )
+from matplotlib.backend_bases import MouseEvent
 from matplotlib.backends.backend_qtagg import (
     NavigationToolbar2QT as NavigationToolbar,
 )
@@ -47,7 +48,7 @@ class AnalyzerWindow(QMainWindow):
     def __init__(
         self,
         filename: str | Path,
-        parent= None,
+        parent: QWidget | None = None,
     ) -> None:
 
         super().__init__(parent)
@@ -299,7 +300,7 @@ class AnalyzerWindow(QMainWindow):
         ]
 
     # -------------------------------------------------------------------------
-    def toggle(self, label) -> None:
+    def toggle(self, label: str) -> None:
 
         if (
             label == f"{get_text("SPLIT")} {get_text("PLOT_INST")}"
@@ -363,7 +364,7 @@ class AnalyzerWindow(QMainWindow):
             self.checkbtn = None
 
     # -------------------------------------------------------------------------
-    def _draw_plot(self, plot, axis) -> list:
+    def _draw_plot(self, plot: dict[str, Any], axis: Axes) -> list[Any]:
 
         lines: list = []
 
@@ -519,7 +520,7 @@ class AnalyzerWindow(QMainWindow):
         self.canvas.draw_idle()
 
     # -------------------------------------------------------------------------
-    def _callback_plot_click(self, event) -> None:
+    def _callback_plot_click(self, event: MouseEvent) -> None:
 
         if event.inaxes is None:
             return

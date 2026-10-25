@@ -13,13 +13,13 @@ from __future__ import annotations
 
 import time
 import traceback
+from typing import Any
 
 from setup.lang import get_text
 from setup.utils import echoerr, clamp_to_zero
 
 from setup.cnx_enum import CnxState
 
-from engine.state import RowState
 from rowers.merach_q1s import MerachRower
 from replays.replay_source import ReplaySource
 
@@ -33,7 +33,7 @@ class ReplayQ1S(ReplaySource):
     def __init__(
         self,
         filename: str,
-        state: RowState,
+        state: Any,
         rower: MerachRower,
         speed: float = 1.0,
     ) -> None:
@@ -41,7 +41,7 @@ class ReplayQ1S(ReplaySource):
         super().__init__(filename, speed)
 
         # RowState reference
-        self.state: RowState = state
+        self.state: Any = state
 
         # Le vrai modèle Q1S est utilisé pendant le replay.
         self.rower: MerachRower = rower

@@ -319,30 +319,29 @@ def format_duration(duration_seconds: float) -> str:
 # -----------------------------------------------------------------------------
 # clamp negative values to 0
 def clamp_to_zero(value: int | float) -> int | float:
-    """ If value is <= 0, return 0, else return value """
+    """ If value is <= 0, return 0, else return value. In other words, the returned value is at least 0. """
 
-    return max(0, value)
+    return max(value, 0)
 
 # -----------------------------------------------------------------------------
 # clamp values to a max
 def clamp_to_max(value: int | float, vmax: int | float) -> int | float:
-    """ If value is >= vmax, return vmax, else return value """
+    """ If value is >= vmax, return vmax, else return value. In other words, the returned value is at most vmax.  """
 
     return min(vmax, value)
 
 # -----------------------------------------------------------------------------
 # clamp values to a min
 def clamp_to_min(value: int | float, vmin: int | float) -> int | float:
-    """ If value is <= vmin, return vmin, else return value """
+    """ If value is <= vmin, return vmin, else return value. In other words, the returned value is at least vmin. """
 
     return max(vmin, value)
 # -----------------------------------------------------------------------------
 # clamp values between min and max
 def clamp_between(value: int | float, minval: int | float, maxval: int | float) -> int | float:
     """ 
-        If value is <= min, return min, 
-        else_if value >= max return max
-        else value
+        If value is <= min, return min, else_if value >= max return max else value.
+        In other words, the returned value is kept between minval and maxval.
     """
     return max(minval, min(maxval, value))
 
@@ -354,6 +353,10 @@ def clamp_step(
     maximum: int | float,
     step: int | float,
 ) -> int | float:
+    """ 
+        If value is <= min, return min, else_if value >= max return max else the step closest to value.
+        In other words, the returned value is kept between minval and maxval, but also will snap to the closest step.
+    """
 
     # clamp between min & max
     value = clamp_between(

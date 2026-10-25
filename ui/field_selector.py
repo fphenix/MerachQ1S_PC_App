@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
     QFormLayout,
     QLineEdit,
     QVBoxLayout,
+    QWidget,
 )
 
 from setup.constants import FIELD_CATEGORY_KEYS
@@ -18,7 +19,7 @@ class FieldSelectorDialog(QDialog):
         self,
         selected_keys: list[str] | None = None,
         other_text: str = "",
-        parent=None,
+        parent: QWidget | None = None,
     ) -> None:
 
         super().__init__(parent)

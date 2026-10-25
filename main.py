@@ -53,7 +53,7 @@ from replays.replay_q1s import ReplayQ1S
 #from replays.replay_c2 import ReplayC2
 
 # -----------------------------------------------------------------------------
-def main():
+def main() -> None:
 
     #
     # Config

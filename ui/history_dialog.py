@@ -3,12 +3,14 @@
 import json
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QSortFilterProxyModel
+from PySide6.QtCore import (
+    Qt, QObject, QModelIndex, QSortFilterProxyModel,
+)
 from PySide6.QtGui import QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import (
     QDialog, QDialogButtonBox, QHeaderView,
     QTableView, QVBoxLayout, QHBoxLayout,
-    QLabel, QComboBox, QLineEdit,
+    QLabel, QComboBox, QLineEdit, QWidget,
 )
 
 from setup.lang import get_text
@@ -18,7 +20,7 @@ from history.manager import HistoryManager
 
 # =============================================================================
 
-COLUMNS = [
+COLUMNS: list[tuple[str, str]] = [
     ("date", "HISTORY_DATE"),
     ("time", "HISTORY_TIME"),
     ("activity_type", "HISTORY_ACTIVITY_TYPE"),
@@ -39,12 +41,14 @@ COLUMNS = [
     ("software_version", "HISTORY_VERSION"),
 ]
 
-COLUMN_INDEX = {key: index for index, (key, _label) in enumerate(COLUMNS)}
+COLUMN_INDEX: dict[str, int] = {
+    key: index for index, (key, _label) in enumerate(COLUMNS)
+}
 
 # =============================================================================
 class HistoryFilterProxyModel(QSortFilterProxyModel):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QObject | None = None) -> None:
 
         super().__init__(parent)
 
@@ -53,7 +57,7 @@ class HistoryFilterProxyModel(QSortFilterProxyModel):
         self.text_filter:str = ""
 
     # -------------------------------------------------------------------------
-    def filterAcceptsRow(self, source_row, source_parent):
+    def filterAcceptsRow(self, source_row: int, source_parent: QModelIndex) -> bool:
 
         model = self.sourceModel()
         values = []
@@ -66,13 +70,15 @@ class HistoryFilterProxyModel(QSortFilterProxyModel):
         # Les deux champs de filtre reposent sur les valeurs brutes du JSON,
         # et non sur les textes formatés visibles dans le tableau.
         activity_type = values[COLUMN_INDEX["activity_type"]]
+        """ LEGACY SUPPORT:
         # Legacy: Compatibilité avec les anciens historiques qui stockaient
         # les libellés français comme valeurs de logique.
         activity_type = {
-            "Jeu": HistoryManager.HISTORY_ACTIVITY_TYPE_GAME,
-            "Workout": HistoryManager.HISTORY_ACTIVITY_TYPE_WORKOUT,
-            "Libre": HistoryManager.HISTORY_ACTIVITY_TYPE_FREE,
+            "Jeu": HistoryManager.HistoryActivityType.GAME.value,
+            "Workout": HistoryManager.HistoryActivityType.WORKOUT.value,
+            "Libre": HistoryManager.HistoryActivityType.FREE.value,
         }.get(activity_type, activity_type)
+        """
         workout = values[COLUMN_INDEX["workout_file"]]
         if self.activity_type_filter and activity_type != self.activity_type_filter:
             return False
@@ -122,7 +128,7 @@ def format_history_value(key: str, value: float | None) -> str:
 # =============================================================================
 class HistoryDialog(QDialog):
 
-    def __init__(self, filename: Path, parent= None) -> None:
+    def __init__(self, filename: Path, parent: QWidget | None = None) -> None:
 
         super().__init__(parent)
 
@@ -131,7 +137,7 @@ class HistoryDialog(QDialog):
         self._load(filename)
 
     # -------------------------------------------------------------------------
-    def _create_ui(self):
+    def _create_ui(self) -> None:
 
         self.setWindowTitle(get_text("HISTORY_TITLE"))
         self.resize(1200, 600)
@@ -143,9 +149,9 @@ class HistoryDialog(QDialog):
         filter_layout.addWidget(QLabel(f"{get_text("HISTORY_TYPE")} :", self))
         self.activity_filter = QComboBox(self)
         self.activity_filter.addItem(get_text("HISTORY_FILTER_ALL"), "")
-        self.activity_filter.addItem(get_text("HISTORY_FILTER_GAME"), HistoryManager.HISTORY_ACTIVITY_TYPE_GAME)
-        self.activity_filter.addItem(get_text("HISTORY_FILTER_WORKOUT"), HistoryManager.HISTORY_ACTIVITY_TYPE_WORKOUT)
-        self.activity_filter.addItem(get_text("HISTORY_FILTER_FREE"), HistoryManager.HISTORY_ACTIVITY_TYPE_FREE)
+        self.activity_filter.addItem(get_text("HISTORY_FILTER_GAME"), HistoryManager.HistoryActivityType.GAME.value)
+        self.activity_filter.addItem(get_text("HISTORY_FILTER_WORKOUT"), HistoryManager.HistoryActivityType.WORKOUT.value)
+        self.activity_filter.addItem(get_text("HISTORY_FILTER_FREE"), HistoryManager.HistoryActivityType.FREE.value)
         filter_layout.addWidget(self.activity_filter)
 
         # FIlter line : Workout
@@ -238,38 +244,47 @@ class HistoryDialog(QDialog):
                 value = session.get(key)
                 if key == "activity_type" and not value:
                     if session.get("games"):
-                        value = HistoryManager.HISTORY_ACTIVITY_TYPE_GAME
+                        value = HistoryManager.HistoryActivityType.GAME.value
                     elif session.get("workout_file"):
-                        value = HistoryManager.HISTORY_ACTIVITY_TYPE_WORKOUT
+                        value = HistoryManager.HistoryActivityType.WORKOUT.value
                     else:
-                        value = HistoryManager.HISTORY_ACTIVITY_TYPE_FREE
+                        value = HistoryManager.HistoryActivityType.FREE.value
                 display_value = value
                 if key == "activity" and value in ("free_session", "Séance libre"):
                     display_value = get_text("HISTORY_FREE_SESSION")
                 if key == "activity_type":
+                    """ LEGACY SUPPORT:
                     legacy_types = {
-                        "Jeu": HistoryManager.HISTORY_ACTIVITY_TYPE_GAME,
-                        "Workout": HistoryManager.HISTORY_ACTIVITY_TYPE_WORKOUT,
-                        "Libre": HistoryManager.HISTORY_ACTIVITY_TYPE_FREE,
+                        "Jeu": HistoryManager.HistoryActivityType.GAME.value,
+                        "Workout": HistoryManager.HistoryActivityType.WORKOUT.value,
+                        "Libre": HistoryManager.HistoryActivityType.FREE.value,
                     }
                     normalized = legacy_types.get(value, value)
                     display_value = {
-                        HistoryManager.HISTORY_ACTIVITY_TYPE_GAME: get_text("HISTORY_FILTER_GAME"),
-                        HistoryManager.HISTORY_ACTIVITY_TYPE_WORKOUT: get_text("HISTORY_FILTER_WORKOUT"),
-                        HistoryManager.HISTORY_ACTIVITY_TYPE_FREE: get_text("HISTORY_FILTER_FREE"),
+                        HistoryManager.HistoryActivityType.GAME.value: get_text("HISTORY_FILTER_GAME"),
+                        HistoryManager.HistoryActivityType.WORKOUT.value: get_text("HISTORY_FILTER_WORKOUT"),
+                        HistoryManager.HistoryActivityType.FREE.value: get_text("HISTORY_FILTER_FREE"),
                     }.get(normalized, value)
+                    """
+                    display_value = {
+                        HistoryManager.HistoryActivityType.GAME.value: get_text("HISTORY_FILTER_GAME"),
+                        HistoryManager.HistoryActivityType.WORKOUT.value: get_text("HISTORY_FILTER_WORKOUT"),
+                        HistoryManager.HistoryActivityType.FREE.value: get_text("HISTORY_FILTER_FREE"),
+                    }.get(value, value)
                 item = QStandardItem(format_history_value(key, display_value))
                 item.setEditable(False)
                 if isinstance(value, (int, float)):
                     item.setData(float(value), Qt.ItemDataRole.UserRole)
                 else:
                     role_value = value or ""
+                    """ LEGACY SUPPORT:
                     if key == "activity_type":
                         role_value = {
-                            "Jeu": HistoryManager.HISTORY_ACTIVITY_TYPE_GAME,
-                            "Workout": HistoryManager.HISTORY_ACTIVITY_TYPE_WORKOUT,
-                            "Libre": HistoryManager.HISTORY_ACTIVITY_TYPE_FREE,
+                            "Jeu": HistoryManager.HistoryActivityType.GAME.value,
+                            "Workout": HistoryManager.HistoryActivityType.WORKOUT.value,
+                            "Libre": HistoryManager.HistoryActivityType.FREE.value,
                         }.get(role_value, role_value)
+                    """
                     item.setData(role_value, Qt.ItemDataRole.UserRole)
                 items.append(item)
             self.model.appendRow(items)

@@ -9,7 +9,7 @@ Compatible avec :
 """
 
 from __future__ import annotations
-
+from typing import Any
 import asyncio
 import threading
 import time
@@ -24,8 +24,6 @@ from setup.utils import (
     echo, echoerr,
     calc_deltatime,
 )
-
-from engine.state import RowState
 
 from rowers.rower import RowerClient
 from rowers.merach_q1s_calc import MerachQ1SCalc
@@ -48,7 +46,7 @@ class MerachRower(RowerClient):
     NAME: str = "Merach Q1S"
 
     # -------------------------------------------------------------------------
-    def __init__(self, state: RowState, settings: Settings) -> None:
+    def __init__(self, state: Any, settings: Settings) -> None:
 
         super().__init__(self.MERACH_Q1S_ADDRESS, state, settings)
 
@@ -127,6 +125,16 @@ class MerachRower(RowerClient):
         if self._thread is not None:
             self._thread.join(timeout= 5.0)
             self._thread = None
+
+    # -------------------------------------------------------------------------
+    def reset_session_metrics(self) -> None:
+        """Reset les cumuls locaux sans effacer le cache FTMS du Q1S.
+
+        Le Q1S peut omettre des champs dans une trame : _last_data conserve
+        donc les dernières valeurs connues pendant un changement de séance.
+        RowState prendra les compteurs bruts de la prochaine trame comme offsets.
+        """
+        self.calculator.reset()
 
     # -------------------------------------------------------------------------
     # Abstracted in parent class
@@ -349,7 +357,7 @@ class MerachRower(RowerClient):
         self.state.update(new_rowerdata)
 
     # -------------------------------------------------------------------------
-    def _on_ftms_event(self, event) -> None:
+    def _on_ftms_event(self, event: Any) -> None:
 
         #
         # Une trame vient d'être reçue.

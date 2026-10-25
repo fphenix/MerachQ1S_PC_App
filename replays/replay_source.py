@@ -113,7 +113,7 @@ class ReplaySource(ABC):
 
     # ------------------------------------------------------------------
     @staticmethod
-    def _csv_skip_row(csvfile, skipnb: int = 1) -> None:
+    def _csv_skip_row(csvfile: Iterator[str], skipnb: int = 1) -> None:
 
         _skipnb = clamp_to_zero(skipnb)
 

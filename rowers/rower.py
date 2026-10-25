@@ -2,10 +2,9 @@
 # Toutes les méthodes définies comme "abstract méthod" doivent
 # être définies dans la class qui hérite de RowerClient
 from abc import ABC, abstractmethod
+from typing import Any
 
 from setup.settings import Settings
-
-from engine.state import RowState
 
 from rowers.data import RowerData
 
@@ -15,12 +14,12 @@ class RowerClient(ABC):
     def __init__(
         self,
         address: str,
-        state: RowState,
+        state: Any,
         settings: Settings
     ) -> None:
         
         self.address: str = address
-        self.state: RowState = state
+        self.state: Any = state
 
         self.settings: Settings = settings
 
@@ -46,7 +45,13 @@ class RowerClient(ABC):
         pass
 
     # -------------------------------------------------------------------------
+    def reset_session_metrics(self) -> None:
+        """Reset derived metrics without resetting the live transport/cache."""
+        return None
+
+    # -------------------------------------------------------------------------
     # Abstract
     @abstractmethod
     def reset(self) -> None:
+        """Reset/reinitialize the rower client itself, not a session split."""
         pass

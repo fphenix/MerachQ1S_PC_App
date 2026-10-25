@@ -1,4 +1,5 @@
 from threading import Lock
+
 from collections import deque
 from copy import deepcopy
 
@@ -11,7 +12,10 @@ from setup.cnx_enum import CnxState
 
 from engine.snapshot import Snapshot
 
+from rowers.merach_q1s import MerachRower
 from rowers.data import RowerData
+
+from replays.replay_q1s import ReplayQ1S
 
 from logger.logger import CsvLogger
 from logger.logrecord import LogRecord
@@ -31,6 +35,8 @@ class RowState:
         self._last_time: float | None = None
         self._elapsed_offset: float = 0.0
         self._stroke_offset: int = 0
+        self._last_raw_elapsed_time: float | None = None
+        self._last_raw_stroke_count: int | None = None
 
         self.delta_strokes: int = 0
         self.stroke_event: bool = False
@@ -43,11 +49,11 @@ class RowState:
         self._distance_history_index: int = 0
 
     # -------------------------------------------------------------------------
-    def set_source(self, source) -> None:
+    def set_source(self, source: MerachRower | ReplayQ1S) -> None:
         self.source = source
 
     # -------------------------------------------------------------------------
-    def set_rower(self, rower) -> None:
+    def set_rower(self, rower: MerachRower) -> None:
         self.rower = rower
 
     # -------------------------------------------------------------------------
@@ -65,9 +71,19 @@ class RowState:
             self._stroke_offset = 0
 
             self._last_time = None
+            self._last_raw_elapsed_time = None
+            self._last_raw_stroke_count = None
             self._session_rebase_pending = True
+            self.delta_strokes = 0
+            self.stroke_event = False
             self._distance_history.clear()
             self._distance_history_index = 0
+
+            # Reset des métriques dérivées sans toucher au cache FTMS ni à la
+            # connexion Bluetooth. Le hook est sans effet par défaut pour les
+            # rameurs qui n'ont pas de calculateur cumulatif.
+            if self.rower is not None:
+                self.rower.reset_session_metrics()
 
             self.curr_rowerdata = RowerData(
                 connection= connection,
@@ -89,12 +105,39 @@ class RowState:
 
         with self._lock:
 
+            raw_elapsed = float(new_rowerdata.raw_elapsed_time)
+            raw_strokes = int(new_rowerdata.raw_stroke_count)
+
             if self._session_rebase_pending:
-                self._elapsed_offset = new_rowerdata.raw_elapsed_time
-                self._stroke_offset = new_rowerdata.raw_stroke_count
+                self._elapsed_offset = raw_elapsed
+                self._stroke_offset = raw_strokes
 
                 self._last_time = None
                 self._session_rebase_pending = False
+
+            else:
+                # Si le Q1S est physiquement remis à zéro en cours de séance,
+                # ses compteurs temps ET coups chutent ensemble. Ne pas confondre
+                # cela avec le glitch observé sur le compteur de coups seul.
+                raw_counters_reset = (
+                    self._last_raw_elapsed_time is not None
+                    and self._last_raw_stroke_count is not None
+                    and raw_elapsed < self._last_raw_elapsed_time - 3.0
+                    and raw_strokes < self._last_raw_stroke_count - 2
+                )
+                if raw_counters_reset:
+                    self._elapsed_offset = raw_elapsed
+                    self._stroke_offset = raw_strokes
+                    self._last_time = None
+                    self._distance_history.clear()
+                    self._distance_history_index = 0
+                    self.delta_strokes = 0
+                    self.stroke_event = False
+                    if self.rower is not None:
+                        self.rower.reset_session_metrics()
+
+            self._last_raw_elapsed_time = raw_elapsed
+            self._last_raw_stroke_count = raw_strokes
 
             #
             # Temps écoulé
