@@ -373,7 +373,7 @@ class RealFishingWidget(GamePainter):
     def _draw_status(self, painter: QPainter, game: Game) -> None:
 
         key = game.status_key
-        if game._last_event == "escaped" and game._event_elapsed < 2.5:
+        if game._last_event == RealFishingGame.FishEvent.ESCAPED and game._event_elapsed < 2.5:
             key = "GAME_REAL_FISHING_ESCAPED"
 
         text = get_text(key)

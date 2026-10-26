@@ -64,9 +64,9 @@ class DoomGame(Game):
     COMBAT_SECONDS: float = 20.0
     SHOT_INTERVAL: float = 60.0 / FIRE_CADENCE
     TURN_DURATION: float = 6.4
-    SPAWN_PERCENT: float = 40.0
     MAX_INJURIES: int = 5
 
+    ARMORED_SPAWN_PERCENT: float = 40.0
     BOSS_HITS_REQUIRED: int = 12
     MONSTER_LIVES_ARMORED: int = 5
     MONSTER_LIVES_FAST: int = 3
@@ -274,7 +274,7 @@ class DoomGame(Game):
     # -------------------------------------------------------------------------
     def _spawn_approaching_enemy(self) -> None:
 
-        armored = random.random() < (self.SPAWN_PERCENT / 100.0)
+        armored: bool = random.random() < (self.ARMORED_SPAWN_PERCENT / 100.0)
         self.enemies = [Monster(
             kind= self.MonsterType.ARMORED if armored else self.MonsterType.FAST,
             hits= self.MONSTER_LIVES_ARMORED if armored else self.MONSTER_LIVES_FAST,

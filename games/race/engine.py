@@ -100,7 +100,7 @@ class RaceGame(Game):
         self.stroke_impulse: float = 0.0
         self.nb_opponents: int = (
             self.OPPONENT_COUNT_1000
-            if self.game_id == "race_1000"
+            if self.game_id == Race1000Game.GAME_ID
             else self.OPPONENT_COUNT_2000
         )
         self.boats: list[Boat] = []

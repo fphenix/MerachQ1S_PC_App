@@ -33,12 +33,16 @@ from games.game_input import GameInput, resolve_game_cadence, ShortWindowCadence
 from games.game_registry import GAME_CLASSES, GAME_VIEWS, GAME_RULES
 from games.highscore import HighScoreManager
 
+from games.fishing.engine import FishingGame
+from games.doom.engine import DoomGame
+
+
 # =============================================================================
 class GameWidget(QWidget):
 
     FRAME_MS: int = 33
     MAX_SECONDS_BETWEEN_STROKES: float = 6.0
-    DEFAULT_GAME: str = "fishing"
+    DEFAULT_GAME: str = FishingGame.GAME_ID
 
     # -------------------------------------------------------------------------
     def __init__(
@@ -108,7 +112,7 @@ class GameWidget(QWidget):
 
         self.game = GAME_CLASSES[game_id]()
         self.game_view = GAME_VIEWS[game_id]()
-        if game_id == "doom":
+        if game_id == DoomGame.GAME_ID:
             self.rules_btn_rect = QRect(820, 658, 160, 30)
         else:
             self.rules_btn_rect = QRect(
@@ -405,7 +409,7 @@ class GameWidget(QWidget):
         painter.setPen(QPen(Qt.GlobalColor.white))
         painter.scale(self.width() / self.game.WIDTH, self.height() / self.game.HEIGHT)
 
-        if self.game.game_id != "doom":
+        if self.game.game_id != DoomGame.GAME_ID:
             painter.drawLine(0, self.game.HUD_HEIGHT, self.game.WIDTH, self.game.HUD_HEIGHT)
             painter.drawLine(
                 self.game.WIDTH // 2, 0,
@@ -440,7 +444,7 @@ class GameWidget(QWidget):
         if self.game.phase == self.game.Phase.WAITING:
             if self.game.phase_elapsed >= self.game.START_DELAY_SECONDS:
                 # Doom has its own separated HUD
-                if self.game.game_id == "doom":
+                if self.game.game_id == DoomGame.GAME_ID:
                     painter.setFont(QFont(GAME_FONT, 30, QFont.Weight.Bold))
                     self.paint_hcentered_text(
                         painter, y=300, text=self.game.title

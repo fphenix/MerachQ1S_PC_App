@@ -42,8 +42,8 @@ class FishingGame(Game):
     NET_LERP_SPEED: float = 3.0
     NET_LEFT_MARGIN: int = 90
     
-    SPAWN_MIN: float = 0.55
-    SPAWN_MAX: float = 1.05
+    SPAWN_MIN: float = 0.75 # seconds
+    SPAWN_MAX: float = 2.85 # seconds
 
     INSECTS_DATA: dict[str, dict[str, int|float]] = {
         "bee":       {"pxsize": 50, "speed": 50.0, "points":  60, "freq": 55.0},

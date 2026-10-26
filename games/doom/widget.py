@@ -62,7 +62,7 @@ class DoomWidget(GamePainter):
         center = float(self.CENTER_X)
         room_open = game.room_open and game.phase_name == game.GamePhase.EXPLORE
         room_progress = game.room_progress
-        room_fade = clamp_to_max(room_progress / 0.22, (1.0 - room_progress) / 0.22, 1.0)
+        room_fade = min(room_progress / 0.22, (1.0 - room_progress) / 0.22, 1.0)
         room_fade = clamp_to_zero(room_fade)
         room_fade = room_fade * room_fade * (3.0 - 2.0 * room_fade)
         room = room_open and room_fade > 0.0
@@ -577,10 +577,10 @@ class DoomWidget(GamePainter):
 
         #self._draw_enemy_OLD(painter, game, x, y, scale, armored, approach)
 
-        if not armored:
-            self._draw_enemy_bull(painter, game, x, y, scale)
-        else:
+        if armored:
             self._draw_enemy_cyber(painter, game, x, y, scale)
+        else:
+            self._draw_enemy_bull(painter, game, x, y, scale)
 
         # Les impacts restent sur le haut du corps, jamais sur les yeux.
         painter.setPen(Qt.PenStyle.NoPen)
@@ -627,13 +627,13 @@ class DoomWidget(GamePainter):
                                 50*scale, 34*scale), 10*scale, 10*scale)
 
         # Bras
-        painter.setPen(QPen(hide, clamp_to_min(15.0*scale, 7.0),
+        painter.setPen(QPen(muscle, clamp_to_min(15.0*scale, 7.0),
                        Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
         painter.drawLine(round(x-31*scale), round(y-24*scale),
                         round(x-48*scale), round(y+5*scale))
         painter.drawLine(round(x+31*scale), round(y-24*scale),
                         round(x+48*scale), round(y+5*scale))
-        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setPen(QPen(shadow, clamp_to_min(3.0 * scale, 1.0)))
         painter.setBrush(QBrush(muscle))
         painter.drawEllipse(QRectF(x-52*scale, y-1*scale, 17*scale, 35*scale))
         painter.drawEllipse(QRectF(x+35*scale, y-1*scale, 17*scale, 35*scale))

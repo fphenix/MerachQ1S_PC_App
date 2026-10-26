@@ -49,11 +49,20 @@ class RealFishingGame(Game):
     }
 
     class State(Enum):
-        CASTING: str = "st_casting"
-        FISHING: str = "st_fishing"
-        BITE: str = "st_bite"
-        REELING: str = "st_reeling"
-        UNHOOK: str = "st_unhook"
+        CASTING: str = "casting"
+        FISHING: str = "fishing"
+        BITE: str = "bite"
+        REELING: str = "reeling"
+        UNHOOK: str = "unhook"
+
+    class FishEvent(Enum):
+        NONE: str = ""
+        CAST: str = "cast"
+        HOOKED: str = "hooked"
+        LANDED: str = "landed"
+        NETTED: str = "netted"
+        BITE: str = "bite"
+        ESCAPED: str = "escaped"
 
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
@@ -80,7 +89,7 @@ class RealFishingGame(Game):
         self.fish_count: int = 0
         self.points_total: int = 0
         self._cadence_age: float = 999.0
-        self._last_event: str = ""
+        self._last_event: RealFishingGame.FishEvent = self.FishEvent.NONE
         self._event_elapsed: float = 0.0
         self._bobber_phase: float = 0.0
         self._needs_recast: bool = False
@@ -176,7 +185,7 @@ class RealFishingGame(Game):
                         self.BITE_WAIT_MIN_SECONDS,
                         self.BITE_WAIT_MAX_SECONDS,
                     )
-                    self._set_event("cast")
+                    self._set_event(self.FishEvent.CAST)
             else:
                 # Après le décrochage, le bouchon reste sur la berge jusqu'à
                 # ce que la cadence de lancer (26 CPM) soit reprise.
@@ -198,7 +207,7 @@ class RealFishingGame(Game):
                     self.REEL_DURATION_MIN_SECONDS,
                     self.REEL_DURATION_MAX_SECONDS,
                 )
-                self._set_event("hooked")
+                self._set_event(self.FishEvent.HOOKED)
             else:
                 self.hook_window_remaining -= dt
                 if self.hook_window_remaining <= 0.0:
@@ -210,7 +219,7 @@ class RealFishingGame(Game):
                     self.fishing_state = self.State.UNHOOK
                     self.state_elapsed = 0.0
                     self.unhook_progress = 0.0
-                    self._set_event("landed")
+                    self._set_event(self.FishEvent.LANDED)
             else:
                 self._fish_escaped()
 
@@ -228,7 +237,7 @@ class RealFishingGame(Game):
                     self._needs_recast = True
                     self.state_elapsed = 0.0
                     self.unhook_progress = 0.0
-                    self._set_event("netted")
+                    self._set_event(self.FishEvent.NETTED)
             # Hors de la plage lente, la progression s'arrête mais ne repart
             # pas de zéro : le joueur peut reprendre la bonne cadence.
 
@@ -242,7 +251,7 @@ class RealFishingGame(Game):
         self.fishing_state = self.State.BITE
         self.state_elapsed = 0.0
         self.hook_window_remaining = self.BITE_REACTION_SECONDS
-        self._set_event("bite")
+        self._set_event(self.FishEvent.BITE)
 
     # -------------------------------------------------------------------------
     def _fish_escaped(self) -> None:
@@ -254,10 +263,10 @@ class RealFishingGame(Game):
             self.BITE_WAIT_MIN_SECONDS,
             self.BITE_WAIT_MAX_SECONDS,
         )
-        self._set_event("escaped")
+        self._set_event(self.FishEvent.ESCAPED)
 
     # -------------------------------------------------------------------------
-    def _set_event(self, event: str) -> None:
+    def _set_event(self, event: FishEvent) -> None:
         self._last_event = event
         self._event_elapsed = 0.0
 

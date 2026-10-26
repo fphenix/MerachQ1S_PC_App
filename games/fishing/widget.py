@@ -10,7 +10,7 @@ from setup.lang import get_text
 from games.game import Game
 from games.game_painter import GamePainter
 from games.pulsator import Pulsator
-from games.fishing.engine import Insect
+from games.fishing.engine import FishingGame, Insect
 
 # =============================================================================
 class FishingWidget(GamePainter):
@@ -48,7 +48,7 @@ class FishingWidget(GamePainter):
         )
 
         # Gameplay A: one pulse per lane
-        if game.game_id == "fishing":
+        if game.game_id == FishingGame.GAME_ID:
             for row, spm in enumerate(reversed(game.CADENCE_LEVELS)):
                 center_y = round((row + 0.5) * game.LANE_HEIGHT)
                 painter.setPen(QPen(Qt.GlobalColor.black))

@@ -21,6 +21,9 @@ from games.highscore import HighScoreManager
 from games.game_registry import GAME_CLASSES
 from games.game_widget import GameWidget
 
+from games.doom.engine import DoomGame
+from games.real_fishing.engine import RealFishingGame
+
 # =============================================================================
 class HighScoreDialog(QDialog):
 
@@ -109,7 +112,7 @@ class HighScoreDialog(QDialog):
             minutes, seconds = divmod(clamp_to_zero(int(score)), 60)
             return f"{minutes:02d}:{seconds:02d}"
 
-        elif game_id == "real_fishing":
+        elif game_id == RealFishingGame.GAME_ID:
             return f"{float(score):.2f}"
         
         return str(int(score))
@@ -118,7 +121,7 @@ class HighScoreDialog(QDialog):
     @classmethod
     def _format_entry_score(cls, game_id: str, entry: dict[str, object]) -> str:
         score = cls._format_score(game_id, entry["score"])
-        if game_id == "doom":
+        if game_id == DoomGame.GAME_ID:
             injuries = clamp_to_min(int(entry.get("injuries", 0)), 0)
             return f"{score} (-{injuries})"
         return f"{score:>7}"
