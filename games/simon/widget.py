@@ -7,6 +7,7 @@ from PySide6.QtGui import QColor, QBrush, QPen, QPainter, QFont
 
 from setup.constants import GAME_FONT
 from setup.lang import get_text
+from setup.utils import clamp_to_max, clamp_to_min
 
 from games.game import Game
 from games.game_painter import GamePainter
@@ -41,9 +42,14 @@ class SimonWidget(GamePainter):
             background,
         )
 
-        diameter = 390
+        # Bande de séquence. Elle affiche la séquence complète pendant
+        # la démonstration puis uniquement les cases déjà validées
+        # pendant le tour du joueur.
+        self._draw_sequence_strip(painter, game)
+
+        diameter = 350
         disk = QRectF(
-            (game.WIDTH - diameter) / 2, 118,
+            (game.WIDTH - diameter) / 2, 143,
             diameter, diameter,
         )
         center_x = disk.center().x()
@@ -58,7 +64,7 @@ class SimonWidget(GamePainter):
         # Sections de disque et pulsateur toujours visible pour chaque cadence.
         for lane, color in enumerate(self.SECTIONS_COLORS):
             active = lane == game.active_lane
-            fill = color.lighter(185) if active else color.darker(185)
+            fill = color.lighter(118) if active else color.darker(165)
             painter.setBrush(QBrush(fill))
             painter.setPen(QPen(QColor("#171717"), 5))
             painter.drawPie(
@@ -122,7 +128,7 @@ class SimonWidget(GamePainter):
         # message
         painter.setFont(QFont(GAME_FONT, 22, QFont.Weight.Bold))
         painter.drawText(
-            QRectF(40, 520, game.WIDTH - 80, 38),
+            QRectF(40, 505, game.WIDTH - 80, 34),
             Qt.AlignmentFlag.AlignCenter,
             get_text(game.message_key),
         )
@@ -130,14 +136,14 @@ class SimonWidget(GamePainter):
         # Texte : "Manche <number>"
         painter.setFont(QFont(GAME_FONT, 16))
         painter.drawText(
-            QRectF(40, 565, game.WIDTH - 80, 30),
+            QRectF(40, 542, game.WIDTH - 80, 28),
             Qt.AlignmentFlag.AlignCenter,
             get_text("GAME_SIMON_ROUND").format(round=game.round_number),
         )
 
         # Rappel de cadences par bouton
         painter.drawText(
-            QRectF(40, 603, game.WIDTH - 80, 32),
+            QRectF(40, 574, game.WIDTH - 80, 28),
             Qt.AlignmentFlag.AlignCenter,
             get_text("GAME_SIMON_CADENCE_HINT"),
         )
@@ -147,10 +153,64 @@ class SimonWidget(GamePainter):
             self.PULSATOR.paint(
                 painter,
                 center_x + (lane - 1) * 195,
-                665,
+                650,
                 game.elapsed,
                 game.CADENCE_TARGETS[lane],
                 color.lighter(145),
             )
+
+        painter.restore()
+
+    # -------------------------------------------------------------------------
+    def _draw_sequence_strip(self, painter: QPainter, game: Game) -> None:
+
+        sequence = list(getattr(game, "sequence", []))
+        if not sequence:
+            return
+
+        margin = 24.0
+        gap = 4.0
+        max_columns = 34
+        columns = min(len(sequence), max_columns)
+        rows = (len(sequence) + columns - 1) // columns
+        available_width = game.WIDTH - 2 * margin
+        tile = clamp_to_max((available_width - (columns - 1) * gap) / columns, 25.0)
+        tile = clamp_to_min(tile, 10.0)
+        top = 78.0
+        left = (game.WIDTH - (columns * tile + (columns - 1) * gap)) / 2
+
+        painter.save()
+
+        painter.setPen(Qt.PenStyle.NoPen)
+        for index, lane in enumerate(sequence):
+            row = index // columns
+            column = index % columns
+            rect = QRectF(
+                left + column * (tile + gap),
+                top + row * (tile + gap),
+                tile, tile,
+            )
+            playback_revealed = (
+                game.showing_sequence
+                and index < getattr(game, "playback_revealed_count", 0)
+            )
+            if playback_revealed:
+                color = self.SECTIONS_COLORS[lane]
+                painter.setBrush(QBrush(color))
+                painter.setPen(QPen(color.lighter(125), 1.2))
+            elif not game.showing_sequence and index < game.input_index:
+                color = self.SECTIONS_COLORS[lane].darker(110)
+                painter.setBrush(QBrush(color))
+                painter.setPen(QPen(color.lighter(125), 1.2))
+            else:
+                painter.setBrush(QBrush(QColor("#394653")))
+                painter.setPen(QPen(QColor("#778391"), 1.0))
+            painter.drawRoundedRect(rect, 3, 3)
+
+            # Numéros discrets : ils indiquent la position, pas la réponse.
+            visible = playback_revealed or (not game.showing_sequence and index < game.input_index)
+            painter.setPen(QPen(QColor("#f0f2f5") if visible else QColor("#9ba7b3")))
+            painter.setFont(QFont(GAME_FONT, clamp_to_min(int(tile * 0.42), 7), QFont.Weight.Bold))
+            painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, str(index + 1))
 
         painter.restore()

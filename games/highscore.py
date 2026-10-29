@@ -9,7 +9,7 @@ from setup.utils import clamp_to_min
 
 from games.score_config import (
     GAME_SCORE_ORDERS,
-    GAME_HISCORE_DEFAULT, GAME_HISCORE_ASC,
+    GameHiScoreDirection,
 )
 
 from games.doom.engine import DoomGame
@@ -62,8 +62,26 @@ class HighScoreManager:
         tie_break_score: int | None = None,
     ) -> bool:
         
+        return self.add_hiscore_rank(
+            game_id, score, common=common, user_id=user_id,
+            tie_break_score=tie_break_score,
+        ) is not None
+
+    # -------------------------------------------------------------------------
+    def add_hiscore_rank(
+        self,
+        game_id: str,
+        score: int | float,
+        common: bool = False,
+        user_id: str = "",
+        tie_break_score: int | None = None,
+    ) -> int | None:
+
         stored_score = round(float(score), 2) if game_id == RealFishingGame.GAME_ID else int(score)
-        entry = {"score": stored_score, "date": datetime.now().strftime("%d/%m/%y")}
+        entry = {
+            "score": stored_score,
+            "date": datetime.now().strftime("%d/%m/%y")
+        }
         if game_id == DoomGame.GAME_ID:
             entry["injuries"] = clamp_to_min(int(tie_break_score or 0), 0)
 
@@ -76,13 +94,14 @@ class HighScoreManager:
             scores.append(entry)
 
         scores.sort(key=lambda item: self._sort_key(game_id, item))
-        is_hiscore = entry in scores[:self.SCORES_LIST_LENGTH]
+        index = next((i for i, item in enumerate(scores) if item is entry), None)
+        rank = index + 1 if index is not None and index < self.SCORES_LIST_LENGTH else None
 
         del scores[self.SCORES_LIST_LENGTH:]
 
         self._common_save() if common else self._personal_save()
         
-        return is_hiscore
+        return rank
 
     # -------------------------------------------------------------------------
     @staticmethod
@@ -95,7 +114,7 @@ class HighScoreManager:
 
         return (
             score
-            if GAME_SCORE_ORDERS.get(game_id, GAME_HISCORE_DEFAULT) == GAME_HISCORE_ASC
+            if GAME_SCORE_ORDERS.get(game_id, GameHiScoreDirection.DEFAULT) == GameHiScoreDirection.ASCENDING
             else -score
         )
 

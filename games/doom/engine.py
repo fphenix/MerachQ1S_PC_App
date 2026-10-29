@@ -22,6 +22,8 @@ from games.game_input import GameInput, input_cadence
 class Monster:
     
     kind: "DoomGame.MonsterType"
+    armored: bool
+    old_skin: bool
     hits: int
     side: int
     blood: int
@@ -66,14 +68,15 @@ class DoomGame(Game):
     TURN_DURATION: float = 6.4
     MAX_INJURIES: int = 5
 
-    ARMORED_SPAWN_PERCENT: float = 40.0
+    OLD_BOSS_SPAWN_PERCENT: float = 45.0
+    CYBERDEMON_SPAWN_PERCENT: float = 40.0
     BOSS_HITS_REQUIRED: int = 12
-    MONSTER_LIVES_ARMORED: int = 5
-    MONSTER_LIVES_FAST: int = 3
+    MONSTER_LIVES_CYBER: int = 5
+    MONSTER_LIVES_PINKY: int = 3
 
     class MonsterType(Enum):
-        ARMORED: str = "armored"
-        FAST: str = "fast"
+        CYBER: str = "cyber"
+        PINKY: str = "pinky"
 
     class GamePhase(Enum):
         EXPLORE: str = "explore"
@@ -119,6 +122,7 @@ class DoomGame(Game):
         self.boss_approach_elapsed: float = 0.0
         self.boss_defeated: bool = False
         self.boss_hits: int = 0
+        self.use_old_boss = random.random() < (self.OLD_BOSS_SPAWN_PERCENT / 100.0)
 
     # -------------------------------------------------------------------------
     def update_game(self, dt: float, game_input: GameInput) -> None:
@@ -274,16 +278,26 @@ class DoomGame(Game):
     # -------------------------------------------------------------------------
     def _spawn_approaching_enemy(self) -> None:
 
-        armored: bool = random.random() < (self.ARMORED_SPAWN_PERCENT / 100.0)
+        is_cyber: bool = random.random() < (self.CYBERDEMON_SPAWN_PERCENT / 100.0)
+        is_armored: bool = random.choice((False, True))
+        lives = (
+            self.MONSTER_LIVES_CYBER
+            if is_cyber
+            else self.MONSTER_LIVES_PINKY
+        )
+        if is_armored:
+            lives += 1
         self.enemies = [Monster(
-            kind= self.MonsterType.ARMORED if armored else self.MonsterType.FAST,
-            hits= self.MONSTER_LIVES_ARMORED if armored else self.MONSTER_LIVES_FAST,
+            kind= self.MonsterType.CYBER if is_cyber else self.MonsterType.PINKY,
+            armored= is_armored,
+            old_skin= random.choice((False, True)),
+            hits= lives,
             side= random.choice((-1, 1)),
             blood= 0,
             remaining= self.COMBAT_SECONDS,
             approach_progress= 0.0,
         )]
-        self.message_key = "GAME_DOOM_ENEMY_ARMORED" if armored else "GAME_DOOM_ENEMY_FAST"
+        self.message_key = "GAME_DOOM_ENEMY_CYBER" if is_cyber else "GAME_DOOM_ENEMY_PINKY"
 
     # -------------------------------------------------------------------------
     def _start_encounter(self) -> None:
@@ -291,18 +305,18 @@ class DoomGame(Game):
         if not self.enemies:
             self._spawn_approaching_enemy()
 
-        for enemy in self.enemies:
-            enemy.approach_progress = 1.0
+        enemy = self.enemies[0]
+        enemy.approach_progress = 1.0
 
         self.phase_name = self.GamePhase.COMBAT
-        self.combat_remaining = self.enemies[0].remaining if self.enemies else self.COMBAT_SECONDS
+        self.combat_remaining = enemy.remaining
         self._shot_elapsed = 0.0
         self.bullet_progress = 0.0
-        enemy_kind = self.enemies[0].kind if self.enemies else self.MonsterType.FAST
+
         self.message_key = (
-            "GAME_DOOM_ENEMY_ARMORED"
-            if enemy_kind == self.MonsterType.ARMORED
-            else "GAME_DOOM_ENEMY_FAST"
+            "GAME_DOOM_ENEMY_CYBER"
+            if enemy.kind == self.MonsterType.CYBER
+            else "GAME_DOOM_ENEMY_PINKY"
         )
 
     # -------------------------------------------------------------------------

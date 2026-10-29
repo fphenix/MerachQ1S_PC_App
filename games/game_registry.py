@@ -36,6 +36,9 @@ from games.simon.widget import SimonWidget
 from games.doom.engine import DoomGame
 from games.doom.widget import DoomWidget
 
+from games.tower.engine import Tower1Game, Tower2Game
+from games.tower.widget import TowerWidget
+
 GAME_CLASSES: dict[str, type[Game]] = {
     "fishing": FishingGame,
     "fishing2": Fishing2Game,
@@ -49,6 +52,8 @@ GAME_CLASSES: dict[str, type[Game]] = {
     "mario": MarioGame,
     "simon": SimonGame,
     "doom": DoomGame,
+    "tower": Tower1Game,
+    "tower2": Tower2Game,
 }
 
 GAME_VIEWS: dict[str, type[GamePainter]] = {
@@ -64,6 +69,8 @@ GAME_VIEWS: dict[str, type[GamePainter]] = {
     "mario": MarioWidget,
     "simon": SimonWidget,
     "doom": DoomWidget,
+    "tower": TowerWidget,
+    "tower2": TowerWidget,
 }
 
 GAME_RULES: dict[str, Path] = {
@@ -79,4 +86,6 @@ GAME_RULES: dict[str, Path] = {
     "mario": Path(__file__).parent / "mario" / "rules.json",
     "simon": Path(__file__).parent / "simon" / "rules.json",
     "doom": Path(__file__).parent / "doom" / "rules.json",
+    "tower": Path(__file__).parent / "tower" / "rules.json",
+    "tower2": Path(__file__).parent / "tower" / "rules2.json",
 }

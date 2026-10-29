@@ -1,0 +1,4 @@
+{
+    "en": "Tower — Gameplay A\n\nRow around 20 SPM (±2) to move the crane. When the crane is over the stack and carrying a block, row around 30 SPM (±2): a newly detected stroke releases the block. The crane pauses at other cadences.\n\nThe crane fetches blocks alternately from the left and right support. Blocks fall under gravity, rotate and collide. Build a stable tower; the score is maximum height reached before time runs out.",
+    "fr": "La Tour — Gameplay A\n\nRamez autour de 20 CPM (±2) pour déplacer la grue. Lorsque la grue porte un bloc au-dessus de la pile, ramez autour de 30 CPM (±2) : un nouveau coup détecté libère le bloc. À une autre cadence, la grue s’arrête.\n\nLa grue récupère les blocs alternativement à gauche et à droite. Les blocs tombent sous l’effet de la gravité, tournent et entrent en collision. Construisez une tour stable ; le score correspond à la hauteur maximale atteinte."
+}

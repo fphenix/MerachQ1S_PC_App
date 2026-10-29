@@ -22,6 +22,7 @@ from setup.lang import get_text, get_language
 from setup.constants import (
     AVERAGE_FONT_SIZE, MAIN_FONT, GAME_FONT,
     ALLOW_DEBUG_HISCORES,
+    FILE_ENCODING,
 )
 from setup.utils import is_between, clamp_to_max, clamp_to_min
 
@@ -66,6 +67,8 @@ class GameWidget(QWidget):
         self.personal_highscore_file: Path = personal_highscore_file
         self.personal_hiscore: bool = False
         self.common_hiscore: bool = False
+        self.personal_hiscore_rank: int | None = None
+        self.common_hiscore_rank: int | None = None
 
         self.game: Game = GAME_CLASSES[self.DEFAULT_GAME]()
         self.game_view: GamePainter = GAME_VIEWS[self.DEFAULT_GAME]()
@@ -139,6 +142,8 @@ class GameWidget(QWidget):
         self._game_cadence_filter.reset()
         self.personal_hiscore = False
         self.common_hiscore = False
+        self.personal_hiscore_rank = None
+        self.common_hiscore_rank = None
         self.setFocus()
         self.update()
 
@@ -198,7 +203,7 @@ class GameWidget(QWidget):
         filename = GAME_RULES[self.game.game_id]
         
         try:
-            with filename.open("r", encoding="utf-8") as rfile:
+            with filename.open("r", encoding=FILE_ENCODING) as rfile:
                 rules = json.load(rfile)
             message = rules.get(get_language(), rules.get("fr", ""))
         
@@ -279,7 +284,7 @@ class GameWidget(QWidget):
         if manual_stroke:
             if self._last_manual_stroke_time is not None:
                 interval = current - self._last_manual_stroke_time
-                if 0.0 < interval <= self.MAX_SECONDS_BETWEEN_STROKES:
+                if is_between(interval, 0.0, self.MAX_SECONDS_BETWEEN_STROKES, strict_min= True):
                     self._manual_spm = 60.0 / interval
                 else:
                     self._manual_spm = None
@@ -373,24 +378,28 @@ class GameWidget(QWidget):
         if was_finished and not self.game.finished:
             self.personal_hiscore = False
             self.common_hiscore = False
+            self.personal_hiscore_rank = None
+            self.common_hiscore_rank = None
 
         record_hiscore = (
             self.game.records_score()
             and (ALLOW_DEBUG_HISCORES or not self._debug_input_used)
         )
         if self.game.finished and not was_finished and record_hiscore:
-            self.personal_hiscore = self.highscores.add_hiscore(
+            self.personal_hiscore_rank = self.highscores.add_hiscore_rank(
                 self.game.game_id,
                 self.game.score,
                 tie_break_score=getattr(self.game, "injuries", None),
             )
-            self.common_hiscore = self.highscores.add_hiscore(
+            self.common_hiscore_rank = self.highscores.add_hiscore_rank(
                 self.game.game_id,
                 self.game.score,
                 common= True,
                 user_id= self.user_id,
                 tie_break_score=getattr(self.game, "injuries", None),
             )
+            self.personal_hiscore = self.personal_hiscore_rank is not None
+            self.common_hiscore = self.common_hiscore_rank is not None
 
         self.update()
 
@@ -487,12 +496,23 @@ class GameWidget(QWidget):
             hiscore_y = 410 if has_score_line else 385
             restart_y = 455 if has_score_line else 430
 
-            if self.personal_hiscore or self.common_hiscore:
+            qualifying_ranks = [
+                rank for rank in (self.personal_hiscore_rank, self.common_hiscore_rank)
+                if rank is not None
+            ]
+            if qualifying_ranks:
+                best_rank = min(qualifying_ranks)
+                message_key = {
+                    1: "GAME_HISCORE_GOLD",
+                    2: "GAME_HISCORE_SILVER",
+                    3: "GAME_HISCORE_BRONZE",
+                }.get(best_rank, "GAME_NEW_HISCORE")
+
                 painter.setFont(QFont(GAME_FONT, 22, QFont.Weight.Bold))
                 self.paint_hcentered_text(
                     painter,
                     y=hiscore_y,
-                    text=get_text("GAME_NEW_HISCORE"),
+                    text=get_text(message_key),
                 )
 
             if self.game.phase_elapsed >= self.game.RESTART_DELAY_SECONDS:

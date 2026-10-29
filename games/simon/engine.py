@@ -52,6 +52,7 @@ class SimonGame(Game):
         self.input_index: int = 0
         self.showing_sequence: bool = True
         self.playback_index: int = 0
+        self.playback_revealed_count: int = 0
         self.playback_repeat_count: int = 0
         self.playback_elapsed: float = 0.0
         self.flash_remaining: float = 0.0
@@ -79,6 +80,7 @@ class SimonGame(Game):
         self.input_index = 0
         self.showing_sequence = True
         self.playback_index = 0
+        self.playback_revealed_count = 0
         self.playback_repeat_count = 0
         self.playback_elapsed = 0.0
         self.flash_remaining = 0.0
@@ -98,6 +100,7 @@ class SimonGame(Game):
         self.input_index = 0
         self.showing_sequence = True
         self.playback_index = 0
+        self.playback_revealed_count = 0
         self.playback_repeat_count = 0
         self.playback_elapsed = 0.0
         self.flash_remaining = 0.0
@@ -116,6 +119,14 @@ class SimonGame(Game):
             self.active_lane = None
 
         if self.showing_sequence:
+            # Simon ne révèle la séquence que tant qu'une cadence valide est
+            # détectée. Une cadence nulle/absente met la démonstration en pause.
+            if self.current_spm is None:
+                self.active_lane = None
+                self.message_key = "GAME_SIMON_WAIT_CADENCE"
+                return
+
+            self.message_key = "GAME_SIMON_WATCH"
             self.playback_elapsed += dt
             cycle = self.PLAYBACK_ON_SECONDS + self.PLAYBACK_GAP_SECONDS
             while self.playback_elapsed >= cycle and self.showing_sequence:
@@ -134,11 +145,14 @@ class SimonGame(Game):
                     self.active_lane = self.sequence[self.playback_index]
 
             if self.showing_sequence:
-                self.active_lane = (
-                    self.sequence[self.playback_index]
-                    if self.playback_elapsed < self.PLAYBACK_ON_SECONDS
-                    else None
-                )
+                if self.playback_elapsed < self.PLAYBACK_ON_SECONDS:
+                    self.active_lane = self.sequence[self.playback_index]
+                    self.playback_revealed_count = max(
+                        self.playback_revealed_count,
+                        self.playback_index + 1,
+                    )
+                else:
+                    self.active_lane = None
 
             # La séquence entière est montrée trois fois, chaque étape à son
             # tour. Les coups de rame pendant la démonstration sont ignorés.

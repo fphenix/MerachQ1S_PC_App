@@ -23,6 +23,7 @@ from games.game_widget import GameWidget
 
 from games.doom.engine import DoomGame
 from games.real_fishing.engine import RealFishingGame
+from games.race.engine import Race1000Game, Race2000Game
 
 # =============================================================================
 class HighScoreDialog(QDialog):
@@ -108,7 +109,7 @@ class HighScoreDialog(QDialog):
     @staticmethod
     def _format_score(game_id: str, score: int | float) -> str:
 
-        if game_id in {"race_1000", "race_2000"}:
+        if game_id in [Race1000Game.GAME_ID, Race2000Game.GAME_ID]:
             minutes, seconds = divmod(clamp_to_zero(int(score)), 60)
             return f"{minutes:02d}:{seconds:02d}"
 

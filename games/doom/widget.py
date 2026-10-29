@@ -1,6 +1,7 @@
 """Rendu rétro en perspective d'un couloir de donjon."""
 
 import math
+import time
 
 from PySide6.QtCore import Qt, QPointF, QRectF
 from PySide6.QtGui import (
@@ -327,6 +328,11 @@ class DoomWidget(GamePainter):
 
         painter.restore()
 
+        # Restes des monstres
+        self._draw_blood_decals(
+            painter, game, center, opening_bottom, bottom, floor_opening_shift
+        )
+
         # Assombrissement en hauteur (torches éclairent le plafond)
         depth_fog = QLinearGradient(0, 0, 0, bottom)
         depth_fog.setColorAt(0.0, QColor(25, 0, 0, 28))
@@ -556,10 +562,43 @@ class DoomWidget(GamePainter):
     def _draw_enemy(self, painter: QPainter, game: Game) -> None:
         """Dessine des silhouettes distinctes : Pinky/Bull Demon et Cyberdemon."""
 
+        # Le moteur retire immédiatement un monstre mort de game.enemies.
+        # On conserve sa dernière position dessinée pour afficher l'explosion.
+        if not hasattr(self, "_doom_last_kills"):
+            self._doom_last_kills = game.kills
+            self._doom_last_enemy = None
+            self._doom_explosion = None
+            self._doom_blood_decals = []
+
+        if game.kills > self._doom_last_kills:
+            if self._doom_last_enemy is not None:
+                ex, ey, escale, side, approach = self._doom_last_enemy
+                now = time.monotonic()
+                self._doom_explosion = (ex, ey, escale, now)
+                # Ancrer les restes au sol à la profondeur correspondant aux
+                # pieds du monstre, pas à son centre ni à une profondeur arbitraire.
+                # La perspective du sol va de l'ouverture au bas de la scène.
+                floor_opening = float(self.HORIZON_Y + 35)
+                floor_bottom = float(self.HUD_TOP)
+                feet_y = ey + 59.0 * escale
+                floor_t = clamp_between(
+                    (feet_y - floor_opening) / clamp_to_min(floor_bottom - floor_opening, 1.0),
+                    0.025, 0.88,
+                )
+                # La trace reste à cette position du monde, défile vers le joueur
+                # avec l'avancée du couloir et disparaît une fois dépassée.
+                span = clamp_to_min((1.0 - floor_t) * 9.0, 2.5)
+                self._doom_blood_decals.append((
+                    float(game.world_distance), span,
+                    floor_t, side, escale, game.kills * 37 + 11,
+                ))
+                self._doom_blood_decals = self._doom_blood_decals[-24:]
+            self._doom_last_enemy = None
+        self._doom_last_kills = game.kills
+        self._draw_death_explosion(painter)
+
         if game.phase_name == game.GamePhase.BOSSFIGHT:
             self._draw_boss(painter, game)
-            #self._draw_boss_OLD(painter, game)
-            return
 
         enemies = game.enemies
         if not enemies:
@@ -568,29 +607,36 @@ class DoomWidget(GamePainter):
         enemy = enemies[0]
         approach: float = clamp_between(enemy.approach_progress, 0.0, 1.0)
         breathing = math.sin(game.elapsed * 3.2) * (1.0 + 1.5 * approach)
-        armored: bool = (enemy.kind == game.MonsterType.ARMORED)
+        is_cyber: bool = (enemy.kind == game.MonsterType.CYBER)
+        armored = enemy.armored
+        use_old_skin = enemy.old_skin
         x = self.CENTER_X + enemy.side * (18 + 54 * approach)
         y = self.HORIZON_Y + 30 + 107 * approach + breathing
-        scale = (0.24 + 0.94 * approach) * (1.34 if armored else 1.12)
+        scale = (0.24 + 0.94 * approach) * (1.34 if is_cyber else 1.12)
+
+        # Mémorise la position du monstre afin de connaitre sa dernière
+        # position quand il meurt (pour y générer l'explosion)
+        self._doom_last_enemy = (x, y, scale, enemy.side, approach)
 
         painter.save()
 
-        #self._draw_enemy_OLD(painter, game, x, y, scale, armored, approach)
-
-        if armored:
-            self._draw_enemy_cyber(painter, game, x, y, scale)
+        if is_cyber:
+            self._draw_enemy_cyber(painter, game, x, y, scale, armored)
         else:
-            self._draw_enemy_bull(painter, game, x, y, scale)
+            if use_old_skin:
+                self._draw_enemy_OLD(painter, game, x, y, scale, armored)
+            else:
+                self._draw_enemy_bull(painter, game, x, y, scale)
 
         # Les impacts restent sur le haut du corps, jamais sur les yeux.
         painter.setPen(Qt.PenStyle.NoPen)
         blood_spots = clamp_to_max(enemy.blood * 2, 7)
         for i in range(blood_spots):
             painter.setBrush(QBrush(QColor(150, 15, 22, 220)))
-            if armored:
+            if is_cyber or use_old_skin:
                 # Cyberdemon : plastron, sous la tête et au-dessus du ventre.
                 spot_x = x - 22*scale + (i % 4)*13*scale
-                spot_y = y - 13*scale + (i // 4)*12*scale
+                spot_y = y - 10*scale + (i // 4)*12*scale
             else:
                 # Pinky : épaules et partie haute du torse, sous les yeux.
                 spot_x = x - 22*scale + (i % 4)*12*scale
@@ -608,7 +654,7 @@ class DoomWidget(GamePainter):
         scale: float
     ) -> None:
 
-        # PINKY / BULL DEMON
+        # Pinky, Bulldemon
         hide = QColor("#9d514f")
         muscle = QColor("#ad564f")
         shadow = QColor("#713a3c")
@@ -625,7 +671,6 @@ class DoomWidget(GamePainter):
         painter.setBrush(QBrush(shadow))
         painter.drawRoundedRect(QRectF(x - 25*scale, y - 8*scale,
                                 50*scale, 34*scale), 10*scale, 10*scale)
-
         # Bras
         painter.setPen(QPen(muscle, clamp_to_min(15.0*scale, 7.0),
                        Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
@@ -705,10 +750,11 @@ class DoomWidget(GamePainter):
         painter: QPainter,
         game: Game,
         x: float, y: float,
-        scale: float
+        scale: float,
+        armored: bool,
     ):
 
-        # CYBERDEMON
+        # Cyberdemon
         skin = QColor("#865447")
         skin_light = QColor("#b47b63")
         metal = QColor("#68747b")
@@ -753,15 +799,17 @@ class DoomWidget(GamePainter):
             QPointF(x+20*scale, y+31*scale), QPointF(x+37*scale, y+23*scale),
             QPointF(x+43*scale, y-12*scale), QPointF(x+23*scale, y-22*scale),
         ]))
-        painter.setBrush(QBrush(metal))
-        painter.drawPolygon(QPolygonF([
-            QPointF(x-25*scale, y-15*scale), QPointF(x, y-25*scale),
-            QPointF(x+25*scale, y-15*scale), QPointF(x+21*scale, y+15*scale),
-            QPointF(x, y+24*scale), QPointF(x-21*scale, y+15*scale),
-        ]))
-        painter.setBrush(QBrush(metal_light))
-        painter.drawLine(round(x-15*scale), round(y-10*scale),
-                        round(x+15*scale), round(y-10*scale))
+        # Shield
+        if armored:
+            painter.setBrush(QBrush(metal))
+            painter.drawPolygon(QPolygonF([
+                QPointF(x-25*scale, y-15*scale), QPointF(x, y-25*scale),
+                QPointF(x+25*scale, y-15*scale), QPointF(x+21*scale, y+15*scale),
+                QPointF(x, y+24*scale), QPointF(x-21*scale, y+15*scale),
+            ]))
+            painter.setBrush(QBrush(metal_light))
+            painter.drawLine(round(x-15*scale), round(y-10*scale),
+                            round(x+15*scale), round(y-10*scale))
         # Jambes : gauche organique, droite prothèse.
         painter.setBrush(QBrush(skin))
         painter.drawRoundedRect(QRectF(x-27*scale, y+27*scale,
@@ -795,8 +843,155 @@ class DoomWidget(GamePainter):
         painter.drawEllipse(QRectF(x+46*scale, y+5*scale, 5*scale, 5*scale))
 
     # -------------------------------------------------------------------------
+    def _draw_death_explosion(self, painter: QPainter) -> None:
+        """Éclatement sanglant à la mort du mob"""
+
+        effect = getattr(self, "_doom_explosion", None)
+        if effect is None:
+            return
+
+        x, y, scale, started = effect
+        age = time.monotonic() - started
+        duration = 0.95
+        if age >= duration:
+            self._doom_explosion = None
+            return
+
+        progress = clamp_between(age / duration, 0.0, 1.0)
+        fade = (1.0 - progress) ** 1.35
+
+        painter.save()
+
+        painter.setPen(Qt.PenStyle.NoPen)
+
+        # Bref nuage rouge sombre au point d'impact.
+        radius = (13.0 + 43.0 * progress) * scale * 1.22
+        cloud = QRadialGradient(QPointF(x, y), clamp_to_min(radius, 1.0))
+        cloud.setColorAt(0.0, QColor(105, 8, 18, int(185 * fade)))
+        cloud.setColorAt(0.45, QColor(75, 4, 12, int(130 * fade)))
+        cloud.setColorAt(1.0, QColor(48, 0, 5, 0))
+        painter.setBrush(QBrush(cloud))
+        painter.drawEllipse(QRectF(x - radius, y - radius * 0.8, radius * 2, radius * 1.6))
+
+        # Éclaboussures et fragments projetés avec une trajectoire descendante.
+        for i in range(13):
+            angle = (2.0 * math.pi * i / 13.0) + 0.23
+            speed = (28.0 + (i % 4) * 12.0) * scale * 1.25
+            dx = math.cos(angle) * speed * progress
+            dy = math.sin(angle) * speed * progress * 1.25 + 33.0 * scale * progress * progress
+            size = (4.0 + (i % 3) * 3.0) * scale * (0.75 + 0.25 * fade)
+            color = (118, 8 + (i % 3) * 3, 17, int(235 * fade))
+            painter.setBrush(QBrush(QColor(*color)))
+            if i % 3 == 0:
+                painter.drawPolygon(QPolygonF([
+                    QPointF(x + dx - size, y + dy - size * 0.4),
+                    QPointF(x + dx + size * 1.4, y + dy),
+                    QPointF(x + dx - size * 0.2, y + dy + size),
+                ]))
+            else:
+                painter.drawEllipse(QRectF(x + dx - size, y + dy - size * 0.55, size * 2.0, size * 1.1))
+
+        # Quelques gouttes plus fines
+        for i in range(9):
+            angle = (2.0 * math.pi * i / 9.0) + 0.61
+            dist = (40.0 + (i % 3) * 14.0) * scale * progress * 1.18
+            dx = math.cos(angle) * dist
+            dy = math.sin(angle) * dist + 42.0 * scale * progress * progress
+            painter.setBrush(QBrush(QColor(145, 12, 24, int(205 * fade))))
+            painter.drawEllipse(QRectF(
+                x + dx - 1.7 * scale, y + dy - 2.5 * scale,
+                5.0 * scale, 7.5 * scale,
+            ))
+
+        painter.restore()
+
+    # -------------------------------------------------------------------------
+    def _draw_blood_decals(
+        self,
+        painter: QPainter,
+        game: Game,
+        center: float,
+        opening_bottom: float,
+        bottom: float,
+        opening_shift: float,
+    ) -> None:
+        """Flaques et morceaux résultant de l'explosion du mob!"""
+
+        decals = getattr(self, "_doom_blood_decals", None)
+        if not decals:
+            return
+
+        current_distance = float(game.world_distance)
+        visible = []
+
+        painter.save()
+
+        painter.setPen(Qt.PenStyle.NoPen)
+        for born_distance, span, start_t, side, monster_scale, seed in decals:
+            travelled = current_distance - born_distance
+            remaining = span - travelled
+            if remaining <= 0.0:
+                continue
+            visible.append((born_distance, span, start_t, side, monster_scale, seed))
+            if travelled < 0.0:
+                continue
+
+            progress = clamp_between(travelled / span, 0.0, 1.0)
+            t = start_t + (1.0 - start_t) * progress
+            perspective = 0.30 + 1.45 * t
+            x = center + side * (10.0 + 148.0 * t) + opening_shift * (1.0 - t)
+            y = opening_bottom + (bottom - opening_bottom) * t
+            size_factor = clamp_to_min(monster_scale, 0.72)
+            w = (20.0 + 48.0 * t) * size_factor
+            h = (7.0 + 15.0 * t) * size_factor
+            alpha = int(190 * (0.45 + 0.55 * t))
+
+            # Flaque irrégulière, sans flash ni couleur surnaturelle.
+            painter.setBrush(QBrush(QColor(48, 5, 9, alpha)))
+            painter.drawEllipse(QRectF(x - w * 0.62, y - h * 0.35, w * 1.24, h * 0.82))
+            painter.setBrush(QBrush(QColor(112, 8, 17, int(alpha * 0.82))))
+            painter.drawEllipse(QRectF(x - w * 0.39, y - h * 0.68, w * 0.73, h * 0.92))
+            painter.setBrush(QBrush(QColor(72, 6, 12, int(alpha * 0.9))))
+            painter.drawEllipse(QRectF(x + w * 0.18, y - h * 0.28, w * 0.48, h * 0.56))
+
+            # Corps écrasé mais en volume : ombre portée, masse sombre,
+            # relief rouge et quelques morceaux épais avec une face éclairée.
+            body_w = (15.0 + 29.0 * t) * size_factor
+            body_h = (6.0 + 11.0 * t) * size_factor
+            painter.setBrush(QBrush(QColor(20, 3, 5, int(alpha * 0.78))))
+            painter.drawEllipse(QRectF(x - body_w * 0.72, y - body_h * 0.24,
+                                       body_w * 1.44, body_h * 0.94))
+            painter.setBrush(QBrush(QColor(36, 24, 25, int(alpha * 0.98))))
+            painter.drawEllipse(QRectF(x - body_w * 0.63, y - body_h * 0.58,
+                                       body_w * 0.93, body_h * 0.91))
+            painter.setBrush(QBrush(QColor(91, 25, 31, int(alpha * 0.98))))
+            painter.drawEllipse(QRectF(x - body_w * 0.24, y - body_h * 0.78,
+                                       body_w * 0.78, body_h * 0.91))
+            painter.setBrush(QBrush(QColor(135, 52, 52, int(alpha * 0.72))))
+            painter.drawEllipse(QRectF(x - body_w * 0.10, y - body_h * 0.70,
+                                       body_w * 0.33, body_h * 0.31))
+
+            for i in range(5):
+                # Pseudo-aléatoire stable : des morceaux irréguliers et épais.
+                n = math.sin((seed + i * 19) * 12.9898) * 43758.5453
+                r = n - math.floor(n)
+                dx = (r - 0.5) * w * 1.45
+                dy = (0.10 + ((i * 7) % 5) * 0.12) * h
+                chunk = (3.0 + r * 5.8) * perspective * size_factor
+                painter.setBrush(QBrush(QColor(38, 7, 10, int(alpha * 0.98))))
+                painter.drawEllipse(QRectF(x + dx - chunk * 0.12, y + dy - chunk * 0.18,
+                                           chunk * 1.45, chunk * 1.05))
+                painter.setBrush(QBrush(QColor(116 + int(r * 30), 20, 28, int(alpha * 0.96))))
+                painter.drawEllipse(QRectF(x + dx, y + dy - chunk * 0.30,
+                                           chunk * 0.95, chunk * 0.65))
+
+        painter.restore()
+
+        self._doom_blood_decals = visible
+
+    # -------------------------------------------------------------------------
     def _draw_boss(self, painter: QPainter, game: Game) -> None:
-        """Cacodemon"""
+        """Draw Boss"""
 
         approach_duration = clamp_to_min(game.boss_approach_duration, 0.001)
         approach = clamp_between(
@@ -807,7 +1002,6 @@ class DoomWidget(GamePainter):
         bob = math.sin(game.elapsed * 2.0) * 9.0 * approach
         cx = self.CENTER_X + math.sin(game.elapsed * 0.65) * 5.0 * approach
         cy = self.HORIZON_Y + 34.0 + 78.0 * approach + bob
-        mouth_open = 1.0 + 0.5 * (0.5 + 0.5 * math.sin(game.elapsed * 4.0))
         boss_scale = (0.38 + 0.62 * approach) * 1.12
 
         painter.save()
@@ -816,11 +1010,43 @@ class DoomWidget(GamePainter):
         painter.scale(boss_scale, boss_scale)
         painter.translate(-cx, -cy)
 
+        if game.use_old_boss:
+            self._draw_boss_OLD(painter, cx, cy, game)
+        else:
+            self._draw_boss_caco(painter, cx, cy, game)
+
         # Ombre au sol qui s'étire légèrement quand le boss monte.
         shadow_width = 112.0 - bob * 1.2
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(QBrush(QColor(10, 8, 14, 100)))
         painter.drawEllipse(QRectF(cx-shadow_width, cy+94, shadow_width*2, 20))
+
+        # Les impacts du fusil laissent des éclaboussures vertes très contrastées
+        # sur le Cacodemon rouge, afin qu'ils restent visibles pendant le combat.
+        painter.setPen(QPen(QColor("#183d20"), 1.5))
+        hit_count = min(
+            game.BOSS_HITS_REQUIRED,
+            game.boss_hits,
+        )
+        for hit_index in range(hit_count):
+            hit_x = cx - 53 + ((hit_index * 37) % 107)
+            hit_y = cy - 35 + ((hit_index * 23) % 82)
+            painter.setBrush(QBrush(QColor("#72d447")))
+            painter.drawEllipse(QRectF(hit_x, hit_y, 8, 10))
+            painter.setPen(QPen(QColor("#72d447"), 2, Qt.PenStyle.SolidLine,
+                                Qt.PenCapStyle.RoundCap))
+            painter.drawLine(round(hit_x + 4), round(hit_y + 7),
+                            round(hit_x + 3), round(hit_y + 13))
+            painter.setPen(QPen(QColor("#183d20"), 1.5))
+
+        painter.restore()
+
+    # -------------------------------------------------------------------------
+    def _draw_boss_caco(self, painter: QPainter, x: float, y: float, game: Game) -> None:
+
+        # Cacodemon
+        cx, cy = x, y
+        mouth_open = 1.0 + 0.5 * (0.5 + 0.5 * math.sin(game.elapsed * 4.0))
 
         # Deux petites cornes qui émergent de la partie supérieure de l'œuf.
         painter.setPen(QPen(QColor("#381a20"), 4, Qt.PenStyle.SolidLine,
@@ -876,26 +1102,6 @@ class DoomWidget(GamePainter):
             ]))
         painter.setBrush(QBrush(QColor("#a52e46")))
         painter.drawEllipse(QRectF(cx-14, cy+mouth_h+8, 28, 7))
-
-        # Les impacts du fusil laissent des éclaboussures vertes très contrastées
-        # sur le Cacodemon rouge, afin qu'ils restent visibles pendant le combat.
-        painter.setPen(QPen(QColor("#183d20"), 1.5))
-        hit_count = min(
-            game.BOSS_HITS_REQUIRED,
-            game.boss_hits,
-        )
-        for hit_index in range(hit_count):
-            hit_x = cx - 53 + ((hit_index * 37) % 107)
-            hit_y = cy - 35 + ((hit_index * 23) % 82)
-            painter.setBrush(QBrush(QColor("#72d447")))
-            painter.drawEllipse(QRectF(hit_x, hit_y, 8, 10))
-            painter.setPen(QPen(QColor("#72d447"), 2, Qt.PenStyle.SolidLine,
-                                Qt.PenCapStyle.RoundCap))
-            painter.drawLine(round(hit_x + 4), round(hit_y + 7),
-                            round(hit_x + 3), round(hit_y + 13))
-            painter.setPen(QPen(QColor("#183d20"), 1.5))
-
-        painter.restore()
 
     # -------------------------------------------------------------------------
     def _draw_weapon(self, painter: QPainter, game: Game) -> None:
@@ -1114,7 +1320,6 @@ class DoomWidget(GamePainter):
         x: float, y: float,
         scale: float,
         armored: bool,
-        approach: float
     ) -> None:
 
         hide = QColor("#655b54") if armored else QColor("#71352f")
@@ -1174,9 +1379,9 @@ class DoomWidget(GamePainter):
         # Yeux lumineux et gueule dentée.
         painter.setPen(Qt.PenStyle.NoPen)
         eye_color = (
-            QColor("#ffb52e")
+            QColor("#ff2028")
             if game.phase_name == game.GamePhase.COMBAT
-            else QColor(150, 65, 30, 70 + int(120 * approach))
+            else QColor("#e0a04c")
         )
         painter.setBrush(QBrush(eye_color))
         painter.drawEllipse(QRectF(x - 15 * scale, y - 36 * scale, 10 * scale, 7 * scale))
@@ -1208,32 +1413,12 @@ class DoomWidget(GamePainter):
                             round(x + 10 * scale), round(y - 4 * scale))
 
     # -------------------------------------------------------------------------
-    def _draw_boss_OLD(self, painter: QPainter, game: Game) -> None:
+    def _draw_boss_OLD(self, painter: QPainter, x: float, y: float, game: Game) -> None:
         '''Boss flottant stylisé : chimère sombre, cornes, troisième œil et crocs.'''
 
-        approach_duration = clamp_to_min(game.boss_approach_duration, 0.001)
-        approach = clamp_between(
-            game.boss_approach_elapsed / approach_duration,
-            0.0, 1.0,
-        )
-        approach = approach * approach * (3.0 - 2.0 * approach)
-        bob = math.sin(game.elapsed * 2.0) * 9.0 * approach
-        boss_scale = (0.38 + 0.62 * approach) * 1.12
-
-        cx = self.CENTER_X + math.sin(game.elapsed * 1.7) * 10.0
-        cy = self.HORIZON_Y + 112.0 + math.sin(game.elapsed * 2.4) * 8.0
-
-        painter.save()
-
-        painter.translate(cx, cy)
-        painter.scale(boss_scale, boss_scale)
-        painter.translate(-cx, -cy)
-
-        # Ombre au sol qui s'étire légèrement quand le boss monte.
-        shadow_width = 112.0 - bob * 1.2
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(QColor(10, 8, 14, 100)))
-        painter.drawEllipse(QRectF(cx-shadow_width, cy+94, shadow_width*2, 20))
+        # Chimère
+        cx, cy = x, y
+        mouth_open = 1.0 + 0.5 * (0.5 + 0.5 * math.sin(game.elapsed * 4.0))
 
         # Six appendices serpentins derrière le corps.
         for i in range(6):
@@ -1256,9 +1441,10 @@ class DoomWidget(GamePainter):
         painter.setBrush(QBrush(QColor("#c7b99b")))
         painter.setPen(QPen(QColor("#20151b"), 4))
         painter.drawPolygon(QPolygonF([QPointF(cx-55,cy-47), QPointF(cx-92,cy-105),
-                                     QPointF(cx-82,cy-48), QPointF(cx-48,cy-20)]))
+                                    QPointF(cx-82,cy-48), QPointF(cx-48,cy-20)]))
         painter.drawPolygon(QPolygonF([QPointF(cx+55,cy-47), QPointF(cx+92,cy-105),
                                     QPointF(cx+82,cy-48), QPointF(cx+48,cy-20)]))
+
         # Corps massif et tête reptilienne.
         painter.setBrush(QBrush(QColor("#31504b")))
         painter.setPen(QPen(QColor("#151b21"), 5))
@@ -1267,16 +1453,22 @@ class DoomWidget(GamePainter):
         painter.drawEllipse(QRectF(cx-63, cy-80, 126, 96))
         painter.setBrush(QBrush(QColor("#42635a")))
         painter.drawEllipse(QRectF(cx-55, cy-104, 110, 92))
+
         # Gueule ouverte et crocs.
+        mouth_h = 23.0 * mouth_open
+        mouth = QRectF(cx-42, cy-27, 84, mouth_h)
         painter.setBrush(QBrush(QColor("#21151b")))
-        painter.drawRoundedRect(QRectF(cx-42, cy-48, 84, 43), 15, 12)
+        painter.drawRoundedRect(mouth, 15, 12)
+        painter.setBrush(QBrush(QColor("#8a3030")))
+        painter.drawEllipse(QRectF(cx-36, cy-27, 72, mouth_h))
         painter.setBrush(QBrush(QColor("#f1e4c6")))
         for i in range(5):
             tx = cx - 30 + i * 15
-            painter.drawPolygon(QPolygonF([QPointF(tx, cy-43), QPointF(tx+8, cy-43),
-                                        QPointF(tx+4, cy-25)]))
-        painter.setBrush(QBrush(QColor("#8a3030")))
-        painter.drawEllipse(QRectF(cx-18, cy-27, 36, 8))
+            painter.drawPolygon(QPolygonF([
+                QPointF(tx, cy-27), QPointF(tx+8, cy-27),
+                QPointF(tx+4, cy-27+18
+            )]))
+
         # Deux yeux et un troisième œil frontal.
         painter.setPen(QPen(QColor("#1a1015"), 2))
         for ex, ey, radius in ((cx-28, cy-67, 7), (cx+28, cy-67, 7), (cx, cy-91, 9)):
@@ -1284,8 +1476,3 @@ class DoomWidget(GamePainter):
             painter.drawEllipse(QRectF(ex-radius, ey-radius, radius*2, radius*2))
             painter.setBrush(QBrush(QColor("#ffd58a")))
             painter.drawEllipse(QRectF(ex-2, ey-radius/2, 4, radius))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QBrush(QColor(12, 8, 20, 90)))
-        painter.drawEllipse(QRectF(cx-100, cy+76, 200, 24))
-
-        painter.restore()
