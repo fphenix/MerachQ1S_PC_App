@@ -11,6 +11,13 @@ WINDOW_HEIGHT: int = 700 # pixels
 WINDOW_TO_SCREEN_LEFT_MARGIN: int  = 35 # pixels
 WINDOW_TO_SCREEN_TOP_MARGIN: float = 0.33 # 0.33 = 33% of the margin at the top, 66% at the bottom
 
+LANGUAGES: dict[str, str] = {
+    "fr": "Français",
+    "en": "English",
+}
+
+DEFAULT_LANGUAGE: str = "fr" # "fr" or "en"
+
 MAIN_FONT: str  = "Consolas"
 TITLE_FONT: str = "Segoe UI"
 GAME_FONT: str  = "Courier New"
@@ -33,11 +40,7 @@ SPLIT_LENGTH_STEP: int = 100  # meters
 SPLIT_MODES_NORMAL: str  = "normal"
 SPLIT_MODES_500M: str    = "500m"
 SPLIT_MODES_WORKOUT: str = "workout"
-
 DEFAULT_SPLIT_MODE: str = SPLIT_MODES_NORMAL
-
-DEFAULT_PACE_ENABLED: bool = False
-DEFAULT_MAX_POWER_ENABLED: bool = False
 
 SPLIT_MODES: list[str] = [
     SPLIT_MODES_NORMAL,
@@ -45,12 +48,8 @@ SPLIT_MODES: list[str] = [
     SPLIT_MODES_WORKOUT,
 ]
 
-DEFAULT_LANGUAGE: str = "fr" # "fr" or "en"
-
-LANGUAGES: dict[str, str] = {
-    "fr": "Français",
-    "en": "English",
-}
+DEFAULT_PACE_ENABLED: bool = False
+DEFAULT_MAX_POWER_ENABLED: bool = False
 
 # Compute the "Max Power" value :
 MAX_POWER_FILTER: int       = 3 # remove the N first values (filter glitches)

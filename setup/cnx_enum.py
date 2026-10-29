@@ -2,9 +2,9 @@ from enum import Enum
 
 # =============================================================================
 class CnxState(Enum):
-    CONNECTED    = 0
-    SEEKING      = 1
-    DISCONNECTED = 2
-    PAUSE        = 3
-    STOP         = 4
-    REPLAY       = 5
+    CONNECTED: int    = 0
+    SEEKING: int      = 1
+    DISCONNECTED: int = 2
+    PAUSE: int        = 3
+    STOP: int         = 4
+    REPLAY: int       = 5

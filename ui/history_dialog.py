@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QLabel, QComboBox, QLineEdit, QWidget,
 )
 
+from setup.constants import FILE_ENCODING
 from setup.lang import get_text
 from setup.utils import format_duration
 
@@ -219,7 +220,7 @@ class HistoryDialog(QDialog):
     def _load(self, filename: Path) -> None:
 
         try:
-            document = json.loads(filename.read_text(encoding="utf-8"))
+            document = json.loads(filename.read_text(encoding=FILE_ENCODING))
             sessions = document.get("sessions", [])
             if not isinstance(sessions, list):
                 sessions = []

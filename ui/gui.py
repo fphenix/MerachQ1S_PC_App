@@ -906,15 +906,19 @@ class MainWindow(QMainWindow):
             ["MENU_GAMES_FISHING2", "fishing2"],
             ["MENU_GAMES_PIGEON", "pigeon"],
             ["MENU_GAMES_REAL_FISHING", "real_fishing"],
-            ["MENU_GAMES_JUMP", "jump"],
             ["MENU_GAMES_SLOWNGO", "slowngo"],
+            ["MENU_GAMES_JUMP", "jump"],
             ["MENU_GAMES_PATH", "path"],
+            ["MENU_GAMES_DOOM", "doom"],
             ["MENU_GAMES_RACE_1000", "race_1000"],
             ["MENU_GAMES_RACE_2000", "race_2000"],
-            ["MENU_GAMES_MARIO", "mario"],
+            ["MENU_GAMES_TOWER", "tower"],
+            ["MENU_GAMES_TOWER_B", "tower2"],
             ["MENU_GAMES_SIMON", "simon"],
-            ["MENU_GAMES_DOOM", "doom"],
+            ["MENU_GAMES_MARIO", "mario"],
         ):
+            if game_id == "tower":
+                games_menu.addSeparator()
             game_actions.append(games_menu.addAction(get_text(game_title)))
             game_actions[-1].triggered.connect(
                 lambda checked=False, id=game_id: self._callback_start_game(id)

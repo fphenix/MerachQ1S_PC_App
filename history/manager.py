@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 from uuid import uuid4
 
-from setup.constants import VERSION
+from setup.constants import VERSION, FILE_ENCODING
 from setup.lang import get_text
 
 from rowers.data import RowerData
@@ -69,7 +69,7 @@ class HistoryManager:
         if not filename.exists():
             return {"schema_version": 1, "sessions": []}
         
-        with filename.open("r", encoding="utf-8") as file:
+        with filename.open("r", encoding=FILE_ENCODING) as file:
             document = json.load(file)
 
         if not isinstance(document, dict) or not isinstance(document.get("sessions"), list):
@@ -186,7 +186,7 @@ class HistoryManager:
         )
 
         try:
-            with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as file:
+            with os.fdopen(fd, "w", encoding=FILE_ENCODING, newline="\n") as file:
                 json.dump(document, file, indent=2, ensure_ascii=False)
                 file.write("\n")
             os.replace(temporary_name, self.filename)

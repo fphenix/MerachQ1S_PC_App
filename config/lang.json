@@ -295,13 +295,13 @@
         "en": "Thread ended",
         "fr": "Thread terminé."
     },
-    "GAME_DOOM_ENEMY_ARMORED": {
-        "en": "ARMORED ENEMY",
-        "fr": "ENNEMI BLINDÉ"
+    "GAME_DOOM_ENEMY_CYBER": {
+        "en": "Cyberdemon",
+        "fr": "Cyberdémon"
     },
-    "GAME_DOOM_ENEMY_FAST": {
-        "en": "FAST ENEMY",
-        "fr": "ENNEMI RAPIDE"
+    "GAME_DOOM_ENEMY_PINKY": {
+        "en": "Pinky Bulldemon",
+        "fr": "Pinky Bulldémon"
     },
     "GAME_DOOM_EXPLORE": {
         "en": "Keep a steady, moderate cadence to explore",
@@ -344,8 +344,20 @@
         "fr": "AVANCER"
     },
     "GAME_NEW_HISCORE": {
-        "en": "NEW HI-SCORE!",
-        "fr": "NOUVEAU HI-SCORE !"
+        "en": "TOP 10 HI-SCORE!",
+        "fr": "TOP 10 HI-SCORE !"
+    },
+    "GAME_HISCORE_GOLD": {
+        "en": "GOLD — 1st PLACE!",
+        "fr": "OR — 1ère PLACE !"
+    },
+    "GAME_HISCORE_SILVER": {
+        "en": "SILVER — 2nd PLACE!",
+        "fr": "ARGENT — 2ème PLACE !"
+    },
+    "GAME_HISCORE_BRONZE": {
+        "en": "BRONZE — 3rd PLACE!",
+        "fr": "BRONZE — 3ème PLACE !"
     },
     "GAME_OPPONENT": {
         "en": "ADV",
@@ -530,6 +542,70 @@
     "GAME_TARGET": {
         "en": "Target",
         "fr": "Cible"
+    },
+    "GAME_TOWER_HEIGHT": {
+        "en": "MAX HEIGHT",
+        "fr": "HAUTEUR MAX"
+    },
+    "GAME_TOWER_BLOCKS": {
+        "en": "Blocks released",
+        "fr": "Blocs lâchés"
+    },
+    "GAME_TOWER_MAX": {
+        "en": "Maximum height",
+        "fr": "Hauteur maximale"
+    },
+    "GAME_TOWER_OVERVIEW": {
+        "en": "FULL TOWER VIEW",
+        "fr": "VUE D'ENSEMBLE"
+    },
+    "GAME_TOWER_DROP": {
+        "en": "Drop",
+        "fr": "Lâcher"
+    },
+    "GAME_TOWER_HOLD": {
+        "en": "Hold",
+        "fr": "Maintenir"
+    },
+    "GAME_TOWER_MOVE": {
+        "en": "Charge",
+        "fr": "Charger"
+    },
+    "GAME_TOWER_PICK": {
+        "en": "Pick",
+        "fr": "Prise"
+    },
+    "GAME_TOWER_STABLE": {
+        "en": "Stability",
+        "fr": "Stabilité"
+    },
+    "GAME_TOWER_NOT_STABLE": {
+        "en": "Keep a stable cadence to drop",
+        "fr": "Maintenez la cadence pour lâcher"
+    },
+    "GAME_TOWER_STABLE_STROKES": {
+        "en": "valid strokes",
+        "fr": "coups retenus"
+    },
+    "GAME_TOWER_WAIT": {
+        "en": "ROW AT 20 SPM TO MOVE THE CRANE",
+        "fr": "RAMEZ À 20 CPM POUR DÉPLACER LA GRUE"
+    },
+    "GAME_TOWER_MOVING": {
+        "en": "CRANE MOVING — ROW AT 30 SPM TO DROP A BLOCK",
+        "fr": "GRUE EN MOUVEMENT — RAMEZ À 30 CPM POUR LÂCHER UN BLOC"
+    },
+    "GAME_TOWER_DROP_READY": {
+        "en": "READY TO DROP — EACH STROKE RELEASES A BLOCK",
+        "fr": "PRÊT À LÂCHER — CHAQUE COUP LIBÈRE UN BLOC"
+    },
+    "GAME_TOWER_DROPPED": {
+        "en": "BLOCK RELEASED",
+        "fr": "BLOC LÂCHÉ"
+    },
+    "GAME_TOWER_CADENCE_HINT": {
+        "en": "20 SPM TO MOVE · 30 SPM TO DROP · OTHER CADENCES PAUSE",
+        "fr": "20 CPM POUR BOUGER · 30 CPM POUR LÂCHER · AUTRES CADENCES : PAUSE"
     },
     "GAME_WAIT_FOR_STROKE": {
         "en": "Row to start",
@@ -779,6 +855,14 @@
     "MENU_GAMES_SLOWNGO": {
         "en": "Slow N'Go",
         "fr": "Slow N'Go"
+    },
+    "MENU_GAMES_TOWER": {
+        "en": "Tower",
+        "fr": "La Tour"
+    },
+    "MENU_GAMES_TOWER_B": {
+        "en": "Tower 2",
+        "fr": "La Tour 2"
     },
     "MENU_HISTORY": {
         "en": "Session history...",
