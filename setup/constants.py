@@ -1,6 +1,6 @@
 from pathlib import Path
 
-VERSION: str = "5.08"
+VERSION: str = "5.09"
 
 GUI_REFRESH_MS: int   = 100 # milliseconds
 WORKOUT_TIMER_MS: int =  20 # milliseconds

@@ -912,6 +912,7 @@ class MainWindow(QMainWindow):
             ["MENU_GAMES_DOOM", "doom"],
             ["MENU_GAMES_RACE_1000", "race_1000"],
             ["MENU_GAMES_RACE_2000", "race_2000"],
+            ["MENU_GAMES_ROWMATHS", "rowmaths"],
             ["MENU_GAMES_TOWER", "tower"],
             ["MENU_GAMES_TOWER_B", "tower2"],
             ["MENU_GAMES_SIMON", "simon"],
@@ -919,6 +920,7 @@ class MainWindow(QMainWindow):
         ):
             if game_id == "tower":
                 games_menu.addSeparator()
+
             game_actions.append(games_menu.addAction(get_text(game_title)))
             game_actions[-1].triggered.connect(
                 lambda checked=False, id=game_id: self._callback_start_game(id)

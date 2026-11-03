@@ -1,4 +1,5 @@
 import math
+import random
 
 from collections import deque
 
@@ -417,6 +418,14 @@ def is_within(
         or 
         (not strict and (dist <= delta))
     )
+
+# -----------------------------------------------------------------------------
+# Randomly returns True about <pc> percent of the time.
+# <pc> is a value between 0.0 and 100.0 (%).
+# For instance, is_in_percent(25.0) will return True about 25% of the time.
+def is_in_percent(pc: float) -> bool:
+    pc = clamp_between(pc, 0.0, 100.0)
+    return random.random() < pc / 100.0
 
 # -----------------------------------------------------------------------------
 # Linearly interpolate a point between two points

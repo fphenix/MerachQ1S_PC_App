@@ -431,10 +431,6 @@
         "en": "Row at 26 SPM to cast the line",
         "fr": "Ramez à 26 CPM pour lancer la ligne"
     },
-    "GAME_REAL_FISHING_CASTING": {
-        "en": "Casting...",
-        "fr": "Lancement..."
-    },
     "GAME_REAL_FISHING_CAUGHT": {
         "en": "Fish caught: {count}",
         "fr": "Poissons attrapés : {count}"
@@ -475,9 +471,41 @@
         "en": "Fishing... keep a steady medium cadence",
         "fr": "Pêche en cours... gardez une cadence moyenne régulière"
     },
+    "GAME_ROWMATHS_QUESTION": {
+        "en": "Question",
+        "fr": "Question"
+    },
+    "GAME_ROWMATHS_ANSWER": {
+        "en": "Answer",
+        "fr": "Réponse"
+    },
+    "GAME_ROWMATHS_QFLASH": {
+        "en": "Flash Question",
+        "fr": "Question Flash"
+    },
+    "GAME_ROWMATHS_FLASH": {
+        "en": "Flash",
+        "fr": "Flash"
+    },
+    "GAME_ROWMATHS_FAILED": {
+        "en": "failed",
+        "fr": "manquée"
+    },
+    "GAME_ROWMATHS_BAD_SPM": {
+        "en": "Wrong Cadence",
+        "fr": "Mauvaise cadence"
+    },
+    "GAME_ROWMATHS_SUCCESS": {
+        "en": "Good Answer",
+        "fr": "Bonne réponse"
+    },
     "GAME_RULES_BUTTON": {
         "en": "RULES",
         "fr": "RÈGLES"
+    },
+    "GAME_POINTS": {
+        "en": "Points",
+        "fr": "Points"
     },
     "GAME_SCORE": {
         "en": "Score",
@@ -555,10 +583,6 @@
         "en": "Maximum height",
         "fr": "Hauteur maximale"
     },
-    "GAME_TOWER_OVERVIEW": {
-        "en": "FULL TOWER VIEW",
-        "fr": "VUE D'ENSEMBLE"
-    },
     "GAME_TOWER_DROP": {
         "en": "Drop",
         "fr": "Lâcher"
@@ -574,38 +598,6 @@
     "GAME_TOWER_PICK": {
         "en": "Pick",
         "fr": "Prise"
-    },
-    "GAME_TOWER_STABLE": {
-        "en": "Stability",
-        "fr": "Stabilité"
-    },
-    "GAME_TOWER_NOT_STABLE": {
-        "en": "Keep a stable cadence to drop",
-        "fr": "Maintenez la cadence pour lâcher"
-    },
-    "GAME_TOWER_STABLE_STROKES": {
-        "en": "valid strokes",
-        "fr": "coups retenus"
-    },
-    "GAME_TOWER_WAIT": {
-        "en": "ROW AT 20 SPM TO MOVE THE CRANE",
-        "fr": "RAMEZ À 20 CPM POUR DÉPLACER LA GRUE"
-    },
-    "GAME_TOWER_MOVING": {
-        "en": "CRANE MOVING — ROW AT 30 SPM TO DROP A BLOCK",
-        "fr": "GRUE EN MOUVEMENT — RAMEZ À 30 CPM POUR LÂCHER UN BLOC"
-    },
-    "GAME_TOWER_DROP_READY": {
-        "en": "READY TO DROP — EACH STROKE RELEASES A BLOCK",
-        "fr": "PRÊT À LÂCHER — CHAQUE COUP LIBÈRE UN BLOC"
-    },
-    "GAME_TOWER_DROPPED": {
-        "en": "BLOCK RELEASED",
-        "fr": "BLOC LÂCHÉ"
-    },
-    "GAME_TOWER_CADENCE_HINT": {
-        "en": "20 SPM TO MOVE · 30 SPM TO DROP · OTHER CADENCES PAUSE",
-        "fr": "20 CPM POUR BOUGER · 30 CPM POUR LÂCHER · AUTRES CADENCES : PAUSE"
     },
     "GAME_WAIT_FOR_STROKE": {
         "en": "Row to start",
@@ -847,6 +839,10 @@
     "MENU_GAMES_REAL_FISHING": {
         "en": "Real Fishing",
         "fr": "Pêche au bouchon"
+    },
+    "MENU_GAMES_ROWMATHS": {
+        "en": "Rowmaths",
+        "fr": "Ramath"
     },
     "MENU_GAMES_SIMON": {
         "en": "Jack Says",

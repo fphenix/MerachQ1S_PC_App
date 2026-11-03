@@ -9,8 +9,7 @@ from setup.utils import echo
 
 # =============================================================================
 # Cette class peut agir sur le bouton que l'on trouve dans Windows11 
-# (PC) dans:
-# Paramètres > Bluetooth et appareils > Périphériques
+# (PC) dans: Paramètres > Bluetooth et appareils > Périphériques
 # Le bouton permet d'Activer ou de Désactiver la carte Bluetooth
 # =============================================================================
 class BluetoothManager:

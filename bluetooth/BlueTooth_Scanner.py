@@ -1,10 +1,12 @@
 #===========================================================
-#using bleak : Bluetooth Scanner
+# using bleak : Bluetooth Scanner
 # %> pip install bleak
 #===========================================================
 
 import asyncio
 from bleak import BleakScanner
+
+# -----------------------------------------------------------------------------
 
 COMPANIES: dict[int, str] = {
     # Computing
@@ -61,14 +63,16 @@ COMPANIES: dict[int, str] = {
     889: "Silicon Labs",
 }
 
+# -----------------------------------------------------------------------------
 # Scan for Bluetooth emitters
+# -----------------------------------------------------------------------------
 
 async def main() -> None:
     devices = await BleakScanner.discover(timeout=5.0, return_adv=True)
 
     print(f"Found {len(devices)} BLE device{"s" if len(devices) > 1 else ""}\n")
 
-    for address, (dev, adv) in devices.items():
+    for _address, (dev, adv) in devices.items():
         print("-" * 60)
         print(f"| Found {dev.address=} ; {dev.name=}") # {dev.details=}
         print("-" * 60)
@@ -95,6 +99,8 @@ async def main() -> None:
             print("\tManufacturer: none")
 
         print()
+
+# -----------------------------------------------------------------------------
 
 asyncio.run(main())
 
