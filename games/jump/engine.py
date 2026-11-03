@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import random
 
 from setup.lang import get_text
-from setup.utils import is_within, is_between, clamp_to_zero
+from setup.utils import is_within, is_between, clamp_to_zero, is_in_percent
 
 from games.game import Game
 from games.game_input import GameInput, input_cadence
@@ -160,7 +160,7 @@ class JumpGame(Game):
         self._flower_spawn_remaining -= dt
         if self._flower_spawn_remaining <= 0.0:
             # Les fleurs rares restent volontairement très inhabituelles.
-            rare = random.random() < (self.RARE_FLOWER_FREQ / 100.0)
+            rare = is_in_percent(self.RARE_FLOWER_FREQ)
             self.flowers.append(Flower(self.WIDTH + 15.0, rare=rare))
             self._flower_spawn_remaining = random.uniform(8.0, 14.0) if rare else random.uniform(3.5, 5.5)
 

@@ -185,7 +185,6 @@ class MarioGame(Game):
                     )
                     break
 
-        old_distance = self.world_distance
         self.world_distance = min(self.LEVEL_LENGTH, proposed_distance)
 
         previous_feet = self.player_ground_y - jump_height_before

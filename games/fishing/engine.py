@@ -248,11 +248,11 @@ class FishingGame(Game):
 
         self.insects.append(
             Insect(
-                x=float(self.WIDTH),
-                y=lane_center - size / 2,
-                speed=insect_data["speed"],
-                kind=kind,
-                lane_index=lane_index,
+                x= float(self.WIDTH),
+                y= lane_center - size / 2,
+                speed= insect_data["speed"],
+                kind= kind,
+                lane_index= lane_index,
             )
         )
 

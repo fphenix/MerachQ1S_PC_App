@@ -69,6 +69,7 @@ class MarioWidget(GamePainter):
             x = platform.x - game.world_distance + game.PLAYER_X
             if x + platform.width < -20 or x > game.WIDTH + 20:
                 continue
+
             top = platform.top
             if platform.kind == "floating":
                 painter.setPen(QPen(QColor("#684a35"), 2))
@@ -98,6 +99,7 @@ class MarioWidget(GamePainter):
         for coin in game.coins:
             if coin.collected:
                 continue
+
             x = coin.x - game.world_distance + game.PLAYER_X
             y = coin.y
             if is_between(x, -30, game.WIDTH + 30):
@@ -111,6 +113,7 @@ class MarioWidget(GamePainter):
         for enemy in game.enemies:
             if enemy.hit:
                 continue
+
             x = enemy.x - game.world_distance + game.PLAYER_X
             if is_between(x, -40, game.WIDTH + 40):
                 painter.setPen(QPen(QColor("#542d40"), 2))

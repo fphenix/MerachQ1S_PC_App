@@ -44,6 +44,7 @@ class DoomWidget(GamePainter):
         self._draw_world(painter, game)
         self._draw_enemy(painter, game)
         self._draw_weapon(painter, game)
+
         # Doom a son propre HUD, mais en bas (un Heads-Down Display, donc :-) )
         self._draw_bottom_hud(painter, game)
         if game.hit_flash > 0:
@@ -624,7 +625,7 @@ class DoomWidget(GamePainter):
             self._draw_enemy_cyber(painter, game, x, y, scale, armored)
         else:
             if use_old_skin:
-                self._draw_enemy_OLD(painter, game, x, y, scale, armored)
+                self._draw_enemy_demon(painter, game, x, y, scale, armored)
             else:
                 self._draw_enemy_bull(painter, game, x, y, scale)
 
@@ -843,6 +844,106 @@ class DoomWidget(GamePainter):
         painter.drawEllipse(QRectF(x+46*scale, y+5*scale, 5*scale, 5*scale))
 
     # -------------------------------------------------------------------------
+    def _draw_enemy_demon(
+       self,
+        painter: QPainter,
+        game: Game,
+        x: float, y: float,
+        scale: float,
+        armored: bool,
+    ) -> None:
+
+        hide = QColor("#655b54") if armored else QColor("#71352f")
+        body = QColor("#81756d") if armored else QColor("#a54b3c")
+        dark = QColor("#292329")
+
+        # Cornes / épaules larges pour une silhouette de démon, pas un simple bonhomme.
+        painter.setPen(QPen(dark, 4))
+        painter.setBrush(QBrush(hide))
+        painter.drawPolygon(QPolygonF([
+            QPointF(x - 22 * scale, y - 42 * scale),
+            QPointF(x - 39 * scale, y - 66 * scale),
+            QPointF(x - 35 * scale, y - 31 * scale),
+            QPointF(x - 17 * scale, y - 18 * scale),
+        ]))
+        painter.drawPolygon(QPolygonF([
+            QPointF(x + 22 * scale, y - 42 * scale),
+            QPointF(x + 39 * scale, y - 66 * scale),
+            QPointF(x + 35 * scale, y - 31 * scale),
+            QPointF(x + 17 * scale, y - 18 * scale),
+        ]))
+        painter.setBrush(QBrush(body))
+        painter.drawEllipse(
+            QRectF(x - 25 * scale, y - 53 * scale, 50 * scale, 48 * scale)
+        )
+        painter.drawPolygon(QPolygonF([
+            QPointF(x - 34 * scale, y - 13 * scale),
+            QPointF(x - 53 * scale, y + 5 * scale),
+            QPointF(x - 43 * scale, y + 30 * scale),
+            QPointF(x - 22 * scale, y + 23 * scale),
+            QPointF(x + 22 * scale, y + 23 * scale),
+            QPointF(x + 43 * scale, y + 30 * scale),
+            QPointF(x + 53 * scale, y + 5 * scale),
+            QPointF(x + 34 * scale, y - 13 * scale),
+        ]))
+        painter.setBrush(QBrush(hide))
+        painter.drawPolygon(QPolygonF([
+            QPointF(x - 22 * scale, y + 18 * scale),
+            QPointF(x - 18 * scale, y + 56 * scale),
+            QPointF(x - 2 * scale, y + 56 * scale),
+            QPointF(x, y + 20 * scale),
+            QPointF(x + 2 * scale, y + 56 * scale),
+            QPointF(x + 18 * scale, y + 56 * scale),
+            QPointF(x + 22 * scale, y + 18 * scale),
+        ]))
+
+        # Bras et griffes.
+        painter.setPen(QPen(dark, 3))
+        painter.setBrush(QBrush(hide))
+        painter.drawLine(round(x - 34 * scale), round(y - 5 * scale), round(x - 48 * scale), round(y + 25 * scale))
+        painter.drawLine(round(x + 34 * scale), round(y - 5 * scale), round(x + 48 * scale), round(y + 25 * scale))
+        for claw_side in (-1, 1):
+            claw_x = x + claw_side * 49 * scale
+            painter.drawLine(round(claw_x), round(y + 23 * scale), round(claw_x + claw_side * 8 * scale), round(y + 35 * scale))
+            painter.drawLine(round(claw_x), round(y + 23 * scale), round(claw_x - claw_side * 3 * scale), round(y + 36 * scale))
+
+        # Yeux lumineux et gueule dentée.
+        painter.setPen(Qt.PenStyle.NoPen)
+        eye_color = (
+            QColor("#ff2028")
+            if game.phase_name == game.GamePhase.COMBAT
+            else QColor("#e0a04c")
+        )
+        painter.setBrush(QBrush(eye_color))
+        painter.drawEllipse(QRectF(x - 15 * scale, y - 36 * scale, 10 * scale, 7 * scale))
+        painter.drawEllipse(QRectF(x + 5 * scale, y - 36 * scale, 10 * scale, 7 * scale))
+        painter.setBrush(QBrush(QColor("#211619")))
+        painter.drawRoundedRect(QRectF(x - 13 * scale, y - 21 * scale, 26 * scale, 13 * scale), 3, 3)
+        painter.setBrush(QBrush(QColor("#e8d7bd")))
+        for tooth in (-8, -2, 4, 10):
+            painter.drawPolygon(QPolygonF([
+                QPointF(x + tooth * scale, y - 20 * scale),
+                QPointF(x + (tooth + 3) * scale, y - 20 * scale),
+                QPointF(x + (tooth + 1.5) * scale, y - 14 * scale),
+            ]))
+
+        # Armure et cicatrices pour la variante résistante.
+        if armored:
+            painter.setPen(QPen(QColor("#c2b5a2"), 3))
+            painter.setBrush(QBrush(QColor("#6e747d")))
+            painter.drawPolygon(QPolygonF([
+                QPointF(x - 30 * scale, y - 12 * scale),
+                QPointF(x, y - 24 * scale),
+                QPointF(x + 30 * scale, y - 12 * scale),
+                QPointF(x + 25 * scale, y + 17 * scale),
+                QPointF(x, y + 27 * scale),
+                QPointF(x - 25 * scale, y + 17 * scale),
+            ]))
+            painter.setPen(QPen(QColor("#ffb52e"), 4))
+            painter.drawLine(round(x - 10 * scale), round(y - 4 * scale),
+                            round(x + 10 * scale), round(y - 4 * scale))
+
+    # -------------------------------------------------------------------------
     def _draw_death_explosion(self, painter: QPainter) -> None:
         """Éclatement sanglant à la mort du mob"""
 
@@ -1010,8 +1111,8 @@ class DoomWidget(GamePainter):
         painter.scale(boss_scale, boss_scale)
         painter.translate(-cx, -cy)
 
-        if game.use_old_boss:
-            self._draw_boss_OLD(painter, cx, cy, game)
+        if game.use_boss_type2:
+            self._draw_boss_chimera(painter, cx, cy, game)
         else:
             self._draw_boss_caco(painter, cx, cy, game)
 
@@ -1102,6 +1203,71 @@ class DoomWidget(GamePainter):
             ]))
         painter.setBrush(QBrush(QColor("#a52e46")))
         painter.drawEllipse(QRectF(cx-14, cy+mouth_h+8, 28, 7))
+
+    # -------------------------------------------------------------------------
+    def _draw_boss_chimera(self, painter: QPainter, x: float, y: float, game: Game) -> None:
+        '''Boss flottant stylisé : chimère sombre, cornes, troisième œil et crocs.'''
+
+        # Chimère
+        cx, cy = x, y
+        mouth_open = 1.0 + 0.5 * (0.5 + 0.5 * math.sin(game.elapsed * 4.0))
+
+        # Six appendices serpentins derrière le corps.
+        for i in range(6):
+            side = -1 if i < 3 else 1
+            j = i % 3
+            sx = cx + side * (54 + j * 12)
+            sy = cy + 18 + j * 14
+            ex = cx + side * (94 + j * 24)
+            ey = cy + 66 + j * 19
+            painter.setPen(QPen(QColor("#273b3b"), 12 - j * 2,
+                                Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+            painter.drawLine(round(sx), round(sy), round(ex), round(ey))
+            painter.setBrush(QBrush(QColor("#405d54")))
+            painter.setPen(QPen(QColor("#171d21"), 2))
+            painter.drawEllipse(QRectF(ex - 13, ey - 10, 26, 20))
+            painter.setBrush(QBrush(QColor("#f4b64c")))
+            painter.drawEllipse(QRectF(ex - 5, ey - 2, 4, 4))
+
+        # Cornes ivoire.
+        painter.setBrush(QBrush(QColor("#c7b99b")))
+        painter.setPen(QPen(QColor("#20151b"), 4))
+        painter.drawPolygon(QPolygonF([QPointF(cx-55,cy-47), QPointF(cx-92,cy-105),
+                                    QPointF(cx-82,cy-48), QPointF(cx-48,cy-20)]))
+        painter.drawPolygon(QPolygonF([QPointF(cx+55,cy-47), QPointF(cx+92,cy-105),
+                                    QPointF(cx+82,cy-48), QPointF(cx+48,cy-20)]))
+
+        # Corps massif et tête reptilienne.
+        painter.setBrush(QBrush(QColor("#31504b")))
+        painter.setPen(QPen(QColor("#151b21"), 5))
+        painter.drawEllipse(QRectF(cx-88, cy-67, 176, 148))
+        painter.setBrush(QBrush(QColor("#52645a")))
+        painter.drawEllipse(QRectF(cx-63, cy-80, 126, 96))
+        painter.setBrush(QBrush(QColor("#42635a")))
+        painter.drawEllipse(QRectF(cx-55, cy-104, 110, 92))
+
+        # Gueule ouverte et crocs.
+        mouth_h = 23.0 * mouth_open
+        mouth = QRectF(cx-42, cy-27, 84, mouth_h)
+        painter.setBrush(QBrush(QColor("#21151b")))
+        painter.drawRoundedRect(mouth, 15, 12)
+        painter.setBrush(QBrush(QColor("#8a3030")))
+        painter.drawEllipse(QRectF(cx-36, cy-27, 72, mouth_h))
+        painter.setBrush(QBrush(QColor("#f1e4c6")))
+        for i in range(5):
+            tx = cx - 30 + i * 15
+            painter.drawPolygon(QPolygonF([
+                QPointF(tx, cy-27), QPointF(tx+8, cy-27),
+                QPointF(tx+4, cy-27+18
+            )]))
+
+        # Deux yeux et un troisième œil frontal.
+        painter.setPen(QPen(QColor("#1a1015"), 2))
+        for ex, ey, radius in ((cx-28, cy-67, 7), (cx+28, cy-67, 7), (cx, cy-91, 9)):
+            painter.setBrush(QBrush(QColor("#f13f31")))
+            painter.drawEllipse(QRectF(ex-radius, ey-radius, radius*2, radius*2))
+            painter.setBrush(QBrush(QColor("#ffd58a")))
+            painter.drawEllipse(QRectF(ex-2, ey-radius/2, 4, radius))
 
     # -------------------------------------------------------------------------
     def _draw_weapon(self, painter: QPainter, game: Game) -> None:
@@ -1311,168 +1477,3 @@ class DoomWidget(GamePainter):
             Qt.AlignmentFlag.AlignCenter,
             get_text("GAME_RULES_BUTTON")
         )
-
-    # -------------------------------------------------------------------------
-    def _draw_enemy_OLD(
-       self,
-        painter: QPainter,
-        game: Game,
-        x: float, y: float,
-        scale: float,
-        armored: bool,
-    ) -> None:
-
-        hide = QColor("#655b54") if armored else QColor("#71352f")
-        body = QColor("#81756d") if armored else QColor("#a54b3c")
-        dark = QColor("#292329")
-
-        # Cornes / épaules larges pour une silhouette de démon, pas un simple bonhomme.
-        painter.setPen(QPen(dark, 4))
-        painter.setBrush(QBrush(hide))
-        painter.drawPolygon(QPolygonF([
-            QPointF(x - 22 * scale, y - 42 * scale),
-            QPointF(x - 39 * scale, y - 66 * scale),
-            QPointF(x - 35 * scale, y - 31 * scale),
-            QPointF(x - 17 * scale, y - 18 * scale),
-        ]))
-        painter.drawPolygon(QPolygonF([
-            QPointF(x + 22 * scale, y - 42 * scale),
-            QPointF(x + 39 * scale, y - 66 * scale),
-            QPointF(x + 35 * scale, y - 31 * scale),
-            QPointF(x + 17 * scale, y - 18 * scale),
-        ]))
-        painter.setBrush(QBrush(body))
-        painter.drawEllipse(
-            QRectF(x - 25 * scale, y - 53 * scale, 50 * scale, 48 * scale)
-        )
-        painter.drawPolygon(QPolygonF([
-            QPointF(x - 34 * scale, y - 13 * scale),
-            QPointF(x - 53 * scale, y + 5 * scale),
-            QPointF(x - 43 * scale, y + 30 * scale),
-            QPointF(x - 22 * scale, y + 23 * scale),
-            QPointF(x + 22 * scale, y + 23 * scale),
-            QPointF(x + 43 * scale, y + 30 * scale),
-            QPointF(x + 53 * scale, y + 5 * scale),
-            QPointF(x + 34 * scale, y - 13 * scale),
-        ]))
-        painter.setBrush(QBrush(hide))
-        painter.drawPolygon(QPolygonF([
-            QPointF(x - 22 * scale, y + 18 * scale),
-            QPointF(x - 18 * scale, y + 56 * scale),
-            QPointF(x - 2 * scale, y + 56 * scale),
-            QPointF(x, y + 20 * scale),
-            QPointF(x + 2 * scale, y + 56 * scale),
-            QPointF(x + 18 * scale, y + 56 * scale),
-            QPointF(x + 22 * scale, y + 18 * scale),
-        ]))
-
-        # Bras et griffes.
-        painter.setPen(QPen(dark, 3))
-        painter.setBrush(QBrush(hide))
-        painter.drawLine(round(x - 34 * scale), round(y - 5 * scale), round(x - 48 * scale), round(y + 25 * scale))
-        painter.drawLine(round(x + 34 * scale), round(y - 5 * scale), round(x + 48 * scale), round(y + 25 * scale))
-        for claw_side in (-1, 1):
-            claw_x = x + claw_side * 49 * scale
-            painter.drawLine(round(claw_x), round(y + 23 * scale), round(claw_x + claw_side * 8 * scale), round(y + 35 * scale))
-            painter.drawLine(round(claw_x), round(y + 23 * scale), round(claw_x - claw_side * 3 * scale), round(y + 36 * scale))
-
-        # Yeux lumineux et gueule dentée.
-        painter.setPen(Qt.PenStyle.NoPen)
-        eye_color = (
-            QColor("#ff2028")
-            if game.phase_name == game.GamePhase.COMBAT
-            else QColor("#e0a04c")
-        )
-        painter.setBrush(QBrush(eye_color))
-        painter.drawEllipse(QRectF(x - 15 * scale, y - 36 * scale, 10 * scale, 7 * scale))
-        painter.drawEllipse(QRectF(x + 5 * scale, y - 36 * scale, 10 * scale, 7 * scale))
-        painter.setBrush(QBrush(QColor("#211619")))
-        painter.drawRoundedRect(QRectF(x - 13 * scale, y - 21 * scale, 26 * scale, 13 * scale), 3, 3)
-        painter.setBrush(QBrush(QColor("#e8d7bd")))
-        for tooth in (-8, -2, 4, 10):
-            painter.drawPolygon(QPolygonF([
-                QPointF(x + tooth * scale, y - 20 * scale),
-                QPointF(x + (tooth + 3) * scale, y - 20 * scale),
-                QPointF(x + (tooth + 1.5) * scale, y - 14 * scale),
-            ]))
-
-        # Armure et cicatrices pour la variante résistante.
-        if armored:
-            painter.setPen(QPen(QColor("#c2b5a2"), 3))
-            painter.setBrush(QBrush(QColor("#6e747d")))
-            painter.drawPolygon(QPolygonF([
-                QPointF(x - 30 * scale, y - 12 * scale),
-                QPointF(x, y - 24 * scale),
-                QPointF(x + 30 * scale, y - 12 * scale),
-                QPointF(x + 25 * scale, y + 17 * scale),
-                QPointF(x, y + 27 * scale),
-                QPointF(x - 25 * scale, y + 17 * scale),
-            ]))
-            painter.setPen(QPen(QColor("#ffb52e"), 4))
-            painter.drawLine(round(x - 10 * scale), round(y - 4 * scale),
-                            round(x + 10 * scale), round(y - 4 * scale))
-
-    # -------------------------------------------------------------------------
-    def _draw_boss_OLD(self, painter: QPainter, x: float, y: float, game: Game) -> None:
-        '''Boss flottant stylisé : chimère sombre, cornes, troisième œil et crocs.'''
-
-        # Chimère
-        cx, cy = x, y
-        mouth_open = 1.0 + 0.5 * (0.5 + 0.5 * math.sin(game.elapsed * 4.0))
-
-        # Six appendices serpentins derrière le corps.
-        for i in range(6):
-            side = -1 if i < 3 else 1
-            j = i % 3
-            sx = cx + side * (54 + j * 12)
-            sy = cy + 18 + j * 14
-            ex = cx + side * (94 + j * 24)
-            ey = cy + 66 + j * 19
-            painter.setPen(QPen(QColor("#273b3b"), 12 - j * 2,
-                                Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
-            painter.drawLine(round(sx), round(sy), round(ex), round(ey))
-            painter.setBrush(QBrush(QColor("#405d54")))
-            painter.setPen(QPen(QColor("#171d21"), 2))
-            painter.drawEllipse(QRectF(ex - 13, ey - 10, 26, 20))
-            painter.setBrush(QBrush(QColor("#f4b64c")))
-            painter.drawEllipse(QRectF(ex - 5, ey - 2, 4, 4))
-
-        # Cornes ivoire.
-        painter.setBrush(QBrush(QColor("#c7b99b")))
-        painter.setPen(QPen(QColor("#20151b"), 4))
-        painter.drawPolygon(QPolygonF([QPointF(cx-55,cy-47), QPointF(cx-92,cy-105),
-                                    QPointF(cx-82,cy-48), QPointF(cx-48,cy-20)]))
-        painter.drawPolygon(QPolygonF([QPointF(cx+55,cy-47), QPointF(cx+92,cy-105),
-                                    QPointF(cx+82,cy-48), QPointF(cx+48,cy-20)]))
-
-        # Corps massif et tête reptilienne.
-        painter.setBrush(QBrush(QColor("#31504b")))
-        painter.setPen(QPen(QColor("#151b21"), 5))
-        painter.drawEllipse(QRectF(cx-88, cy-67, 176, 148))
-        painter.setBrush(QBrush(QColor("#52645a")))
-        painter.drawEllipse(QRectF(cx-63, cy-80, 126, 96))
-        painter.setBrush(QBrush(QColor("#42635a")))
-        painter.drawEllipse(QRectF(cx-55, cy-104, 110, 92))
-
-        # Gueule ouverte et crocs.
-        mouth_h = 23.0 * mouth_open
-        mouth = QRectF(cx-42, cy-27, 84, mouth_h)
-        painter.setBrush(QBrush(QColor("#21151b")))
-        painter.drawRoundedRect(mouth, 15, 12)
-        painter.setBrush(QBrush(QColor("#8a3030")))
-        painter.drawEllipse(QRectF(cx-36, cy-27, 72, mouth_h))
-        painter.setBrush(QBrush(QColor("#f1e4c6")))
-        for i in range(5):
-            tx = cx - 30 + i * 15
-            painter.drawPolygon(QPolygonF([
-                QPointF(tx, cy-27), QPointF(tx+8, cy-27),
-                QPointF(tx+4, cy-27+18
-            )]))
-
-        # Deux yeux et un troisième œil frontal.
-        painter.setPen(QPen(QColor("#1a1015"), 2))
-        for ex, ey, radius in ((cx-28, cy-67, 7), (cx+28, cy-67, 7), (cx, cy-91, 9)):
-            painter.setBrush(QBrush(QColor("#f13f31")))
-            painter.drawEllipse(QRectF(ex-radius, ey-radius, radius*2, radius*2))
-            painter.setBrush(QBrush(QColor("#ffd58a")))
-            painter.drawEllipse(QRectF(ex-2, ey-radius/2, 4, radius))

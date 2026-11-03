@@ -27,6 +27,9 @@ from games.path.widget import PathWidget
 from games.race.engine import Race1000Game, Race2000Game
 from games.race.widget import RaceWidget
 
+from games.rowmaths.engine import RowMathsGame
+from games.rowmaths.widget import RowMathsWidget
+
 from games.mario.engine import MarioGame
 from games.mario.widget import MarioWidget
 
@@ -51,6 +54,7 @@ GAME_CLASSES: dict[str, type[Game]] = {
     "race_2000": Race2000Game,
     "mario": MarioGame,
     "simon": SimonGame,
+    "rowmaths": RowMathsGame,
     "doom": DoomGame,
     "tower": Tower1Game,
     "tower2": Tower2Game,
@@ -68,6 +72,7 @@ GAME_VIEWS: dict[str, type[GamePainter]] = {
     "race_2000": RaceWidget,
     "mario": MarioWidget,
     "simon": SimonWidget,
+    "rowmaths": RowMathsWidget,
     "doom": DoomWidget,
     "tower": TowerWidget,
     "tower2": TowerWidget,
@@ -85,6 +90,7 @@ GAME_RULES: dict[str, Path] = {
     "race_2000": Path(__file__).parent / "race" / "rules_2000.json",
     "mario": Path(__file__).parent / "mario" / "rules.json",
     "simon": Path(__file__).parent / "simon" / "rules.json",
+    "rowmaths": Path(__file__).parent / "rowmaths" / "rules.json",
     "doom": Path(__file__).parent / "doom" / "rules.json",
     "tower": Path(__file__).parent / "tower" / "rules.json",
     "tower2": Path(__file__).parent / "tower" / "rules2.json",

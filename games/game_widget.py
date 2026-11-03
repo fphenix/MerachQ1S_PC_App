@@ -32,7 +32,8 @@ from games.game import Game
 from games.game_painter import GamePainter
 from games.game_input import GameInput, resolve_game_cadence, ShortWindowCadenceFilter
 from games.game_registry import GAME_CLASSES, GAME_VIEWS, GAME_RULES
-from games.highscore import HighScoreManager
+
+from games.highscore import HighScoreManager, HISCORE_TROPHIES
 
 from games.fishing.engine import FishingGame
 from games.doom.engine import DoomGame
@@ -512,7 +513,7 @@ class GameWidget(QWidget):
                 self.paint_hcentered_text(
                     painter,
                     y=hiscore_y,
-                    text=get_text(message_key),
+                    text=f"{get_text(message_key)} {HISCORE_TROPHIES[best_rank - 1]}",
                 )
 
             if self.game.phase_elapsed >= self.game.RESTART_DELAY_SECONDS:
@@ -523,18 +524,17 @@ class GameWidget(QWidget):
                     text=get_text("GAME_WAIT_FOR_STROKE"),
                 )
 
-
     # -------------------------------------------------------------------------
     def paint_hcentered_text(
-        self, canvas: QPainter,
+        self, painter: QPainter,
         y: int,
         text: str
     ) -> None:
 
-        fm = QFontMetrics(canvas.font())
+        fm = QFontMetrics(painter.font())
         text_width: int = fm.horizontalAdvance(text)
 
-        canvas.drawText(
+        painter.drawText(
             (self.game.WIDTH - text_width) // 2, y,
             text
         )

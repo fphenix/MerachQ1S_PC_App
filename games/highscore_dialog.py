@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 from setup.lang import get_text
 from setup.utils import clamp_to_zero, clamp_to_min
 
-from games.highscore import HighScoreManager
+from games.highscore import HighScoreManager, HISCORE_TROPHIES
 from games.game_registry import GAME_CLASSES
 from games.game_widget import GameWidget
 
@@ -121,10 +121,13 @@ class HighScoreDialog(QDialog):
     # -------------------------------------------------------------------------
     @classmethod
     def _format_entry_score(cls, game_id: str, entry: dict[str, object]) -> str:
+
         score = cls._format_score(game_id, entry["score"])
+
         if game_id == DoomGame.GAME_ID:
             injuries = clamp_to_min(int(entry.get("injuries", 0)), 0)
             return f"{score} (-{injuries})"
+
         return f"{score:>7}"
 
     # -------------------------------------------------------------------------
@@ -134,7 +137,7 @@ class HighScoreDialog(QDialog):
 
         personal_scores = self.highscores.scores(game_id)
         personal_lines = [
-            f"{index:2d}. {self._format_entry_score(game_id, entry)}  "
+            f"{index:2d}. {HISCORE_TROPHIES[index - 1]} {self._format_entry_score(game_id, entry)}  "
             + f"{entry.get('date', '--/--/--')}"
             for index, entry in enumerate(personal_scores, start=1)
         ]
@@ -146,7 +149,7 @@ class HighScoreDialog(QDialog):
 
         common_scores = self.highscores.scores(game_id, common= True)
         common_lines = [
-            f"{index:2d}. {entry.get('user_id') or '???'}  :   "
+            f"{index:2d}. {HISCORE_TROPHIES[index - 1]} {entry.get('user_id') or '???'}  :   "
             f"{self._format_entry_score(game_id, entry)}  "
             + f"{entry.get('date', '--/--/--')}"
             for index, entry in enumerate(common_scores, start= 1)

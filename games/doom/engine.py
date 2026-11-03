@@ -11,7 +11,7 @@ from setup.utils import (
     clamp_to_zero, clamp_between,
     clamp_to_max, clamp_to_min,
     is_between, is_within,
-    format_duration,
+    format_duration, is_in_percent,
 )
 
 from games.game import Game
@@ -44,6 +44,7 @@ class DoomGame(Game):
     WIDTH: int = 1000
     HEIGHT: int = 700
     HUD_HEIGHT: int = 0 # Doom possède son propre HUD en bas de l'écran.
+
     LEVEL_DURATION_SECONDS: float = 300.0
     BOSS_APPROACH_SECONDS: float = 3.0
     BOSS_DURATION_SECONDS: float = 35.0
@@ -122,7 +123,7 @@ class DoomGame(Game):
         self.boss_approach_elapsed: float = 0.0
         self.boss_defeated: bool = False
         self.boss_hits: int = 0
-        self.use_old_boss = random.random() < (self.OLD_BOSS_SPAWN_PERCENT / 100.0)
+        self.use_boss_type2: bool = is_in_percent(self.OLD_BOSS_SPAWN_PERCENT)
 
     # -------------------------------------------------------------------------
     def update_game(self, dt: float, game_input: GameInput) -> None:
@@ -233,6 +234,7 @@ class DoomGame(Game):
                     and not self.enemies
                 ):
                     self._spawn_approaching_enemy()
+
                 elif self.enemies and self.phase_name == self.GamePhase.EXPLORE:
                     for enemy in self.enemies:
                         enemy.approach_progress = clamp_between(
@@ -278,9 +280,9 @@ class DoomGame(Game):
     # -------------------------------------------------------------------------
     def _spawn_approaching_enemy(self) -> None:
 
-        is_cyber: bool = random.random() < (self.CYBERDEMON_SPAWN_PERCENT / 100.0)
+        is_cyber: bool = is_in_percent(self.CYBERDEMON_SPAWN_PERCENT)
         is_armored: bool = random.choice((False, True))
-        lives = (
+        lives: int = (
             self.MONSTER_LIVES_CYBER
             if is_cyber
             else self.MONSTER_LIVES_PINKY

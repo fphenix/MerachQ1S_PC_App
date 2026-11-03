@@ -1,7 +1,6 @@
 """Jeu de tir automatique au pigeon."""
 
 from dataclasses import dataclass
-from enum import Enum
 
 import math
 import random

@@ -18,6 +18,7 @@ class SimonGame(Game):
     HUD_HEIGHT: int = 70
     DURATION_SECONDS: float = 240.0
 
+    PLAYBACK_REPEAT_COUNT: int = 3
     PLAYBACK_ON_SECONDS: float = 1.95
     PLAYBACK_GAP_SECONDS: float = 0.45
     INPUT_FLASH_SECONDS: float = 0.45
@@ -89,7 +90,8 @@ class SimonGame(Game):
 
         self._reset_cadence_candidate()
 
-        self.sequence.append(random.randrange(3))
+        new_pick = random.randrange(len(self.CADENCE_TARGETS))
+        self.sequence.append(new_pick)
         self.round_number = len(self.sequence)
         self.active_lane = self.sequence[0]
 
@@ -132,7 +134,7 @@ class SimonGame(Game):
             while self.playback_elapsed >= cycle and self.showing_sequence:
                 self.playback_elapsed -= cycle
                 self.playback_repeat_count += 1
-                if self.playback_repeat_count >= 3:
+                if self.playback_repeat_count >= self.PLAYBACK_REPEAT_COUNT:
                     self.playback_repeat_count = 0
                     self.playback_index += 1
                 if self.playback_index >= len(self.sequence):

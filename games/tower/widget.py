@@ -5,7 +5,7 @@ from PySide6.QtGui import QColor, QBrush, QPen, QPainter, QFont
 
 from setup.constants import GAME_FONT
 from setup.lang import get_text
-from setup.utils import clamp_to_min
+from setup.utils import clamp_to_min, clamp_to_max, clamp_between, clamp_to_zero
 
 from games.game import Game
 from games.game_painter import GamePainter   
@@ -30,7 +30,7 @@ class TowerWidget(GamePainter):
         painter.fillRect(QRectF(0, game.HUD_HEIGHT, 760, 630), QColor("#dce7e8"))
         camera_y = game.camera_offset_y
         ground_screen_y = game.GROUND_Y - camera_y
-        painter.fillRect(QRectF(0, ground_screen_y, 760, max(0.0, 700.0-ground_screen_y)), QColor("#c6b49b"))
+        painter.fillRect(QRectF(0, ground_screen_y, 760, clamp_to_zero(700.0-ground_screen_y)), QColor("#c6b49b"))
         painter.setPen(QPen(QColor("#9a8b78"), 2))
         for x in range(0, 760, 43):
             painter.drawLine(x, round(ground_screen_y + 2), x + 22, 700)
@@ -185,11 +185,15 @@ class TowerWidget(GamePainter):
 
         # Trois cibles de cadence : déplacement, maintien et dépôt.
         unit = get_text("SPM_UNIT")
+        # Gameplay B
         if isinstance(game, Tower2Game):
             painter.setPen(QPen(QColor("#9b6330")))
             painter.setFont(QFont(GAME_FONT, 9, QFont.Weight.Bold))
-            painter.drawText(QRectF(8.0, 120.0, 150.0, 18), Qt.AlignmentFlag.AlignLeft,
-                            f"{get_text("GAME_TOWER_PICK")} : {str(int(game.PICKUP_TARGET))} {unit}")
+            painter.drawText(
+                QRectF(8.0, 120.0, 150.0, 18),
+                Qt.AlignmentFlag.AlignLeft,
+                f"{get_text("GAME_TOWER_PICK")} : {str(int(game.PICKUP_TARGET))} {unit}"
+            )
             column_y = 82.0
             column_left = 90.0
             column_width = 160.0
@@ -208,13 +212,21 @@ class TowerWidget(GamePainter):
                 painter.drawRoundedRect(rect, 6, 6)
                 painter.setPen(QPen(QColor("#233746")))
                 painter.setFont(QFont(GAME_FONT, 11, QFont.Weight.Bold))
-                bonus = game.COLUMN_BONUSES[index]
-                painter.drawText(rect.adjusted(0, 2, 0, -20), Qt.AlignmentFlag.AlignCenter, f"{target} {unit}")
+                bonus = int(game.COLUMN_TARGETS[index] / 2)
+                painter.drawText(
+                    rect.adjusted(0, 2, 0, -20),
+                    Qt.AlignmentFlag.AlignCenter,
+                    f"{target} {unit}"
+                )
                 painter.setFont(QFont(GAME_FONT, 9, QFont.Weight.Bold))
-                painter.drawText(rect.adjusted(0, 23, 0, 0), Qt.AlignmentFlag.AlignCenter, f"+{bonus} pts/bloc")
+                painter.drawText(
+                    rect.adjusted(0, 23, 0, 0),
+                    Qt.AlignmentFlag.AlignCenter,
+                    f"+{bonus} pts/bloc"
+                )
             # Barre de stabilité visuelle, sans message textuel redondant.
             bar = QRectF(100.0, 140.0, 600.0, 12.0)
-            ratio = max(0.0, min(1.0, game.stability_elapsed / game.STABILITY_SECONDS))
+            ratio = clamp_between(game.stability_elapsed / game.STABILITY_SECONDS, 0.0, 1.0)
             painter.setPen(QPen(QColor("#233746"), 1))
             painter.setBrush(QBrush(QColor("#e8eef0")))
             painter.drawRoundedRect(bar, 4, 4)
@@ -222,28 +234,35 @@ class TowerWidget(GamePainter):
                 painter.setPen(Qt.PenStyle.NoPen)
                 painter.setBrush(QBrush(QColor("#35a879")))
                 painter.drawRoundedRect(QRectF(bar.x(), bar.y(), bar.width() * ratio, bar.height()), 4, 4)
+        # Gameplay A
         else:
-            # Trois cibles de cadence historiques : déplacement, maintien et dépôt.
+            # Trois cibles de cadence : déplacement, maintien et dépôt.
             move_color = QColor("#6377e8")
             hold_color = QColor("#299b83")
             drop_color = QColor("#f19730")
             pulse_y = beam_y + 88.0
             pulse_positions = (
-                (max(45.0, x - 145.0), game.MOVE_TARGET, move_color, game.BuildPhase.MOVE.value),
+                (clamp_to_min(x - 145.0, 45.0), game.MOVE_TARGET, move_color, game.BuildPhase.MOVE.value),
                 (x, game.HOLD_TARGET, hold_color, game.BuildPhase.HOLD.value),
-                (min(715.0, x + 145.0), game.DROP_TARGET, drop_color, game.BuildPhase.DROP.value),
+                (clamp_to_max(x + 145.0, 715.0), game.DROP_TARGET, drop_color, game.BuildPhase.DROP.value),
             )
             for pulse_x, target, color, state in pulse_positions:
                 self.PULSATOR.paint(painter, pulse_x, pulse_y, game.elapsed, target, color)
                 painter.setPen(QPen(color))
                 painter.setFont(QFont(GAME_FONT, 9, QFont.Weight.Bold))
-                painter.drawText(QRectF(pulse_x - 42, pulse_y - 38, 84, 20),
-                                Qt.AlignmentFlag.AlignCenter, f"{target:.0f} {unit}")
+                painter.drawText(
+                    QRectF(pulse_x - 42, pulse_y - 38, 84, 20),
+                    Qt.AlignmentFlag.AlignCenter,
+                    f"{target:.0f} {unit}"
+                )
                 painter.setPen(QPen(QColor("#233746")))
                 painter.setFont(QFont(GAME_FONT, 10, QFont.Weight.Bold))
                 state_text = get_text("GAME_TOWER_" + state)
-                painter.drawText(QRectF(pulse_x - 42, pulse_y + 24, 84, 20),
-                                Qt.AlignmentFlag.AlignCenter, f"{state_text}")
+                painter.drawText(
+                    QRectF(pulse_x - 42, pulse_y + 24, 84, 20),
+                    Qt.AlignmentFlag.AlignCenter,
+                    f"{state_text}"
+                )
 
             # L'état courant reste lisible même lorsque la cadence se situe entre cibles.
             state_color = {
@@ -267,14 +286,17 @@ class TowerWidget(GamePainter):
             painter.setPen(QPen(QColor("#233746"), 1))
             painter.setBrush(QBrush(QColor("#e8eef0")))
             painter.drawRoundedRect(QRectF(bar_x, bar_y, bar_w, bar_h), 4, 4)
-            charge_w = bar_w * max(0.0, min(1.0, game.drop_charge))
+            charge_w = bar_w * clamp_between(game.drop_charge, 0.0, 1.0)
             painter.setPen(Qt.PenStyle.NoPen)
             painter.setBrush(QBrush(QColor("#35a879" if game.drop_charge >= game.DROP_CHARGE_MIN else "#63d6e8")))
             if charge_w > 0:
                 painter.drawRoundedRect(QRectF(bar_x, bar_y, charge_w, bar_h), 4, 4)
             painter.setPen(QPen(QColor("#233746")))
             painter.setFont(QFont(GAME_FONT, 9, QFont.Weight.Bold))
-            painter.drawText(QRectF(bar_x - 20, bar_y + 14, bar_w + 40, 18), Qt.AlignmentFlag.AlignCenter,
-                            f"Charge : {game.drop_charge * 100:.0f}%")
+            painter.drawText(
+                QRectF(bar_x - 20, bar_y + 14, bar_w + 40, 18),
+                Qt.AlignmentFlag.AlignCenter,
+                f"{get_text("GAME_TOWER_MOVE")} : {game.drop_charge * 100:.0f}%"
+            )
 
         painter.restore()

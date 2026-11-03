@@ -4,7 +4,7 @@ import random
 from enum import Enum
 
 from setup.lang import get_text
-from setup.utils import is_within
+from setup.utils import is_within, is_in_percent
 
 from games.game import Game
 from games.game_input import GameInput, input_cadence
@@ -245,7 +245,8 @@ class RealFishingGame(Game):
     def _start_bite(self) -> None:
 
         self.current_fish = (
-            "golden" if random.random() < (self.GOLDEN_FISH_CHANCE / 100.0)
+            "golden"
+            if is_in_percent(self.GOLDEN_FISH_CHANCE)
             else random.choice(self.FISH_REGULAR_TYPES)
         )
         self.fishing_state = self.State.BITE

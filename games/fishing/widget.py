@@ -103,60 +103,60 @@ class FishingWidget(GamePainter):
         painter.restore()
 
     # -------------------------------------------------------------------------
-    def _draw_net(self, canvas: QPainter, game: Game) -> None:
+    def _draw_net(self, painter: QPainter, game: Game) -> None:
         
         net_x = game.NET_LEFT_MARGIN
         net_y = round(game.net_y)
-        canvas.setPen(QPen(QColor("#4b3527"), 5))
-        canvas.drawLine(
+        painter.setPen(QPen(QColor("#4b3527"), 5))
+        painter.drawLine(
             net_x + game.NET_WIDTH // 2, net_y + game.NET_HEIGHT - 4,
             net_x + game.NET_WIDTH // 2 - 3, net_y + game.NET_HEIGHT + 32
         )
-        canvas.setPen(QPen(QColor("#d7e7e8"), 3))
-        canvas.setBrush(QBrush(QColor(210, 237, 240, 65)))
-        canvas.drawRoundedRect(
+        painter.setPen(QPen(QColor("#d7e7e8"), 3))
+        painter.setBrush(QBrush(QColor(210, 237, 240, 65)))
+        painter.drawRoundedRect(
             net_x, net_y,
             game.NET_WIDTH, game.NET_HEIGHT,
             9, 9
         )
-        canvas.setPen(QPen(QColor("#8cb9c4"), 1))
+        painter.setPen(QPen(QColor("#8cb9c4"), 1))
         for mesh_x in range(net_x + 10, net_x + game.NET_WIDTH, 10):
-            canvas.drawLine(
+            painter.drawLine(
                 mesh_x, net_y + 4,
                 mesh_x, net_y + game.NET_HEIGHT - 4
             )
         for mesh_y in range(net_y + 10, net_y + game.NET_HEIGHT, 10):
-            canvas.drawLine(
+            painter.drawLine(
                 net_x + 4, mesh_y,
                 net_x + game.NET_WIDTH - 4, mesh_y
             )
 
     # -------------------------------------------------------------------------
-    def _draw_bug(self, canvas: QPainter, game: Game, insect: Insect) -> None:
+    def _draw_bug(self, painter: QPainter, game: Game, insect: Insect) -> None:
         """ Dessine une abeille, un papillon ou un frelon """
 
-        canvas.save()
+        painter.save()
 
         size = game.INSECTS_DATA[insect.kind]["pxsize"]
         cx = insect.x + size / 2
         cy = insect.y + size / 2
         scale = size / 30.0
 
-        canvas.translate(cx, cy)
+        painter.translate(cx, cy)
         hflip = -1
-        canvas.scale(hflip * scale, scale)
-        canvas.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.scale(hflip * scale, scale)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
 
         if insect.kind == "butterfly":
-            self._draw_butterfly(canvas)
+            self._draw_butterfly(painter)
         else:
             is_hornet = insect.kind == "hornet"
-            self._draw_bee(canvas, is_hornet)
+            self._draw_bee(painter, is_hornet)
 
-        canvas.restore()
+        painter.restore()
 
     # -------------------------------------------------------------------------
-    def _draw_bee(self, canvas: QPainter, is_hornet: bool) -> None:
+    def _draw_bee(self, painter: QPainter, is_hornet: bool) -> None:
             
         dark_color = QColor("#29252a")
         ant_color = QColor("#402010")
@@ -165,51 +165,51 @@ class FishingWidget(GamePainter):
         sting_color = QColor("#c64a2e")
 
         # Ailes
-        canvas.setPen(QPen(QColor("#688b94"), 1))
-        canvas.setBrush(QBrush(wing_color))
-        canvas.drawEllipse(-4, -18, 9, 14)
-        canvas.drawEllipse(0, -18, 9, 14)
+        painter.setPen(QPen(QColor("#688b94"), 1))
+        painter.setBrush(QBrush(wing_color))
+        painter.drawEllipse(-4, -18, 9, 14)
+        painter.drawEllipse(0, -18, 9, 14)
         # Corps
-        canvas.setPen(QPen(dark_color, 1.5))
-        canvas.setBrush(QBrush(body_color))
-        canvas.drawEllipse(-11, -5, 22, 12)
+        painter.setPen(QPen(dark_color, 1.5))
+        painter.setBrush(QBrush(body_color))
+        painter.drawEllipse(-11, -5, 22, 12)
         # Rayures
-        canvas.setPen(QPen(dark_color, 2.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
-        canvas.drawLine(-3, -4, -3, 6)
-        canvas.drawLine(3, -4, 3, 6)
+        painter.setPen(QPen(dark_color, 2.5, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+        painter.drawLine(-3, -4, -3, 6)
+        painter.drawLine(3, -4, 3, 6)
         # Antennas and Eye
-        canvas.setBrush(QBrush(ant_color))
-        canvas.drawEllipse(8, -4, 7, 7)
-        canvas.drawLine(13, -3, 17, -7)
-        canvas.drawLine(12, -4, 12, -8)
+        painter.setBrush(QBrush(ant_color))
+        painter.drawEllipse(8, -4, 7, 7)
+        painter.drawLine(13, -3, 17, -7)
+        painter.drawLine(12, -4, 12, -8)
         # Pattes
-        canvas.setPen(QPen(dark_color, 1.5))
-        canvas.drawLine(-5, 6, -8, 11)
-        canvas.drawLine(0, 7, 0, 11)
-        canvas.drawLine(4, 6, 7, 11)
+        painter.setPen(QPen(dark_color, 1.5))
+        painter.drawLine(-5, 6, -8, 11)
+        painter.drawLine(0, 7, 0, 11)
+        painter.drawLine(4, 6, 7, 11)
 
         # Stinger if Hornet
         if is_hornet:
-            canvas.setPen(QPen(sting_color, 2))
-            canvas.drawLine(-11, 2, -15, 3)
+            painter.setPen(QPen(sting_color, 2))
+            painter.drawLine(-11, 2, -15, 3)
 
     # -------------------------------------------------------------------------
-    def _draw_butterfly(self, canvas: QPainter) -> None:
+    def _draw_butterfly(self, painter: QPainter) -> None:
 
         # Deux paires d'ailes colorées et un corps fin.
-        canvas.setPen(QPen(QColor("#6c3b9c"), 1.5))
-        canvas.setBrush(QBrush(QColor("#d8a8ff"))) # ailes hautes
-        canvas.drawEllipse(-13, -10, 13, 14)
-        canvas.drawEllipse(1, -10, 13, 14)
-        canvas.setBrush(QBrush(QColor("#79d9e8"))) # ailes basses
-        canvas.drawEllipse(-14, 2, 14, 15)
-        canvas.drawEllipse(2, 2, 14, 15)
+        painter.setPen(QPen(QColor("#6c3b9c"), 1.5))
+        painter.setBrush(QBrush(QColor("#d8a8ff"))) # ailes hautes
+        painter.drawEllipse(-13, -10, 13, 14)
+        painter.drawEllipse(1, -10, 13, 14)
+        painter.setBrush(QBrush(QColor("#79d9e8"))) # ailes basses
+        painter.drawEllipse(-14, 2, 14, 15)
+        painter.drawEllipse(2, 2, 14, 15)
         # Corps allongé et tête
-        canvas.setPen(QPen(QColor("#51305f"), 1))
-        canvas.setBrush(QBrush(QColor("#49304f"))) # corps
-        canvas.drawEllipse(-2.5, -5, 5, 18)
-        canvas.setBrush(QBrush(QColor("#f4e8ff"))) # tête
-        canvas.drawEllipse(-3.5, -10, 7, 7)
-        canvas.setPen(QPen(QColor("#29252a"), 1.5)) # antennes
-        canvas.drawLine(-1, -8, -5, -13)
-        canvas.drawLine(1, -8, 5, -13)
+        painter.setPen(QPen(QColor("#51305f"), 1))
+        painter.setBrush(QBrush(QColor("#49304f"))) # corps
+        painter.drawEllipse(-2.5, -5, 5, 18)
+        painter.setBrush(QBrush(QColor("#f4e8ff"))) # tête
+        painter.drawEllipse(-3.5, -10, 7, 7)
+        painter.setPen(QPen(QColor("#29252a"), 1.5)) # antennes
+        painter.drawLine(-1, -8, -5, -13)
+        painter.drawLine(2, -8, 5, -13)

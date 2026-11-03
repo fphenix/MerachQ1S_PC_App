@@ -15,6 +15,8 @@ from games.score_config import (
 from games.doom.engine import DoomGame
 from games.real_fishing.engine import RealFishingGame
 
+HISCORE_TROPHIES: list[str] = ["🏆", "🥈", "🥉", "💐", "💐", "💐", "👍", "👍", "👍", "🌈"]
+
 # =============================================================================
 class HighScoreManager:
 

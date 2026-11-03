@@ -172,7 +172,7 @@ class SimonWidget(GamePainter):
         gap = 4.0
         max_columns = 34
         columns = min(len(sequence), max_columns)
-        rows = (len(sequence) + columns - 1) // columns
+        _rows = (len(sequence) + columns - 1) // columns
         available_width = game.WIDTH - 2 * margin
         tile = clamp_to_max((available_width - (columns - 1) * gap) / columns, 25.0)
         tile = clamp_to_min(tile, 10.0)

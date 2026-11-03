@@ -115,53 +115,53 @@ class PigeonWidget(GamePainter):
         painter.restore()
 
     # -------------------------------------------------------------------------
-    def _draw_bird(self, canvas: QPainter, game: Game, bird: Pigeon) -> None:
+    def _draw_bird(self, painter: QPainter, game: Game, bird: Pigeon) -> None:
 
-        canvas.save()
+        painter.save()
 
-        canvas.translate(bird.x + game.PIGEON_SIZE / 2, bird.y + game.PIGEON_SIZE / 2)
-        canvas.scale(float(bird.direction) * 2.0, 2.0)
-        canvas.setPen(QPen(QColor("#555555"), 1)) # outline body & head
-        canvas.setBrush(QBrush(QColor("#cfcfcf"))) # body
-        canvas.drawEllipse(-8, -4, 17, 11) # body
-        canvas.drawEllipse(-1, -10, 11, 10) # head
-        canvas.drawEllipse(5, -7, 2, 2) # eye
-        canvas.setPen(QPen(QColor("#e4a21d"), 2)) # beak
-        canvas.drawLine(9, -5, 14, -3) # beak (top)
-        canvas.drawLine(8, -4, 14, -3) # beak (bottom)
-        canvas.setPen(QPen(QColor("#666666"), 1)) # tail
-        canvas.drawLine(-8, 1, -11, -1) # tail
-        canvas.drawLine(-6, 3, -13, 6) # tail
-        canvas.drawLine(-11, -1, -13, 6) # tail
-        canvas.drawLine(-8, 2, -12, 2) # tail
-        canvas.setPen(QPen(QColor("#aaaaaa"), 4)) # wing
+        painter.translate(bird.x + game.PIGEON_SIZE / 2, bird.y + game.PIGEON_SIZE / 2)
+        painter.scale(float(bird.direction) * 2.0, 2.0)
+        painter.setPen(QPen(QColor("#555555"), 1)) # outline body & head
+        painter.setBrush(QBrush(QColor("#cfcfcf"))) # body
+        painter.drawEllipse(-8, -4, 17, 11) # body
+        painter.drawEllipse(-1, -10, 11, 10) # head
+        painter.drawEllipse(5, -7, 2, 2) # eye
+        painter.setPen(QPen(QColor("#e4a21d"), 2)) # beak
+        painter.drawLine(9, -5, 14, -3) # beak (top)
+        painter.drawLine(8, -4, 14, -3) # beak (bottom)
+        painter.setPen(QPen(QColor("#666666"), 1)) # tail
+        painter.drawLine(-8, 1, -11, -1) # tail
+        painter.drawLine(-6, 3, -13, 6) # tail
+        painter.drawLine(-11, -1, -13, 6) # tail
+        painter.drawLine(-8, 2, -12, 2) # tail
+        painter.setPen(QPen(QColor("#aaaaaa"), 4)) # wing
         wing_y = round(math.sin(bird.phase * 2) * 4)
-        canvas.drawLine(-1, 0, -11, wing_y - 7)
+        painter.drawLine(-1, 0, -11, wing_y - 7)
             
-        canvas.restore()
+        painter.restore()
 
     # -------------------------------------------------------------------------
-    def _draw_cage(self, canvas: QPainter, game: Game, cage_x: int, opens_right: bool) -> None:
+    def _draw_cage(self, painter: QPainter, game: Game, cage_x: int, opens_right: bool) -> None:
 
-        canvas.save()
+        painter.save()
 
         # Cage
         cage_color = QColor("#ee8d3e") if game.cages_open else QColor("#854f11")
-        canvas.setPen(QPen(cage_color, 4))
-        canvas.setBrush(Qt.BrushStyle.NoBrush)
+        painter.setPen(QPen(cage_color, 4))
+        painter.setBrush(Qt.BrushStyle.NoBrush)
         cage_y = game.HUD_HEIGHT + 15
-        canvas.drawRect(cage_x, cage_y, 60, 55)
+        painter.drawRect(cage_x, cage_y, 60, 55)
         
         # Bars
         for bar_x in range(cage_x + 10, cage_x + 60, 12):
-            canvas.drawLine(bar_x, cage_y, bar_x, cage_y + 55)
-            canvas.drawLine(bar_x + 1, cage_y, bar_x + 1, cage_y + 55)
+            painter.drawLine(bar_x, cage_y, bar_x, cage_y + 55)
+            painter.drawLine(bar_x + 1, cage_y, bar_x + 1, cage_y + 55)
 
         # Feet
-        canvas.setPen(QPen(QColor("#6d400c"), 5))
-        canvas.drawLine(cage_x + 15, cage_y + 55, cage_x, cage_y + 135)
-        canvas.drawLine(cage_x + 45, cage_y + 55, cage_x + 60, cage_y + 135)
-        canvas.drawLine(cage_x + 10, cage_y + 105, cage_x + 50, cage_y + 105)
+        painter.setPen(QPen(QColor("#6d400c"), 5))
+        painter.drawLine(cage_x + 15, cage_y + 55, cage_x, cage_y + 135)
+        painter.drawLine(cage_x + 45, cage_y + 55, cage_x + 60, cage_y + 135)
+        painter.drawLine(cage_x + 10, cage_y + 105, cage_x + 50, cage_y + 105)
 
         # Porte: elle s'ouvre vers la droite pour la cage gauche,
         # vers la gauche pour la cage droite.
@@ -169,22 +169,22 @@ class PigeonWidget(GamePainter):
             bottom_x = cage_x + 60 if opens_right else cage_x
             bottom_y = cage_y + 55
             outer_x = bottom_x + (50 if opens_right else -50)
-            canvas.drawLine(bottom_x, bottom_y, outer_x,bottom_y)
-            canvas.drawLine(outer_x, bottom_y, outer_x, bottom_y - 10)
+            painter.drawLine(bottom_x, bottom_y, outer_x,bottom_y)
+            painter.drawLine(outer_x, bottom_y, outer_x, bottom_y - 10)
 
-        canvas.restore()
+        painter.restore()
 
     # -------------------------------------------------------------------------
-    def _draw_cannon(self, canvas: QPainter, game: Game) -> None:
+    def _draw_cannon(self, painter: QPainter, game: Game) -> None:
 
-        canvas.save()
+        painter.save()
 
         gun_x = game.WIDTH / 2
         gun_y = game.HEIGHT - 82
-        canvas.setPen(QPen(QColor("#3B1D1D"), 5))
-        canvas.drawLine(round(gun_x), round(gun_y), round(gun_x), round(gun_y - 38))
-        canvas.setPen(QPen(QColor("#636363"), 2))
-        canvas.setBrush(QBrush(QColor("#555555")))
-        canvas.drawRect(round(gun_x - 23), round(gun_y - 8), 46, 22)
+        painter.setPen(QPen(QColor("#3B1D1D"), 5))
+        painter.drawLine(round(gun_x), round(gun_y), round(gun_x), round(gun_y - 38))
+        painter.setPen(QPen(QColor("#636363"), 2))
+        painter.setBrush(QBrush(QColor("#555555")))
+        painter.drawRect(round(gun_x - 23), round(gun_y - 8), 46, 22)
 
-        canvas.restore()
+        painter.restore()

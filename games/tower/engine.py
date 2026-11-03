@@ -231,7 +231,7 @@ class TowerGame(Game):
         t = (tangent_raw[0]/tl, tangent_raw[1]/tl)
         cta, ctb = self._cross(ra,t), self._cross(rb,t)
         denom_t = (1.0 + (1.0 if b else 0.0)) + cta*cta*ia + ctb*ctb*ib
-        jt = -(rv[0]*t[0]+rv[1]*t[1]) / denom_t
+        jt = -(rv[0]*t[0] + rv[1]*t[1]) / denom_t
         jt = clamp_between(jt, -self.FRICTION*j, self.FRICTION*j)
         fi = (t[0]*jt, t[1]*jt)
         a.vx -= fi[0]
@@ -400,7 +400,7 @@ class TowerGame(Game):
 
     # -------------------------------------------------------------------------
     def on_finished(self) -> None:
-        self.score=int(clamp_to_zero(self.max_height_px + self.bonus_score))
+        self.score = int(clamp_to_zero(self.max_height_px + self.bonus_score))
 
 
 # =============================================================================
@@ -419,26 +419,24 @@ class Tower2Game(TowerGame):
     PICKUP_MIN_CPM: float = 10.0
     PICKUP_TARGET: float = 18.0
     PICKUP_MAX_CPM: float = 19.0
+
     COLUMN_TARGETS: tuple[int, ...] = (20, 24, 28, 32)
     COLUMN_TOLERANCE: float = 2.0
-    STABILITY_SECONDS: float = 40.0
-    COLUMN_BONUSES: tuple[int, ...] = (0, 20, 40, 50)
+    STABILITY_SECONDS: float = 30.0
     COLUMN_X: tuple[float, ...] = (150.0, 325.0, 500.0, 660.0)
-
-    # Nombre de coups récents visé : interpolation de 11 à 16 échantillons
-    # entre 20 et 32 CPM, soit environ 80 % des coups attendus en 40 secondes.
-    @classmethod
-    def _sample_count_for_target(cls, target: float) -> int:
-        return int(round(11.0 + (target - 20.0) * (5.0 / 12.0)))
 
     # -------------------------------------------------------------------------
     def __init__(self) -> None:
+
         super().__init__()
+
         self.title = get_text("MENU_GAMES_TOWER_B")
 
     # -------------------------------------------------------------------------
     def reset(self) -> None:
+
         super().reset()
+
         self.column_index: int | None = None
         self.stability_elapsed: float = 0.0
         self.stability_samples: deque[float] = deque(maxlen=16)
@@ -447,38 +445,53 @@ class Tower2Game(TowerGame):
         self.cadence_state = self.BuildPhase.HOLD
 
     # -------------------------------------------------------------------------
+    # Nombre de coups récents visé : interpolation de 11 à 16 échantillons
+    # entre 20 et 32 CPM, soit environ 80 % des coups attendus en 40 secondes.
+    @classmethod
+    def _sample_count_for_target(cls, target: float) -> int:
+        return int(round(11.0 + (target - 20.0) * (5.0 / 12.0)))
+
+    # -------------------------------------------------------------------------
     @classmethod
     def _column_for_cadence(cls, cadence: float | None) -> int | None:
+
         if cadence is None:
             return None
+        
         candidates = [
             (abs(cadence - target), index)
             for index, target in enumerate(cls.COLUMN_TARGETS)
             if abs(cadence - target) <= cls.COLUMN_TOLERANCE
         ]
+        
         return min(candidates)[1] if candidates else None
 
     # -------------------------------------------------------------------------
     def _reset_stability(self, zone: int | None) -> None:
+
         self.stability_elapsed = 0.0
         self.stability_samples.clear()
         self._last_stability_zone = zone
 
     # -------------------------------------------------------------------------
     def _release_block(self) -> bool:
+
         if not self.carrying_block:
             return False
+        
         # Le moteur commun crée le bloc et consomme sa charge. La charge est
         # rendue suffisante ici : B utilise la durée de stabilité, pas la jauge A.
         self.drop_charge = 1.0
         released = super()._release_block()
         if released and self.column_index is not None:
-            self.bonus_score += self.COLUMN_BONUSES[self.column_index]
+            self.bonus_score += int(self.COLUMN_TARGETS[self.column_index] / 2)
             self.score = int(clamp_to_zero(self.max_height_px + self.bonus_score))
+        
         return released
 
     # -------------------------------------------------------------------------
     def update_game(self, dt: float, game_input: GameInput) -> None:
+
         cadence = input_cadence(game_input)
         self.current_spm = cadence
         new_stroke = bool(game_input.stroke_event and not self._stroke_event_latched)
@@ -536,7 +549,3 @@ class Tower2Game(TowerGame):
         self._update_crane_height()
         top_y = self.GROUND_Y - self.max_height_px
         self.camera_offset_y = clamp_to_max(top_y - 355.0, 0.0)
-
-    # -------------------------------------------------------------------------
-    def on_finished(self) -> None:
-        self.score = int(clamp_to_zero(self.max_height_px + self.bonus_score))

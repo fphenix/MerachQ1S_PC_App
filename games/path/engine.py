@@ -108,6 +108,7 @@ class PathGame(Game):
             item.distance -= self.SCROLL_SPEED * dt
         self.scenery = [item for item in self.scenery if item.distance > -180.0]
         farthest_scenery = max((item.distance for item in self.scenery), default=0.0)
+
         while farthest_scenery < 1700.0:
             farthest_scenery += random.uniform(150.0, 310.0)
             self._add_scenery(farthest_scenery)
