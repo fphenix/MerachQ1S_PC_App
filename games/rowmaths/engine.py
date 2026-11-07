@@ -21,7 +21,7 @@ class RowMathsGame(Game):
     HEIGHT: int = 700
     HUD_HEIGHT: int = 70
 
-    DURATION_SECONDS: float = 420.0
+    DURATION_SECONDS: float = 460.0
     NUMBER_MIN: int = 1
     NUMBER_MAX: int = 99                 # Peut être porté à 999.
     OPERATORS: tuple[str, ...] = ("+", "-", "x", "/")
@@ -202,8 +202,11 @@ class RowMathsGame(Game):
             return
 
         self.round_elapsed += dt
+
         if game_input.stroke_event and cadence is not None:
-            self.samples.append(cadence)
+            stroke_count = max(game_input.stroke_delta, 1)
+            for _ in range(stroke_count):
+                self.samples.append(cadence)
 
         round_duration = self.FLASH_SECONDS if self.flash_round else self.ROUND_SECONDS
         if self.round_elapsed >= round_duration:
